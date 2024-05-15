@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 
 // TOKEN RELATED
 
@@ -9,7 +10,6 @@ export const enum TokenType {
     integer = 'integer',
     float = 'float',
     string = 'string',
-    char = 'char',
     null = 'null',
     bool = 'bool',
     
@@ -125,6 +125,7 @@ export const specialChars:Record<string, TokenType> = {
 };
 //!> 
 export const unaryBuilders: Record<string, TokenType> = {
+    '*': TokenType.binaryOp,
     '<' : TokenType.less,
     '>' : TokenType.greater,
     '=' : TokenType.equals,
@@ -147,6 +148,7 @@ export const unaryChars: Record<string, TokenType> = {
     '+=': TokenType.plusEquals,
     '--': TokenType.minusMinus,
     '-=': TokenType.minusEquals,
+    '**': TokenType.binaryOp,
 };
 
 export const keywords: Record<string, TokenType> = {
@@ -184,6 +186,10 @@ export interface Position {
     end: number;
 };
 
+export const makePosition = (filename: string, line: number, start: number, end: number): Position => {
+    return { filename, line, end, start } as Position;
+};
+
 export class Error { 
     message: string;
     loc: Position;
@@ -209,8 +215,63 @@ export class SyntaxErr extends Error {
     }
 };
 
+export class ParserErr extends Error {
+    constructor(message: string, loc: Position, source: string) {
+        super(message, loc, source, 'ParserErr');
+    }
+};
+
 export class LexerErr extends Error {
     constructor(message: string, loc: Position, source: string) {
         super(message, loc, source, 'LexerError');
     }
+};
+
+// NODE TYPES
+
+export interface Program {
+    type: 'Program';
+    body: Statement[];
+    range: [number, number];
+};
+
+export interface Statement {
+    type: string;
+    body: Expression[];
+    range: [number, number];
+};
+
+export interface Expression {
+    type: string;
+    body: any[];
+    range: [number, number];
+};
+
+export interface BinaryExpression extends Expression {
+    type: 'BinaryExpression';
+    body: [
+        left: Node,
+        operator: string,
+        right: Node,
+        range: [number, number],
+    ];
+    range: [number, number],
+};
+
+export interface Node {
+    type: string;
+    value: string;
+    range: [number, number];
+};
+
+export interface Literal extends Node {
+    type: 'Literal';
+    value: string;
+    range: [number, number];
+};
+
+export interface EmptyStatement extends Statement {
+    type:'EmptyStatement';
+    body: [];
+    range: [number, number];
 };

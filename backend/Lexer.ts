@@ -1,6 +1,6 @@
 // deno-lint-ignore-file
 // deno-lint-ignore-file no-unused-vars
-import { TokenType, Token, Position, LexerErr, SyntaxErr, LETTERS, DIGITS, specialChars, keywords, unaryBuilders, unaryChars } from './shared.ts'
+import { TokenType, Token, makePosition, LexerErr, SyntaxErr, LETTERS, DIGITS, specialChars, keywords, unaryBuilders, unaryChars } from './shared.ts'
 
 
 export class Lexer {
@@ -28,15 +28,11 @@ export class Lexer {
         return { type, value, loc } as Token;
     };
 
-    makePosition = (filename: string, line: number, start: number, end: number): Position => {
-        return { filename, line, end, start } as Position;
-    };
-
     next = (): any => {
         if (this.listSource.length >= 1) {
             return this.listSource[1];
         };
-        return 'eof';
+        return TokenType.eof;
     };
 
     eat = (): any => {
@@ -65,18 +61,18 @@ export class Lexer {
                 if (this.listSource[0] == '=') {
                     unary += this.eat();
                     cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
 
                 // @ts-ignore
                 if (this.listSource[0] == '>') {
                     unary += this.eat();
                     cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
 
                 else {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
             }
 
@@ -88,10 +84,10 @@ export class Lexer {
                 if (this.listSource[0] == '=') {
                     unary += this.eat();
                     cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
                 else {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
             }
 
@@ -103,10 +99,10 @@ export class Lexer {
                 if (this.listSource[0] == '=') {
                     unary += this.eat();
                     cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
                 else {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
             }
             
@@ -118,20 +114,20 @@ export class Lexer {
                 if (this.listSource[0] == '=') {
                     unary += this.eat();
                     cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
 
                 else if (this.listSource[0] == '+') {
                     unary += this.eat();
                     cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
 
                 else {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 };
             }
-
+            
             else if (this.listSource[0] == '-') {
                 start = cur;
                 let unary = this.eat();
@@ -140,17 +136,17 @@ export class Lexer {
                 if (this.listSource[0] == '=') {
                     unary += this.eat();
                     cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
 
                 else if (this.listSource[0] == '-') {
                     unary += this.eat();
                     cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
 
                 else {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 };
             }
 
@@ -159,20 +155,35 @@ export class Lexer {
                 let unary = this.eat();
                 cur++;
 
-                tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
             }
             
+            else if (this.listSource[0] == '*') {
+                start = cur;
+                let unary = this.eat();
+                cur++;
+
+                if (this.listSource[0] != '*') {
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
+                }
+                else {
+                    unary += this.eat()
+                    cur++;
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
+                }
+            }
+
             else if (this.listSource[0] == '&') {
                 start = cur;
                 let unary = this.eat();
                 cur++;
 
                 if (this.listSource[0] != '&') {
-                    return new SyntaxErr(`Unknown logical expression or operator: '${unary}'`, this.makePosition(this.filename, line, start, cur), this.source);
+                    new SyntaxErr(`Unknown logical expression or operator: '${unary}'`, makePosition(this.filename, line, start, cur), this.source);
                 }
                 unary += this.eat()
                 cur++;
-                tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
             }
 
             else if (this.listSource[0] == '|') {
@@ -181,11 +192,11 @@ export class Lexer {
                 cur++;
 
                 if (this.listSource[0] != '|') {
-                    return new SyntaxErr(`Unknown logical expression or operator: '${unary}'`, this.makePosition(this.filename, line, start, cur), this.source);
+                    new SyntaxErr(`Unknown logical expression or operator: '${unary}'`, makePosition(this.filename, line, start, cur), this.source);
                 }
                 unary += this.eat()
                 cur++;
-                tokens.push(this.makeToken(this.specialChars[unary], unary, this.makePosition(this.filename, line, start, cur)));
+                tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
             }
 
             else if (DIGITS.includes(this.listSource[0])) {
@@ -200,17 +211,17 @@ export class Lexer {
                         cur++;
                         
                         if (this.listSource.length == 0) {
-                            return new LexerErr(`Expected a number token instead got '${this.eat()}'`, this.makePosition(this.filename, line, start, cur), this.source);
+                            new LexerErr(`Expected a number token instead got '${this.eat()}'`, makePosition(this.filename, line, start, cur), this.source);
                         };
 
                         if (this.listSource.length > 0 && !(DIGITS.includes(this.listSource[0]))) {
-                            return new LexerErr(`Expected a number token instead got '${this.eat()}'`, this.makePosition(this.filename, line, start, cur), this.source);
+                            new LexerErr(`Expected a number token instead got '${this.eat()}'`, makePosition(this.filename, line, start, cur), this.source);
                         };
                     }
                     
                     else if (this.listSource[0] == '.' && dot == true) {
                         cur++;
-                        return new LexerErr(`Unexpected token: ${this.eat()}`, this.makePosition(this.filename, line, start, cur), this.source)
+                        new LexerErr(`Unexpected token: ${this.eat()}`, makePosition(this.filename, line, start, cur), this.source)
                     }
                     else {
                         number += this.eat();
@@ -218,10 +229,10 @@ export class Lexer {
                     };
                 };
                 if (dot == true) {
-                    tokens.push(this.makeToken(TokenType.float, number, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(TokenType.float, number, makePosition(this.filename, line, start, cur)));
                 }
                 else {
-                    tokens.push(this.makeToken(TokenType.integer, number, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(TokenType.integer, number, makePosition(this.filename, line, start, cur)));
                 };
             }
 
@@ -235,10 +246,10 @@ export class Lexer {
                 };
 
                 if (identifier in this.keywords) { 
-                    tokens.push(this.makeToken(this.keywords[identifier], identifier, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(this.keywords[identifier], identifier, makePosition(this.filename, line, start, cur)));
                 }
                 else {
-                    tokens.push(this.makeToken(TokenType.identifier, identifier, this.makePosition(this.filename, line, start, cur)));
+                    tokens.push(this.makeToken(TokenType.identifier, identifier, makePosition(this.filename, line, start, cur)));
                 };
             }
 
@@ -252,28 +263,28 @@ export class Lexer {
                     cur++;
                 };
                 if (this.listSource[0] != '"') { 
-                    return new LexerErr('Undetermined string literal', this.makePosition(this.filename, line, start, cur), this.source);
+                    new LexerErr('Undetermined string literal', makePosition(this.filename, line, start, cur), this.source);
                 };
                 this.eat();
                 cur++;
-                tokens.push(this.makeToken(TokenType.string, string, this.makePosition(this.filename, line, start, cur)));
+                tokens.push(this.makeToken(TokenType.string, string, makePosition(this.filename, line, start, cur)));
             }
 
-            else if (this.listSource[0] == "'") {
+            else if (this.listSource[0] == '\'') {
                 start = cur;
                 this.eat();
                 cur++;
-                let char = '';
-                if (this.listSource.length > 0 && this.listSource[0] != "'") {
-                    char += this.eat()
+                let string = '';
+                while (this.listSource.length > 0 && this.listSource[0] != '\'') {
+                    string += this.eat()
                     cur++;
                 };
-                if (this.listSource[0] != "'") { 
-                    return new LexerErr('Undetermined char literal', this.makePosition(this.filename, line, start, cur), this.source);
+                if (this.listSource[0] != '\'') { 
+                    new LexerErr('Undetermined string literal', makePosition(this.filename, line, start, cur), this.source);
                 };
                 this.eat();
                 cur++;
-                tokens.push(this.makeToken(TokenType.char, char, this.makePosition(this.filename, line, start, cur)));
+                tokens.push(this.makeToken(TokenType.string, string, makePosition(this.filename, line, start, cur)));
             }
             
             else if (this.listSource[0] == ' ') { 
@@ -286,7 +297,7 @@ export class Lexer {
                 this.eat();
                 cur = 0;
                 line ++;
-                tokens.push(this.makeToken(TokenType.eol, '\\n', this.makePosition(this.filename, line, start, cur)))
+                tokens.push(this.makeToken(TokenType.eol, '\\n', makePosition(this.filename, line, start, cur)))
             }
             
             else if (this.listSource[0] == '\t') { 
@@ -298,16 +309,16 @@ export class Lexer {
                 start = cur
                 this.eat();
                 cur++;
-                tokens.push(this.makeToken(TokenType.eol, ';', this.makePosition(this.filename, line, start, cur)))
+                tokens.push(this.makeToken(TokenType.eol, ';', makePosition(this.filename, line, start, cur)))
             }
 
             else {
                 start = cur
                 cur++;
-                return new LexerErr(`Unknown token: ${this.listSource[0]}`, this.makePosition(this.filename, line, start, cur), this.source);
+                new LexerErr(`Unknown token: ${this.listSource[0]}`, makePosition(this.filename, line, start, cur), this.source);
             }
         };
-        tokens.push(this.makeToken(TokenType.eof, 'eof', this.makePosition(this.filename, line, start, cur)))
+        tokens.push(this.makeToken(TokenType.eof, 'eof', makePosition(this.filename, line, this.source.length, this.source.length+1)))
         return tokens;
     };
 }
