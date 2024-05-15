@@ -21,7 +21,6 @@ const main = () => {
         console.log(tokens);
         console.log('----------------------------------------------');
         console.log(ast);
-        console.log(ast.body[0].body)
         console.log('----------------------------------------------');
     };
 };
