@@ -10,7 +10,7 @@ Source code for the actual language side of things available at ./backend/ with 
 - [ ] ByteCode
 - [ ] Interpreter
 
-## Run using:
+## Run by:
 ```bash
 deno run main.ts
 ```
