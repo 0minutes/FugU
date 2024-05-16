@@ -1,6 +1,7 @@
 // deno-lint-ignore-file
 // deno-lint-ignore-file no-unused-vars
 import { Lexer } from './Lexer.ts';
+import { Identifier } from './shared.ts';
 import {
     Program,
     Statement,
@@ -9,15 +10,16 @@ import {
     Token,
     TokenType,
     SyntaxErr,
+    expected,
     makePosition,
     ExpressionStatement,
     EmptyStatement,
     BinaryExpression,
+    UnaryUpdateExpression,
     Literal,
+    unaryUpdaters,
 
-} from './shared.ts';
-
-  
+} from './shared.ts';   
 
 export class Parser {
     filename: string;
@@ -66,7 +68,7 @@ export class Parser {
     };
 
 
-    parseLiteralNode = (): Expression | Literal => {
+    parseLiteralNode = (prevToken?: TokenType): Expression | Literal => {
         let token = this.eat();
 
         switch (token.type) {
@@ -115,7 +117,7 @@ export class Parser {
                     new SyntaxErr('Expected an expression inside the parenthesis', makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
                 };
 
-                let value = this.parseAdditiveExpr();
+                let value = this.parseAdditiveExpr(TokenType.oparen);
 
                 if (this.at().type != TokenType.cparen) {
                     new SyntaxErr('Expected a closing parenthesis', makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
@@ -124,19 +126,64 @@ export class Parser {
                 return value;
             };
 
+            case TokenType.identifier: {
+                return {
+                    type: TokenType.identifier,
+                    value: token.value,
+                    range: [token.loc.start, token.loc.end]
+                } as Identifier;
+            };
+
             default: {
-                new SyntaxErr(`Unexpected token: '${token.value}'.`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
+                if (prevToken) {
+                    new SyntaxErr(`Unexpected ${token.type} token: '${token.value}'. Expected ${expected(prevToken)}`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
+                };
+
+                new SyntaxErr(`Unexpected ${token.type} token: '${token.value}'.`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
                 return {} as Literal; //Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
             };
         };
     };
+    
+    parseUnaryUpdateExpression = (prev?: TokenType): Literal | UnaryUpdateExpression | Expression => {
+        let token = this.at();
+        let lhs;
 
+        if (token.value in unaryUpdaters) {
+            let operator = this.eat();
+            let argument = this.parseLiteralNode(token.type);
+            lhs = {
+                type: 'UnaryUpdateExpression',
+                operator: operator.value,
+                prefix: true,
+                argument: argument,
+                range: [token.loc.start, argument.range[1]],
+            } as UnaryUpdateExpression;
+        }
+        else if (token.type == TokenType.identifier) {
+            let argument = this.parseLiteralNode(token.type);
+            let operator = this.eat();
+            lhs = {
+                type: 'UnaryUpdateExpression',
+                operator: operator.value,
+                prefix: false,
+                argument: argument,
+                range: [token.loc.start, argument.range[1]],
+            } as UnaryUpdateExpression;
+        }
 
-    parseUnaryExpr = (): Literal | BinaryExpression | Expression => {
-        let lhs = this.parseLiteralNode();
+        else {
+            lhs = this.parseLiteralNode(prev);
+        };
+
+        return lhs;
+    }
+
+    parseUnaryExpr = (prev?: TokenType): Literal | BinaryExpression | Expression => {
+        let lhs = this.parseUnaryUpdateExpression(prev);
         while (this.at().value in unaryOperators) {
             let operator = this.eat();
-            let rhs = this.parseLiteralNode();
+            let rhs = this.parseUnaryUpdateExpression(operator.type);
             lhs = {
                 type: 'BinaryExpression',
                 left: lhs,
@@ -149,11 +196,11 @@ export class Parser {
         return lhs;
     };
 
-    parseMultiplicationExpr = (): Literal | BinaryExpression | Expression => {
-        let lhs = this.parseUnaryExpr();
+    parseMultiplicationExpr = (prev?: TokenType): Literal | BinaryExpression | Expression => {
+        let lhs = this.parseUnaryExpr(prev);
         while ('*/%'.includes(this.at().value)) {
             let operator = this.eat();
-            let rhs = this.parseUnaryExpr();
+            let rhs = this.parseUnaryExpr(operator.type);
             lhs = {
                 type: 'BinaryExpression',
                 left: lhs,
@@ -165,11 +212,11 @@ export class Parser {
         return lhs;
     }
 
-    parseAdditiveExpr = (): Literal | BinaryExpression | Expression => {
-        let lhs = this.parseMultiplicationExpr();
+    parseAdditiveExpr = (prev?: TokenType): Literal | BinaryExpression | Expression => {
+        let lhs = this.parseMultiplicationExpr(prev);
         while ('+-'.includes(this.at().value)) {
             let operator = this.eat();
-            let rhs = this.parseMultiplicationExpr();
+            let rhs = this.parseMultiplicationExpr(operator.type);
             lhs = {
                 type: 'BinaryExpression',
                 left: lhs,
@@ -221,7 +268,6 @@ export class Parser {
 
                 break;
             }
-
             default : {
                 Stmt = {
                     type: 'ExpressionStatement',
