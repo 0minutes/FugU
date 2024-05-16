@@ -8,7 +8,7 @@
                     "type": "BinaryExpression",
                     "left": {
                         "type": "integer",
-                        "value": 1                        
+                        "value": 1,                        
                         "range": [
                             0,
                             1
