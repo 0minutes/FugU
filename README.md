@@ -6,21 +6,19 @@ The source code for various components of the language can be found in the `./ba
 
 ## Project Structure
 
-- `./backend/Lexer.ts` - Contains the lexer implementation.
-- `./backend/shared.ts` - Defines the Abstract Syntax Tree (AST) structures.
-- `./backend/Parser.ts` - Houses the parser code, currently a work in progress.
+- [`./backend/Lexer.ts`](./backend/Lexer.ts) - Contains the lexer implementation.
+- [`./backend/shared.ts`](./backend/shared.ts) - Defines the Abstract Syntax Tree (AST) structures.
+- [`./backend/Parser.ts`](./backend/Parser.ts) - Houses the parser code, currently a work in progress.
 - Additional files for ByteCode and Interpreter will be added as the project progresses.
 
-## Other
-
-- `./main.ts` - Contains the shell code which allows the language to be run in the console
-- `./ast.json` - Contains the AST tree im able to produce as of now.
+- [`./main.ts`](./main.ts) - Contains the shell code which allows the language to be run in the console.
+- [`./ast.json`](./ast.json) - Contains the AST tree I'm able to produce as of now.
 
 ## Progress
 
 - [x] **Lexer** - Completed ([source](./backend/Lexer.ts))
 - [x] **AST (Abstract Syntax Tree)** - Completed ([source](./backend/shared.ts))
-- [x] **Parser** - Completed and is able to parse Expressions and Numbers etc...([source](./backend/Parser.ts))
+- [x] **Parser** - Completed and is able to parse Expressions and Numbers etc... ([source](./backend/Parser.ts))
 - [ ] **ByteCode** - Not started
 - [ ] **Interpreter** - Not started
 
