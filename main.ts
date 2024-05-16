@@ -3,18 +3,20 @@
 import { Lexer } from './backend/Lexer.ts';
 import { Parser } from './backend/Parser.ts';
 
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
+const HOT = 'Parser';
 
 const main = () => {
+    console.log(`HOT: ${HOT}!`);
     console.log(`FugU language v${VERSION} type '.exit' to exit!`);
     
     while (true) { 
         
-        let userinput = prompt('>') as string;
+        let userinput = String(prompt('>'));
         let lexer: Lexer = new Lexer(userinput, 'shell');
         let parser: Parser = new Parser(userinput, 'shell');
         if (userinput === '.exit') {
-            Deno.exit()
+            Deno.exit(0);
         };
         let tokens: any = lexer.tokenize();
         let ast = parser.parse();

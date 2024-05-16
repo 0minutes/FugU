@@ -1,7 +1,19 @@
 // deno-lint-ignore-file
 // deno-lint-ignore-file no-unused-vars
-import { TokenType, Token, makePosition, LexerErr, SyntaxErr, LETTERS, DIGITS, specialChars, keywords, unaryBuilders, unaryChars } from './shared.ts'
-
+import {
+    TokenType,
+    Token,
+    makePosition,
+    LexerErr,
+    SyntaxErr,
+    LETTERS,
+    DIGITS,
+    specialChars,
+    keywords,
+    unaryBuilders,
+    unaryChars,
+  } from './shared.ts';
+  
 
 export class Lexer {
     source: string;
@@ -39,7 +51,7 @@ export class Lexer {
         if (this.listSource.length > 0) {
             return this.listSource.shift();
         } else {
-            return 'eof';
+            return '<eof>';
         };
         
     };
@@ -149,14 +161,6 @@ export class Lexer {
                     tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 };
             }
-
-            else if (this.listSource[0] in this.specialChars) {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-
-                tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-            }
             
             else if (this.listSource[0] == '*') {
                 start = cur;
@@ -171,6 +175,13 @@ export class Lexer {
                     cur++;
                     tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
+            }
+            else if (this.listSource[0] in this.specialChars) {
+                start = cur;
+                let unary = this.eat();
+                cur++;
+
+                tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
             }
 
             else if (this.listSource[0] == '&') {
@@ -318,7 +329,7 @@ export class Lexer {
                 new LexerErr(`Unknown token: ${this.listSource[0]}`, makePosition(this.filename, line, start, cur), this.source);
             }
         };
-        tokens.push(this.makeToken(TokenType.eof, 'eof', makePosition(this.filename, line, this.source.length, this.source.length+1)))
+        tokens.push(this.makeToken(TokenType.eof, '<eof>', makePosition(this.filename, line, this.source.length, this.source.length+1)))
         return tokens;
     };
 }

@@ -1,0 +1,34 @@
+{
+    "type": "Program",
+    "body": [
+        {
+            "type": "ExpressionStatement", 
+            "body": [
+                {
+                    "type": "BinaryExpression",
+                    "left": {
+                        "type": "integer",
+                        "value": 1
+                    },
+                    "operator": "+",
+                    "right": {
+                        "type": "integer",
+                        "value": 2
+                    },
+                    "range": [
+                        0,
+                        3
+                    ]
+                }
+            ],
+            "range": [
+                0,
+                3
+            ]
+        }
+    ],
+    "range": [
+        0,
+        4
+    ]
+}

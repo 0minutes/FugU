@@ -1,7 +1,23 @@
 // deno-lint-ignore-file
 // deno-lint-ignore-file no-unused-vars
-import { Program, Statement, Expression, Node, Literal, EmptyStatement, Token, TokenType, SyntaxErr, ParserErr, makePosition, unaryChars, unaryBuilders} from './shared.ts';
 import { Lexer } from './Lexer.ts';
+import {
+    Program,
+    Statement,
+    Expression,
+    unaryOperators,
+    Token,
+    TokenType,
+    SyntaxErr,
+    makePosition,
+    ExpressionStatement,
+    EmptyStatement,
+    BinaryExpression,
+    Literal,
+
+} from './shared.ts';
+
+  
 
 export class Parser {
     filename: string;
@@ -47,134 +63,195 @@ export class Parser {
         } else {
             return TokenType.eof;
         };
-        
     };
 
 
-    parseNode = (): Node | Expression => {
+    parseLiteralNode = (): Expression | Literal => {
         let token = this.eat();
 
         switch (token.type) {
-            case TokenType.integer:
+            case TokenType.integer: {
                 return {
-                    type: 'integer',
+                    type: TokenType.integer,
                     value: token.value,
                     range: [token.loc.start, token.loc.end]
-                } as Node;
+                } as Literal;
+            };
 
-                case TokenType.float:
-                    return {
-                        type: 'float',
-                        value: token.value,
-                        range: [token.loc.start, token.loc.end]
-                    } as Node;
-
-            case TokenType.string:
+            case TokenType.float: {
                 return {
-                    type: 'string',
+                    type: TokenType.float,
                     value: token.value,
                     range: [token.loc.start, token.loc.end]
-                } as Node;
+                } as Literal;
+            }
 
-            case TokenType.bool:
+            case TokenType.string: {
                 return {
-                    type: 'boolean',
+                    type: TokenType.string,
                     value: token.value,
                     range: [token.loc.start, token.loc.end]
-                } as Node;
+                } as Literal;
+            };
 
-            case TokenType.oparen:
+            case TokenType.bool: {
+                return {
+                    type: TokenType.bool,
+                    value: token.value,
+                    range: [token.loc.start, token.loc.end]
+                } as Literal;
+            };
+
+            case TokenType.null: {
+                return {
+                    type: TokenType.null,
+                    value: token.value,
+                    range: [token.loc.start, token.loc.end]
+                } as Literal;
+            };
+
+            case TokenType.oparen: {
                 if (this.at().type == TokenType.cparen) {
                     new SyntaxErr('Expected an expression inside the parenthesis', makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
                 };
 
-                let value = this.parseExpression();
+                let value = this.parseAdditiveExpr();
 
                 if (this.at().type != TokenType.cparen) {
                     new SyntaxErr('Expected a closing parenthesis', makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
                 };
                 this.eat();
                 return value;
-
-            default:
-                console.log(token)
-                new SyntaxErr(`Unexpected token: '${token.value}'.`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
-                return {} as Node; //Lie to compiler since it's asking for me to return Node but it exits if node isn't recognized
             };
+
+            default: {
+                new SyntaxErr(`Unexpected token: '${token.value}'.`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
+                return {} as Literal; //Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
+            };
+        };
     };
 
-    parseBinaryExpr = (): Expression => {
-        let lhs = this.parseNode();
+
+    parseUnaryExpr = (): Literal | BinaryExpression | Expression => {
+        let lhs = this.parseLiteralNode();
+        while (this.at().value in unaryOperators) {
+            let operator = this.eat();
+            let rhs = this.parseLiteralNode();
+            lhs = {
+                type: 'BinaryExpression',
+                left: lhs,
+                operator: operator.value,
+                right: rhs,
+                range: [lhs.range[0], rhs.range[1]],
+
+            } as BinaryExpression;
+        };
+        return lhs;
+    };
+
+    parseMultiplicationExpr = (): Literal | BinaryExpression | Expression => {
+        let lhs = this.parseUnaryExpr();
+        while ('*/%'.includes(this.at().value)) {
+            let operator = this.eat();
+            let rhs = this.parseUnaryExpr();
+            lhs = {
+                type: 'BinaryExpression',
+                left: lhs,
+                operator: operator.value,
+                right: rhs,
+                range: [lhs.range[0], rhs.range[1]],
+            } as BinaryExpression;
+        };
+        return lhs;
+    }
+
+    parseAdditiveExpr = (): Literal | BinaryExpression | Expression => {
+        let lhs = this.parseMultiplicationExpr();
+        while ('+-'.includes(this.at().value)) {
+            let operator = this.eat();
+            let rhs = this.parseMultiplicationExpr();
+            lhs = {
+                type: 'BinaryExpression',
+                left: lhs,
+                operator: operator.value,
+                right: rhs,
+                range: [lhs.range[0], rhs.range[1]],
+            } as BinaryExpression;
+        };
         return lhs;
     };
 
     parseExpression = (): Expression => {
-        let Expr: Expression = {
-            type: 'Expression',
-            body: [],
-            range: [0,0],
-        }
+        let Expr = {} as Expression;
+        let token = this.at();
         
-        switch (this.at().type) {
-            default:
-                Expr.body.push(this.parseBinaryExpr());
-        }
-        
-        Expr.range = [Expr.body[0].range[0], Expr.body[Expr.body.length-1].range[1]];
+        switch (token.type) {
+            default: {
+                Expr = this.parseAdditiveExpr();
+                break;
+            };
+        };
 
-        return Expr;
+        if (this.at().type == TokenType.eof) {
+            return Expr;
+        }
+    
+        else if (this.at().type == TokenType.eol) {
+            this.eat();
+            return Expr;
+        }
+        else {
+            new SyntaxErr(`Expected an <eol> or <eof> but got: '${this.at().value}'`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+        };
+        return Expr; // Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
     };
 
     parseStatement = (): Statement => {
-        let Stmt: Statement = {
-            type: 'Statement',
-            body: [],
-            range: [0,0],
-        }
+        let Stmt = {} as Statement;
+        let token = this.at();
 
-        while (!this.eol()) {
-            Stmt.body.push(this.parseExpression());
+        switch (token.type) {
+            case TokenType.eol: {
+                Stmt = {
+                    type: 'EmptyStatement',
+                    range: [token.loc.start, this.at().loc.end],
+                } as EmptyStatement;
+                
+                this.eat();
+
+                break;
+            }
+
+            default : {
+                Stmt = {
+                    type: 'ExpressionStatement',
+                    body: [this.parseExpression()],
+                    range: [0,0]
+                } as ExpressionStatement;
+                
+                Stmt.range = [token.loc.start, Stmt.body[Stmt.body.length-1].range[1]];
+                
+                break;
+            };
         };
 
-        if (this.eol() && Stmt.body.length == 0) {
-            let token = this.eat();
-            return {
-                type: 'EmptyStatement',
-                body : [],
-                range: [token.loc.start, token.loc.end]
-            } as EmptyStatement;
-        }
-        else {
-            this.eat();
-        };
 
-        Stmt.range = [Stmt.body[0].range[0], Stmt.body[Stmt.body.length-1].range[1]];
 
-        return Stmt;
+        return Stmt
     };
 
     parse = (): Program => {
         let program: Program = {
             type: 'Program',
             body: [],
-            range: [0, this.source.length],
-        }
-
-        if (this.eof()) {
-            let token = this.eat();
-            return {
-                type: 'Program',
-                body: [],
-                range: [token.loc.start, token.loc.end],
-            } as Program;
-        }
+            range: [0, 0],
+        } as Program;
 
         while (!this.eof()) {
             program.body.push(this.parseStatement());
         };
-        
-        program.range = [program.body[0].range[0], program.body[program.body.length-1].range[1]];
-        
-        return program;
+
+        program.range = [0, this.source.length];
+        return program
     };
 };
