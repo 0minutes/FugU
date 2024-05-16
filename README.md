@@ -8,8 +8,13 @@ The source code for various components of the language can be found in the `./ba
 
 - `./backend/Lexer.ts` - Contains the lexer implementation.
 - `./backend/shared.ts` - Defines the Abstract Syntax Tree (AST) structures.
-- `./backend/Parser.ts` - Houses all the globa lvariabels that the Parser, Lexer and other classes/functions will use in the future.
+- `./backend/Parser.ts` - Houses the parser code, currently a work in progress.
 - Additional files for ByteCode and Interpreter will be added as the project progresses.
+
+## Other
+
+- `./main.ts` - Contains the shell code which allows the language to be run in the console
+- `./ast.json` - Contains the AST tree im able to produce as of now.
 
 ## Progress
 
