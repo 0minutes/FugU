@@ -6,7 +6,7 @@ Source code for the actual language side of things available at ./backend/ with 
 ## Progress
 - [x] Lexer (./backend/Lexer.ts)
 - [x] Ast (./backend/shared.ts)
-- [ ] Parser (./backend/Parser.ts) Started not finished
+- [x] Parser (./backend/Parser.ts) Started not finished
 - [ ] ByteCode
 - [ ] Interpreter
 
