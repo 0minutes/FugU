@@ -3,6 +3,8 @@
 import { Lexer } from './backend/Lexer.ts';
 import { Parser } from './backend/Parser.ts';
 
+
+
 const VERSION = '1.2.0';
 const HOT = 'Parser';
 
@@ -12,7 +14,8 @@ const main = () => {
     
     while (true) { 
         
-        let userinput = String(prompt('>'));
+        let userinput = String(prompt('> '));
+        console.log(userinput);
         let lexer: Lexer = new Lexer(userinput, 'shell');
         let parser: Parser = new Parser(userinput, 'shell');
         if (userinput === '.exit') {

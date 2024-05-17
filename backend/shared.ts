@@ -11,11 +11,9 @@ export const enum TokenType {
     null = '<null>',
     bool = '<bool>',
     
-    //Variable Assignment 
     let = '<let>',
     const = '<const>',
 
-    // Control Flow
     if = '<if>',
     elif = '<elif>',
     else = '<else>',
@@ -23,28 +21,22 @@ export const enum TokenType {
     case = '<case>',
     default = '<default>',
     
-    // Loops
     while = '<while>',
     for = '<for>',
     in = '<in>',
+    break = '<break>',
     
-    // Functions and objects
     proc = '<proc>',
     class = '<class>',
     new = '<new>',
     
-    // Module
     from = '<from>',
     import = '<import>',
 
-    // Other (builtins)
     return = '<return>',
     print = '<print>',
     input = '<input>',
     typeof = '<typeof>',
-
-
-    // Operators and logical expressions
 
     binaryOp = '<binaryOp>',
 
@@ -223,7 +215,7 @@ export const specialChars:Record<string, TokenType> = {
     '--': TokenType.minusMinus,
     '-=': TokenType.minusEquals,
 };
-//!> 
+
 export const unaryBuilders: Record<string, TokenType> = {
     '*': TokenType.binaryOp,
     '<' : TokenType.less,
@@ -424,3 +416,4 @@ export interface Identifier extends Node {
     value: string;
     range: number[];
 };
+

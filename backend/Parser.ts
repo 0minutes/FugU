@@ -147,37 +147,44 @@ export class Parser {
     
     parseUnaryUpdateExpression = (prev?: TokenType): Literal | UnaryUpdateExpression | Expression => {
         let token = this.at();
-        let lhs;
+        let lhs; //lie to compiler since it's asking for me to return Expression even if i do it
 
         if (token.value in unaryUpdaters) {
             let operator = this.eat();
-            let argument = this.parseLiteralNode(token.type);
+            let lhs = this.parseLiteralNode(operator.type);
             lhs = {
                 type: 'UnaryUpdateExpression',
                 operator: operator.value,
                 prefix: true,
-                argument: argument,
-                range: [token.loc.start, argument.range[1]],
+                argument: lhs,
+                range: [token.loc.start, lhs.range[1]],
             } as UnaryUpdateExpression;
+            
+            return lhs;
         }
+
         else if (token.type == TokenType.identifier) {
-            let argument = this.parseLiteralNode(token.type);
-            let operator = this.eat();
-            lhs = {
-                type: 'UnaryUpdateExpression',
-                operator: operator.value,
-                prefix: false,
-                argument: argument,
-                range: [token.loc.start, argument.range[1]],
-            } as UnaryUpdateExpression;
+            let lhs = this.parseLiteralNode(token.type);
+            if (this.at().value in unaryUpdaters) {
+                let operator = this.eat();
+                
+                lhs = {
+                    type: 'UnaryUpdateExpression',
+                    operator: operator.value,
+                    prefix: false,
+                    argument: lhs,
+                    range: [token.loc.start, lhs.range[1]],
+                } as UnaryUpdateExpression;
+            };
+            
+            return lhs;
         }
 
         else {
             lhs = this.parseLiteralNode(prev);
+            return lhs;
         };
-
-        return lhs;
-    }
+    };
 
     parseUnaryExpr = (prev?: TokenType): Literal | BinaryExpression | Expression => {
         let lhs = this.parseUnaryUpdateExpression(prev);
@@ -248,7 +255,7 @@ export class Parser {
             return Expr;
         }
         else {
-            new SyntaxErr(`Expected an <eol> or <eof> but got: '${this.at().value}'`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+            new SyntaxErr(`Expected an ${TokenType.eol} or ${TokenType.eol} but got: '${this.at().value}'`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
         };
         return Expr; // Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
     };
@@ -274,7 +281,7 @@ export class Parser {
                     body: [this.parseExpression()],
                     range: [0,0]
                 } as ExpressionStatement;
-                
+
                 Stmt.range = [token.loc.start, Stmt.body[Stmt.body.length-1].range[1]];
                 
                 break;
