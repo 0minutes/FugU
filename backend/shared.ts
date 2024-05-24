@@ -4,15 +4,15 @@ export const DIGITS = '0123456789';
 export const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 export const enum TokenType {
-    identifier = '<identifier>',
-    integer = '<integer>',
-    float = '<float>',
-    string = '<string>',
-    null = '<null>',
-    bool = '<bool>',
+    identifier = '<Identifier>',
+    integer = '<Integer>',
+    float = '<Float>',
+    string = '<String>',
+    null = '<Null>',
+    bool = '<Boolean>',
     
-    let = '<let>',
-    const = '<const>',
+    let = '<AssignmentLet>',
+    const = '<AssignmentConst>',
 
     if = '<if>',
     elif = '<elif>',
@@ -31,7 +31,7 @@ export const enum TokenType {
     new = '<new>',
     
     from = '<from>',
-    import = '<import>',
+    include = '<include>',
 
     return = '<return>',
     print = '<print>',
@@ -47,10 +47,10 @@ export const enum TokenType {
     and = '<and>',
     or = '<or>',
 
-    less = '<less>',
-    lessEquals = '<lessEquals>',
-    greater = '<greater>',
-    greaterEquals = '<greaterEquals>',
+    less = '<lessThan>',
+    lessEquals = '<lessOrEquals>',
+    greater = '<greaterThan>',
+    greaterEquals = '<greaterOrEquals>',
 
     equals = '<equals>',
     plusPlus = '<plusPlus>',
@@ -58,21 +58,21 @@ export const enum TokenType {
     plusEquals = '<plusEquals>',
     minusEquals = '<minusEquals>',
 
-    oparen = '<oparen>',
-    cparen = '<cparen>',
+    oparen = '<openParenthesis>',
+    cparen = '<closeParenthesis>',
 
-    ocurly = '<ocurly>',
-    ccurly = '<ccurly>',
+    ocurly = '<openCurlyParenthesis>',
+    ccurly = '<closeCurlyParenthesis>',
 
-    osquare = '<osquare>',
-    csquare = '<csquare>',
+    osquare = '<openSquareParenthesis>',
+    csquare = '<closeSquareParenthesis>',
 
     dot = '<dot>',
     comma = '<comma>',
     colon = '<colon>',
 
-    eol = '<eol>',
-    eof = '<eof>',
+    eol = '<endOfLine>',
+    eof = '<endOfFile>',
 };
 
 export const expected = (prev: TokenType): string => {
@@ -114,7 +114,7 @@ export const expected = (prev: TokenType): string => {
 
         case TokenType.from:
             return 'a module name';
-        case TokenType.import:
+        case TokenType.include:
             return 'a module or identifier';
 
         case TokenType.return:
@@ -277,7 +277,7 @@ export const keywords: Record<string, TokenType> = {
     'new': TokenType.new,
 
     'from': TokenType.from,
-    'import': TokenType.import,
+    'include': TokenType.include,
 
     'proc': TokenType.proc,
 
@@ -310,6 +310,29 @@ export const makePosition = (filename: string, line: number, start: number, end:
     return { filename, line, end, start } as Position;
 };
 
+export class Warning { 
+    message: string;
+    loc: Position;
+    source: string;
+    
+    constructor(message: string, loc: Position, source: string, public type: string = 'Uncaught Warning'){
+
+        this.message = message;
+        this.loc = loc;
+        this.source = source;
+
+        console.log(this.source);
+        console.log(' '.repeat(this.loc.start)+'^'.repeat(this.loc.end-this.loc.start));
+        console.log(`${this.loc.filename}:${this.loc.line}:${this.loc.end}: ${this.type}: ${message}`);
+    };
+};
+
+export class EmptyStatementWarning extends Warning {
+    constructor(message: string, loc: Position, source: string) {
+        super(message, loc, source, 'Empty Statement Warning');
+    }
+};
+
 export class Error { 
     message: string;
     loc: Position;
@@ -326,7 +349,6 @@ export class Error {
         console.error(`${this.loc.filename}:${this.loc.line}:${this.loc.end}: ${this.type}: ${message}`);
         Deno.exit(1);
     };
-
 };
 
 export class SyntaxErr extends Error {
@@ -349,8 +371,17 @@ export class LexerErr extends Error {
 
 // NODE TYPES
 
+export const enum NodeType {
+    Program = 'Program',
+    ExpressionStatement = 'ExpressionStatement',
+    EmptyStatement = 'EmptyStatement',
+    BinaryExpression = 'BinaryExpression',
+    UnaryUpdateExpression = 'UnaryUpdateExpression',
+    EndStatement = 'EndStatement'
+}
+
 export interface Program {
-    type: 'Program';
+    type: NodeType;
     body: Statement[];
     range: number[];
 };
@@ -358,19 +389,24 @@ export interface Program {
 // STATEMENTS
 
 export interface Statement {
-    type: string;
+    type: NodeType;
     body: Expression[];
     range: number[];
 };
 
+export interface EndStatement extends Statement {
+    type: NodeType;
+    range: number[];
+}
+
 export interface ExpressionStatement extends Statement {
-    type: 'ExpressionStatement';
+    type: NodeType;
     body: Expression[];
     range: number[];
 };
 
 export interface EmptyStatement extends Statement {
-    type: 'EmptyStatement',
+    type: NodeType,
     range: number[],
 }
 
@@ -401,19 +437,21 @@ export interface UnaryUpdateExpression extends Expression {
 
 export interface Node {
     type: string;
-    value: string;
+    value: string | number | boolean | null;
     range: number[];
 };
 
 export interface Literal extends Node {
-    type: TokenType;
-    value: string;
+    type: 'Literal';
+    runtimeValue: 'Literal' | 'NullLiteral' | 'BoolLiteral' | 'NumberLiteral' | 'FloatLiteral' | 'StringLiteral';
+    value: string | number | boolean | null;
     range: number[];
 };
 
 export interface Identifier extends Node {
-    type: TokenType.identifier;
+    type: 'Identifier';
     value: string;
     range: number[];
 };
 
+// RUNTIME RELATED

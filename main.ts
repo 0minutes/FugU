@@ -14,15 +14,14 @@ const main = () => {
     
     while (true) { 
         
-        let userinput = String(prompt('> '));
-        console.log(userinput);
+        let userinput = String(prompt('>'));
         let lexer: Lexer = new Lexer(userinput, 'shell');
         let parser: Parser = new Parser(userinput, 'shell');
         if (userinput === '.exit') {
             Deno.exit(0);
         };
         let tokens: any = lexer.tokenize();
-        let ast = parser.parse();
+        let ast = parser.generateAst();
         console.log(tokens);
         console.log('----------------------------------------------');
         console.log(ast);

@@ -26,11 +26,7 @@ export class Lexer {
     unaryChars: Record<string, TokenType> = unaryChars;
 
     constructor(source: string, filename?: string) {
-        if (filename === undefined) {
-            this.filename = 'shell';
-        } else {
-            this.filename = filename;
-        };
+        this.filename = filename == undefined ? 'shell' : filename;
 
         this.source = source;
         this.listSource = source.split('');
@@ -51,7 +47,7 @@ export class Lexer {
         if (this.listSource.length > 0) {
             return this.listSource.shift();
         } else {
-            return '<eof>';
+            return TokenType.eof;
         };
         
     };
@@ -231,9 +227,12 @@ export class Lexer {
                     }
                     
                     else if (this.listSource[0] == '.' && dot == true) {
+                        start = cur;
                         cur++;
-                        new LexerErr(`Unexpected token: ${this.eat()}`, makePosition(this.filename, line, start, cur), this.source)
+
+                        new LexerErr(`Unexpected token: '${this.eat()}' during the parsing of a float`, makePosition(this.filename, line, start, cur), this.source)
                     }
+
                     else {
                         number += this.eat();
                         cur++;
@@ -326,10 +325,10 @@ export class Lexer {
             else {
                 start = cur
                 cur++;
-                new LexerErr(`Unknown token: ${this.listSource[0]}`, makePosition(this.filename, line, start, cur), this.source);
+                new LexerErr(`Unknown token: ${this.listSource[0].charCodeAt(0)}`, makePosition(this.filename, line, start, cur), this.source);
             }
         };
-        tokens.push(this.makeToken(TokenType.eof, '<eof>', makePosition(this.filename, line, this.source.length, this.source.length+1)))
+        tokens.push(this.makeToken(TokenType.eof, TokenType.eof, makePosition(this.filename, line, this.source.length, this.source.length+1)))
         return tokens;
     };
 }
