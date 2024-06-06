@@ -23,6 +23,7 @@ import {
     LiteralValue,
     ValueTypes,
     unaryBinOps,
+    UnaryExpression,
 } from './shared.ts';   
 
 export class Parser {
@@ -72,7 +73,7 @@ export class Parser {
     };
 
 
-    parseLiteralNode = (prevToken?: TokenType): Literal | BinaryExpression | UnaryUpdateExpression | Identifier => {
+    parseLiteralNode = (prevToken?: TokenType): Expression => {
         let token = this.eat();
 
         switch (token.type) {
@@ -151,7 +152,7 @@ export class Parser {
         };
     };
     
-    parseUnaryUpdateExpression = (prev?: TokenType): Literal | BinaryExpression | UnaryUpdateExpression | Identifier  => {
+    parseUnaryUpdateExpression = (prev?: TokenType): Expression  => {
         let token = this.at();
 
         if (token.value in unaryUpdaters) {
@@ -165,7 +166,7 @@ export class Parser {
                 range: [token.loc.line, lhs.range[1], lhs.range[2]],
             } as UnaryUpdateExpression;
             
-            return lhs as Literal | BinaryExpression | UnaryUpdateExpression;
+            return lhs;
         }
 
         else if (ValueTypes.includes(token.type) || token.type == TokenType.oparen) {
@@ -182,43 +183,43 @@ export class Parser {
                 } as UnaryUpdateExpression;
             };
             
-            return lhs as Literal | BinaryExpression | UnaryUpdateExpression;
+            return lhs;
         }
 
         else {
             let lhs = this.parseLiteralNode(prev);
-            return lhs as Literal | BinaryExpression | UnaryUpdateExpression;
-        }
+            return lhs;
+        };
     };
 
-    parseUnaryBinOpExpression = (prev?: TokenType): Literal | BinaryExpression | UnaryUpdateExpression | Identifier  => {
+    parseUnaryExpression = (prev?: TokenType): Expression  => {
         let token = this.at();
 
         if (token.value in unaryBinOps) {
             let operator = this.eat();
             let lhs = this.parseUnaryUpdateExpression(prev != undefined? prev : operator.type);
             lhs = {
-                type: NodeType.UnaryUpdateExpression,
+                type: NodeType.UnaryExpression,
                 operator: operator.value,
                 prefix: true,
                 argument: lhs,
                 range: [token.loc.line, lhs.range[1], lhs.range[2]],
-            } as UnaryUpdateExpression;
+            } as UnaryExpression;
             
-            return lhs as Literal | BinaryExpression | UnaryUpdateExpression;
+            return lhs;
         }
 
         else {
             let lhs = this.parseUnaryUpdateExpression(prev);
-            return lhs as Literal | BinaryExpression | UnaryUpdateExpression;
+            return lhs;
         };
     };
 
-    parseUnaryExpr = (prev?: TokenType): Literal | BinaryExpression | UnaryUpdateExpression | Identifier  => {
-        let lhs = this.parseUnaryBinOpExpression(prev);
+    parseUnaryExpr = (prev?: TokenType): Expression  => {
+        let lhs = this.parseUnaryExpression(prev);
         while (this.at().value in unaryOperators) {
             let operator = this.eat();
-            let rhs = this.parseUnaryBinOpExpression(prev != undefined? prev : operator.type);
+            let rhs = this.parseUnaryExpression(prev != undefined? prev : operator.type);
             lhs = {
                 type: NodeType.BinaryExpression,
                 left: lhs,
@@ -231,7 +232,7 @@ export class Parser {
         return lhs;
     };
 
-    parseMultiplicationExpr = (prev?: TokenType): Literal | BinaryExpression | UnaryUpdateExpression | Identifier  => {
+    parseMultiplicationExpr = (prev?: TokenType): Expression  => {
         let lhs = this.parseUnaryExpr(prev);
         while ('*/%'.includes(this.at().value)) {
             let operator = this.eat();
@@ -245,9 +246,9 @@ export class Parser {
             } as BinaryExpression;
         };
         return lhs;
-    }
+    };
 
-    parseAdditiveExpr = (prev?: TokenType): Literal | BinaryExpression | UnaryUpdateExpression | Identifier  => {
+    parseAdditiveExpr = (prev?: TokenType): Expression  => {
         let lhs = this.parseMultiplicationExpr(prev);
         while ('+-'.includes(this.at().value)) {
             let operator = this.eat();
@@ -306,7 +307,7 @@ export class Parser {
                 
                 else if (token.value == '\\n') {
                     this.eat();
-                }
+                };
 
                 break;
             };
@@ -323,7 +324,7 @@ export class Parser {
             };
         };
 
-        return Stmt
+        return Stmt;
     };
 
     generateAst = (): Program => {
@@ -348,7 +349,7 @@ export class Parser {
         
         program = Folding.fold(program);
 
-        return program
+        return program;
     };
 };
 

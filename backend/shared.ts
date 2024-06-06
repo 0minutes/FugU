@@ -391,6 +391,7 @@ export const enum NodeType {
     ExpressionStatement = 'ExpressionStatement',
     EmptyStatement = 'EmptyStatement',
     BinaryExpression = 'BinaryExpression',
+    UnaryExpression = 'UnaryExpression',
     UnaryUpdateExpression = 'UnaryUpdateExpression',
     Identifier = 'Identifier',
     Literal = 'Literal',
@@ -452,6 +453,13 @@ export interface UnaryUpdateExpression extends Expression {
     range: number[],
 };
 
+export interface UnaryExpression extends Expression {
+    type: NodeType.UnaryExpression;
+    operator: string,
+    prefix: boolean,
+    argument: Expression,
+    range: number[],
+};
 // LITERAL TYPES
 
 export const enum LiteralValue {

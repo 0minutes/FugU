@@ -20,6 +20,7 @@ The source code for various components of the language can be found in the `./ba
 - [x] **Lexer** - Completed ([source](./backend/Lexer.ts))
 - [x] **AST (Abstract Syntax Tree)** - Completed ([source](./backend/shared.ts))
 - [x] **Parser** - Completed and is able to parse Expressions and Numbers etc... ([source](./backend/Parser.ts))
+- [x] **Some sort of optimization** - Very early version with only removal of `EmptyStatement` ([source](./backend/ConstantFolding.ts))
 - [x] **Bytecode Generator** - Started, but only added support for Literals/Identifiers and Binary Expressions. ([source](./backend/StackGenerator.ts))
 - [ ] **Interpreter** - Not started
 
@@ -28,7 +29,7 @@ The source code for various components of the language can be found in the `./ba
 To run the project, execute the following command in your terminal (*No arguments automatically runs the shell*):
 
 ```bash
-deno run main.ts [[-h | --help] | [-r | --run (path/to/file)]]
+deno run main.ts [[-h | --help] | [-r | --run [path/to/file]]]
 ```
 
 To *read from file* use the following command

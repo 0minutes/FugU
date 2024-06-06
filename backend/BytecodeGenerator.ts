@@ -69,6 +69,40 @@ export class BytecodeGenerator {
                     break;
                 };
                 
+                case NodeType.UnaryUpdateExpression : {
+                    if (ast.prefix) {
+                        switch (ast.operator) {
+                            case '++':
+                                bytecode.push([Instructions.push, 1]);
+                                traverse(ast.argument as Expression);
+                                bytecode.push([Instructions.add]);
+                                break;
+                            case '--':
+                                bytecode.push([Instructions.push, 1]);
+                                traverse(ast.argument as Expression);
+                                bytecode.push([Instructions.sub]);
+                                break;
+                        }
+                    }
+                    else {
+                        switch (ast.operator) {
+                            case '++':
+                                traverse(ast.argument as Expression);
+                                bytecode.push([Instructions.push, 1]);
+                                bytecode.push([Instructions.add]);
+                                break;
+                            case '--':
+                                traverse(ast.argument as Expression);
+                                bytecode.push([Instructions.push, 1]);
+                                bytecode.push([Instructions.sub]);
+                                break;
+                        };
+                    };
+                    break;
+                };
+
+                
+
                 case NodeType.Literal : {
                     bytecode.push([Instructions.push, ast.value] as Byte);
                     break;
@@ -78,7 +112,6 @@ export class BytecodeGenerator {
                     bytecode.push([Instructions.load, ast.value] as Byte);
                     break;
                 };
-
             };
         };
 
