@@ -7,9 +7,10 @@ The source code for various components of the language can be found in the `./ba
 ## Project Structure
 
 - [`./backend/Lexer.ts`](./backend/Lexer.ts) - Contains the lexer implementation.
-- [`./backend/shared.ts`](./backend/shared.ts) - Defines the Abstract Syntax Tree (AST) structures.
+- [`./backend/shared.ts`](./backend/shared.ts) - Defines all the used Types Functions Enums etc etc.
 - [`./backend/Parser.ts`](./backend/Parser.ts) - Houses the parser code, currently a work in progress.
-- Additional files for ByteCode and Interpreter will be added as the project progresses.
+- [`./backend/StackGenerator.ts`](./backend/StackGenerator.ts) - Contains the bytecode generator code
+- Additional files for the Interpreter will be added as the project progresses.
 
 - [`./main.ts`](./main.ts) - Contains the shell code which allows the language to be run in the console.
 - [`./ast.json`](./ast.json) - Contains the AST tree I'm able to produce as of now.
@@ -19,15 +20,21 @@ The source code for various components of the language can be found in the `./ba
 - [x] **Lexer** - Completed ([source](./backend/Lexer.ts))
 - [x] **AST (Abstract Syntax Tree)** - Completed ([source](./backend/shared.ts))
 - [x] **Parser** - Completed and is able to parse Expressions and Numbers etc... ([source](./backend/Parser.ts))
-- [ ] **ByteCode** - Not started
+- [x] **Bytecode Generator** - Started, but only added support for Literals/Identifiers and Binary Expressions. ([source](./backend/StackGenerator.ts))
 - [ ] **Interpreter** - Not started
 
 ## How to Run
 
-To run the project, execute the following command in your terminal:
+To run the project, execute the following command in your terminal (*No arguments automatically runs the shell*):
 
 ```bash
-deno run main.ts
+deno run main.ts [[-h | --help] | [-r | --run (path/to/file)]]
 ```
 
-Stay tuned for updates as I continue to build and refine this programming language!
+To *read from file* use the following command
+
+```bash
+deno run --allow-read main.ts -r [path/to/file]
+```
+
+**Stay tuned for updates as I continue to build and refine this programming language!**

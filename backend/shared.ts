@@ -4,14 +4,14 @@ export const DIGITS = '0123456789';
 export const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 export const enum TokenType {
-    identifier = '<Identifier>',
-    integer = '<Integer>',
-    float = '<Float>',
-    string = '<String>',
-    null = '<Null>',
-    bool = '<Boolean>',
+    identifier = '<identifier>',
+    integer = '<integer>',
+    float = '<float>',
+    string = '<string>',
+    null = '<null>',
+    bool = '<boolean>',
     
-    let = '<AssignmentLet>',
+    let = '<ssignmentLet>',
     const = '<AssignmentConst>',
 
     if = '<if>',
@@ -74,6 +74,146 @@ export const enum TokenType {
     eol = '<endOfLine>',
     eof = '<endOfFile>',
 };
+
+export const ValueTypes: Array<string> = [
+    TokenType.identifier,
+    TokenType.integer,
+    TokenType.float,
+    TokenType.string,
+    TokenType.null,
+    TokenType.bool,
+];
+
+
+export const specialChars:Record<string, TokenType> = {
+    '+' : TokenType.binaryOp,
+    '-' : TokenType.binaryOp,
+    '*' : TokenType.binaryOp,
+    '/' : TokenType.binaryOp,
+    '%' : TokenType.binaryOp,
+    '**': TokenType.binaryOp,
+    '(' : TokenType.oparen,
+    ')' : TokenType.cparen,
+
+    '{' : TokenType.ocurly,
+    '}' : TokenType.ccurly,
+
+    '[' : TokenType.osquare,
+    ']' : TokenType.csquare,
+
+    '.' : TokenType.dot,
+    ',' : TokenType.comma,
+    ';' : TokenType.eol,
+    ':' : TokenType.colon,
+
+    '==': TokenType.equalsEquals,
+    '<>': TokenType.notEquals,
+    
+    '!' : TokenType.not,
+    '&&': TokenType.and,
+    '||': TokenType.or,
+
+    '<' : TokenType.less,
+    '>' : TokenType.greater,
+    '>=': TokenType.lessEquals,
+    '<=': TokenType.greaterEquals,
+
+    '=' : TokenType.equals,
+    '++': TokenType.plusPlus,
+    '+=': TokenType.plusEquals,
+    '--': TokenType.minusMinus,
+    '-=': TokenType.minusEquals,
+};
+
+export const unaryBuilders: Record<string, TokenType> = {
+    '*': TokenType.binaryOp,
+    '<' : TokenType.less,
+    '>' : TokenType.greater,
+    '=' : TokenType.equals,
+    '+' : TokenType.binaryOp,
+    '-' : TokenType.binaryOp,
+};
+
+export const unaryChars: Record<string, TokenType> = {
+    '&&': TokenType.and,
+    '||': TokenType.or,
+
+    '<>': TokenType.notEquals,
+
+    '>=': TokenType.lessEquals,
+    '<=': TokenType.greaterEquals,
+
+    '=' : TokenType.equals,
+    '==': TokenType.equalsEquals,
+    '++': TokenType.plusPlus,
+    '+=': TokenType.plusEquals,
+    '--': TokenType.minusMinus,
+    '-=': TokenType.minusEquals,
+    '**': TokenType.binaryOp,
+};
+
+export const unaryOperators: Record <string, TokenType> = {
+    '&&': TokenType.and,
+    '||': TokenType.or,
+
+    '<>': TokenType.notEquals,
+
+    '>=': TokenType.lessEquals,
+    '<=': TokenType.greaterEquals,
+
+    '==': TokenType.equalsEquals,
+
+    '**': TokenType.binaryOp,
+}
+
+export const unaryUpdaters: Record <string, TokenType> = {
+    '++': TokenType.plusPlus,
+    '--': TokenType.minusMinus,
+};
+
+export const unaryBinOps: Record <string, TokenType> = {
+    '+': TokenType.binaryOp,
+    '-': TokenType.binaryOp,
+    '!': TokenType.not,
+};
+
+
+export const keywords: Record<string, TokenType> = {
+    'let': TokenType.let,
+    'const': TokenType.const,
+
+    'true': TokenType.bool,
+    'false': TokenType.bool,
+    'null': TokenType.null,
+
+    'print': TokenType.print,
+    'input': TokenType.input,
+
+    'class': TokenType.class,
+    'new': TokenType.new,
+
+    'from': TokenType.from,
+    'include': TokenType.include,
+
+    'proc': TokenType.proc,
+
+    'if': TokenType.if,
+    'elif': TokenType.elif,
+    'else': TokenType.else,
+
+    'while': TokenType.while,
+    'for': TokenType.for,
+    'typeof': TokenType.typeof,
+    'in': TokenType.in,
+};
+
+export interface Token {
+    type: TokenType;
+    value: string;
+    loc: Position;
+};
+
+// ERROR RELATED
 
 export const expected = (prev: TokenType): string => {
     switch(prev) {
@@ -174,131 +314,6 @@ export const expected = (prev: TokenType): string => {
     }
 }
 
-
-
-export const specialChars:Record<string, TokenType> = {
-    '+' : TokenType.binaryOp,
-    '-' : TokenType.binaryOp,
-    '*' : TokenType.binaryOp,
-    '/' : TokenType.binaryOp,
-    '%' : TokenType.binaryOp,
-    '**': TokenType.binaryOp,
-    '(' : TokenType.oparen,
-    ')' : TokenType.cparen,
-
-    '{' : TokenType.ocurly,
-    '}' : TokenType.ccurly,
-
-    '[' : TokenType.osquare,
-    ']' : TokenType.csquare,
-
-    '.' : TokenType.dot,
-    ',' : TokenType.comma,
-    ';' : TokenType.eol,
-    ':' : TokenType.colon,
-
-    '==': TokenType.equalsEquals,
-    '<>': TokenType.notEquals,
-    
-    '!' : TokenType.not,
-    '&&': TokenType.and,
-    '||': TokenType.or,
-
-    '<' : TokenType.less,
-    '>' : TokenType.greater,
-    '>=': TokenType.lessEquals,
-    '<=': TokenType.greaterEquals,
-
-    '=' : TokenType.equals,
-    '++': TokenType.plusPlus,
-    '+=': TokenType.plusEquals,
-    '--': TokenType.minusMinus,
-    '-=': TokenType.minusEquals,
-};
-
-export const unaryBuilders: Record<string, TokenType> = {
-    '*': TokenType.binaryOp,
-    '<' : TokenType.less,
-    '>' : TokenType.greater,
-    '=' : TokenType.equals,
-    '+' : TokenType.binaryOp,
-    '-' : TokenType.binaryOp,
-};
-
-export const unaryChars: Record<string, TokenType> = {
-    '&&': TokenType.and,
-    '||': TokenType.or,
-
-    '<>': TokenType.notEquals,
-
-    '>=': TokenType.lessEquals,
-    '<=': TokenType.greaterEquals,
-
-    '=' : TokenType.equals,
-    '==': TokenType.equalsEquals,
-    '++': TokenType.plusPlus,
-    '+=': TokenType.plusEquals,
-    '--': TokenType.minusMinus,
-    '-=': TokenType.minusEquals,
-    '**': TokenType.binaryOp,
-};
-
-export const unaryOperators: Record <string, TokenType> = {
-    '&&': TokenType.and,
-    '||': TokenType.or,
-
-    '<>': TokenType.notEquals,
-
-    '>=': TokenType.lessEquals,
-    '<=': TokenType.greaterEquals,
-
-    '==': TokenType.equalsEquals,
-
-    '**': TokenType.binaryOp,
-}
-
-export const unaryUpdaters: Record <string, TokenType> = {
-    '++': TokenType.plusPlus,
-    '--': TokenType.minusMinus,
-};
-
-export const keywords: Record<string, TokenType> = {
-    'let': TokenType.let,
-    'const': TokenType.const,
-
-    'true': TokenType.bool,
-    'false': TokenType.bool,
-    'null': TokenType.null,
-
-    'print': TokenType.print,
-    'input': TokenType.input,
-
-    'class': TokenType.class,
-    'new': TokenType.new,
-
-    'from': TokenType.from,
-    'include': TokenType.include,
-
-    'proc': TokenType.proc,
-
-    'if': TokenType.if,
-    'elif': TokenType.elif,
-    'else': TokenType.else,
-
-    'while': TokenType.while,
-    'for': TokenType.for,
-    'typeof': TokenType.typeof,
-    'in': TokenType.in,
-};
-
-export interface Token {
-    type: TokenType;
-    value: string;
-    loc: Position;
-};
-
-// ERROR RELATED
-
 export interface Position {
     filename: string;
     line: number;
@@ -321,9 +336,9 @@ export class Warning {
         this.loc = loc;
         this.source = source;
 
-        console.log(this.source);
+        console.log(this.source.split('\n')[this.loc.line]);
         console.log(' '.repeat(this.loc.start)+'^'.repeat(this.loc.end-this.loc.start));
-        console.log(`${this.loc.filename}:${this.loc.line}:${this.loc.end}: ${this.type}: ${message}`);
+        console.error(`${this.loc.filename}:${this.loc.line+1}:${this.loc.end}: ${this.type}: ${message}`);
     };
 };
 
@@ -377,7 +392,8 @@ export const enum NodeType {
     EmptyStatement = 'EmptyStatement',
     BinaryExpression = 'BinaryExpression',
     UnaryUpdateExpression = 'UnaryUpdateExpression',
-    EndStatement = 'EndStatement'
+    Identifier = 'Identifier',
+    Literal = 'Literal',
 }
 
 export interface Program {
@@ -394,11 +410,6 @@ export interface Statement {
     range: number[];
 };
 
-export interface EndStatement extends Statement {
-    type: NodeType;
-    range: number[];
-}
-
 export interface ExpressionStatement extends Statement {
     type: NodeType;
     body: Expression[];
@@ -414,11 +425,19 @@ export interface EmptyStatement extends Statement {
 
 export interface Expression {
     type: string;
+    
+    left?: Expression;
+    right?: Expression;
+    argument?: Expression;
+    operator?: string;
+    prefix?: boolean;
+    value?: string | number | boolean | null;
+
     range: number[];
 };
 
 export interface BinaryExpression extends Expression {
-    type: 'BinaryExpression';
+    type: NodeType.BinaryExpression;
     left: Literal | Expression,
     operator: string,
     right: Literal | Expression,
@@ -426,32 +445,59 @@ export interface BinaryExpression extends Expression {
 };
 
 export interface UnaryUpdateExpression extends Expression {
-    type: 'UnaryUpdateExpression';
+    type: NodeType.UnaryUpdateExpression;
     operator: string,
     prefix: boolean,
-    argument: Literal | Expression,
+    argument: Expression,
     range: number[],
 };
 
-// NODES
+// LITERAL TYPES
 
-export interface Node {
-    type: string;
+export const enum LiteralValue {
+    Literal = 'Literal',
+    NullLiteral = 'NullLiteral',
+    BoolLiteral = 'BoolLiteral',
+    NumberLiteral = 'NumberLiteral',
+    FloatLiteral = 'FloatLiteral',
+    StringLiteral = 'StringLiteral'
+}
+
+export interface Node extends Expression {
+    type: NodeType;
     value: string | number | boolean | null;
     range: number[];
 };
 
-export interface Literal extends Node {
-    type: 'Literal';
-    runtimeValue: 'Literal' | 'NullLiteral' | 'BoolLiteral' | 'NumberLiteral' | 'FloatLiteral' | 'StringLiteral';
-    value: string | number | boolean | null;
-    range: number[];
-};
-
-export interface Identifier extends Node {
-    type: 'Identifier';
+export interface Identifier extends Expression {
+    type: NodeType.Identifier;
     value: string;
     range: number[];
 };
 
-// RUNTIME RELATED
+export interface Literal extends Expression {
+    type: NodeType.Literal;
+    runtimeValue: LiteralValue;
+    value: string | number | boolean | null;
+    range: number[];
+};
+
+// STACK RELATED
+
+export const enum Instructions {
+    halt = 0,
+    pop = 1,
+    push = 2,
+    load = 3,
+
+    add = 4,
+    sub = 5,
+    mul = 6,
+    div = 7,
+    mod = 8,
+    pow = 9,
+};
+
+export type Const = string | number | boolean | null;
+export type Byte  = [Instructions, Const] | [Instructions];
+export type Bytecode = Byte[]

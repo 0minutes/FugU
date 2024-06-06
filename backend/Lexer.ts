@@ -12,7 +12,7 @@ import {
     keywords,
     unaryBuilders,
     unaryChars,
-  } from './shared.ts';
+} from './shared.ts';
   
 
 export class Lexer {
@@ -25,11 +25,15 @@ export class Lexer {
     unaryBuilders: Record<string, TokenType> = unaryBuilders;
     unaryChars: Record<string, TokenType> = unaryChars;
 
+    tokens: Token[];
+
     constructor(source: string, filename?: string) {
         this.filename = filename == undefined ? 'shell' : filename;
 
         this.source = source;
         this.listSource = source.split('');
+
+        this.tokens = this.tokenize();
     };
     
     makeToken = (type: TokenType, value: string, loc: any): Token => {
@@ -250,7 +254,7 @@ export class Lexer {
                 start = cur;
                 let identifier = ''
 
-                while (this.listSource.length > 0 && (LETTERS.includes(this.listSource[0]) || this.listSource[0] == '_')) {
+                while (this.listSource.length > 0 && (LETTERS.includes(this.listSource[0]) || this.listSource[0] == '_' || DIGITS.includes(this.listSource[0]))) {
                     identifier += this.eat();
                     cur++;
                 };
@@ -315,6 +319,11 @@ export class Lexer {
                 cur++;
             }
 
+            else if (this.listSource[0] == '\r') { 
+                this.eat();
+                // cur++;
+            }
+
             else if (this.listSource[0] == ';') { 
                 start = cur
                 this.eat();
@@ -325,10 +334,18 @@ export class Lexer {
             else {
                 start = cur
                 cur++;
-                new LexerErr(`Unknown token: ${this.listSource[0].charCodeAt(0)}`, makePosition(this.filename, line, start, cur), this.source);
-            }
+                new LexerErr(`Unknown charecter token: ${this.listSource[0]}`, makePosition(this.filename, line, start, cur), this.source);
+            };
         };
         tokens.push(this.makeToken(TokenType.eof, TokenType.eof, makePosition(this.filename, line, this.source.length, this.source.length+1)))
+
         return tokens;
     };
 }
+
+
+
+// TESTING PURPOSES
+ 
+// const test = new Lexer('1/3;;3', 'tst');
+// console.log(test.tokens);
