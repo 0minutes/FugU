@@ -1,6 +1,7 @@
 // deno-lint-ignore-file
 // deno-lint-ignore-file no-unused-vars
-// --allow-read
+
+
 import { Lexer } from './backend/Lexer.ts';
 import { Parser } from './backend/Parser.ts';
 
@@ -55,7 +56,6 @@ const fromFile = (file: string) => {
     console.log(ast);
     console.log('----------------------------------------------');
 };
-
 
 const printHelp = () => {
     console.log('Usage: deno run main.ts [-h | --help] | [-r | --run] (path/to/file)');

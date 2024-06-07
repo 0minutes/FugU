@@ -5,7 +5,6 @@ import {
     Token,
     makePosition,
     LexerErr,
-    SyntaxErr,
     LETTERS,
     DIGITS,
     specialChars,
@@ -76,8 +75,14 @@ export class Lexer {
                     tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
 
+                else if (this.listSource[0] == '<') {
+                    unary += this.eat();
+                    cur++;
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
+                }
+
                 // @ts-ignore
-                if (this.listSource[0] == '>') {
+                else if (this.listSource[0] == '>') {
                     unary += this.eat();
                     cur++;
                     tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
@@ -98,9 +103,16 @@ export class Lexer {
                     cur++;
                     tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
-                else {
+
+                else if (this.listSource[0] == '>') {
+                    unary += this.eat();
+                    cur++;
                     tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
+
+                else {
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
+                };
             }
 
             else if (this.listSource[0] == '=') {
@@ -176,25 +188,20 @@ export class Lexer {
                     tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
             }
-            else if (this.listSource[0] in this.specialChars) {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-
-                tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-            }
 
             else if (this.listSource[0] == '&') {
                 start = cur;
                 let unary = this.eat();
                 cur++;
-
+                
                 if (this.listSource[0] != '&') {
-                    new SyntaxErr(`Unknown logical expression or operator: '${unary}'`, makePosition(this.filename, line, start, cur), this.source);
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
-                unary += this.eat()
-                cur++;
-                tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
+                else {
+                    unary += this.eat()
+                    cur++;
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
+                };
             }
 
             else if (this.listSource[0] == '|') {
@@ -203,10 +210,20 @@ export class Lexer {
                 cur++;
 
                 if (this.listSource[0] != '|') {
-                    new SyntaxErr(`Unknown logical expression or operator: '${unary}'`, makePosition(this.filename, line, start, cur), this.source);
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
                 }
-                unary += this.eat()
+                else {
+                    unary += this.eat()
+                    cur++;
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
+                };
+            }
+
+            else if (this.listSource[0] in this.specialChars) {
+                start = cur;
+                let unary = this.eat();
                 cur++;
+
                 tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
             }
 
@@ -347,5 +364,5 @@ export class Lexer {
 
 // TESTING PURPOSES
  
-// const test = new Lexer('1/3;;3', 'tst');
+// const test = new Lexer('|||&&&', 'tst');
 // console.log(test.tokens);

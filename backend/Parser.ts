@@ -1,12 +1,31 @@
 // deno-lint-ignore-file
 // deno-lint-ignore-file no-unused-vars
+
+/*
+
+ORDER OF PRECEDENCE
+
+Literal Node (parseLiteralNode): 1, 2, 3...
+Parentheses (parseLiteralNode): (Literal Node)
+Unary Updaters (parseUnaryUpdateExpression): ++, --
+Unary Operators (parseUnaryExpr): +, -, !, ~ 
+Exponential Operator (parseExponentiationExpr): **
+Multiplication etc (parseMultiplicationExpr): *, /, %
+Addition and Subtraction (parseAdditiveExpr): +, -
+Bitwise Shift (parseBitwiseExpr): <<, >>
+Relational (parseRationalExpr): <, <=, >, >=
+Equality (parseEqualityExpr): ==, !=
+Bitwise and Logical Operators (parseLogicalBitwiseExpr): &, ^, |, &&, ||
+
+*/
+
+
 import { Lexer } from './Lexer.ts';
 import { ConstantFolding } from './ConstantFolding.ts';
 import {
     Program,
     Statement,
     Expression,
-    unaryOperators,
     Token,
     TokenType,
     SyntaxErr,
@@ -25,6 +44,7 @@ import {
     unaryBinOps,
     UnaryExpression,
 } from './shared.ts';   
+
 
 export class Parser {
     filename: string;
@@ -191,8 +211,8 @@ export class Parser {
             return lhs;
         };
     };
-
-    parseUnaryExpression = (prev?: TokenType): Expression  => {
+    
+    parseUnaryExpr = (prev?: TokenType): Expression  => {
         let token = this.at();
 
         if (token.value in unaryBinOps) {
@@ -215,28 +235,27 @@ export class Parser {
         };
     };
 
-    parseUnaryExpr = (prev?: TokenType): Expression  => {
-        let lhs = this.parseUnaryExpression(prev);
-        while (this.at().value in unaryOperators) {
+    parseExponentiationExpr = (prev?: TokenType): Expression  => {
+        let lhs = this.parseUnaryExpr(prev);
+        while ('**' == this.at().value) {
             let operator = this.eat();
-            let rhs = this.parseUnaryExpression(prev != undefined? prev : operator.type);
+            let rhs = this.parseUnaryExpr(prev != undefined ? prev : operator.type);
             lhs = {
                 type: NodeType.BinaryExpression,
                 left: lhs,
                 operator: operator.value,
                 right: rhs,
                 range: [lhs.range[0], lhs.range[1], rhs.range[2]],
-
             } as BinaryExpression;
         };
         return lhs;
     };
 
     parseMultiplicationExpr = (prev?: TokenType): Expression  => {
-        let lhs = this.parseUnaryExpr(prev);
+        let lhs = this.parseExponentiationExpr(prev);
         while ('*/%'.includes(this.at().value)) {
             let operator = this.eat();
-            let rhs = this.parseUnaryExpr(prev != undefined ? prev : operator.type);
+            let rhs = this.parseExponentiationExpr(prev != undefined ? prev : operator.type);
             lhs = {
                 type: NodeType.BinaryExpression,
                 left: lhs,
@@ -265,13 +284,85 @@ export class Parser {
         return lhs;
     };
 
+    parseBitwiseExpr = (prev?: TokenType): Expression  => {
+        let lhs = this.parseAdditiveExpr(prev);
+        while (['<<', '>>'].includes(this.at().value)) {
+            let operator = this.eat();
+            let rhs = this.parseAdditiveExpr(prev != undefined? prev : operator.type);
+            lhs = {
+                type: NodeType.BinaryExpression,
+                left: lhs,
+                operator: operator.value,
+                right: rhs,
+                range: [lhs.range[0], lhs.range[1], rhs.range[2]],
+            } as BinaryExpression;
+        };
+
+        return lhs;
+    };
+ 
+    parseRationalExpr = (prev?: TokenType): Expression  => {
+        let lhs = this.parseBitwiseExpr(prev);
+        while (['<', '>', '<=', '>='].includes(this.at().value)) {
+            let operator = this.eat();
+            let rhs = this.parseBitwiseExpr(prev != undefined? prev : operator.type);
+            lhs = {
+                type: NodeType.BinaryExpression,
+                left: lhs,
+                operator: operator.value,
+                right: rhs,
+                range: [lhs.range[0], lhs.range[1], rhs.range[2]],
+            } as BinaryExpression;
+            console.log(1)
+        };
+
+        return lhs;
+    };
+
+    parseEqualityExpr = (prev?: TokenType): Expression  => {
+        let lhs = this.parseRationalExpr(prev);
+        while (['==', '!='].includes(this.at().value)) {
+            let operator = this.eat();
+            let rhs = this.parseRationalExpr(prev != undefined? prev : operator.type);
+            lhs = {
+                type: NodeType.BinaryExpression,
+                left: lhs,
+                operator: operator.value,
+                right: rhs,
+                range: [lhs.range[0], lhs.range[1], rhs.range[2]],
+            } as BinaryExpression;
+            console.log(1)
+        };
+
+        return lhs;
+    };
+
+    parseLogicalBitwiseExpr = (prev?: TokenType): Expression  => {
+        let lhs = this.parseEqualityExpr(prev);
+        
+        while (['&', '^', '|', '&&', '||'].includes(this.at().value)) {
+            let operator = this.eat();
+            let rhs = this.parseEqualityExpr(prev != undefined? prev : operator.type);
+            lhs = {
+                type: NodeType.BinaryExpression,
+                left: lhs,
+                operator: operator.value,
+                right: rhs,
+                range: [lhs.range[0], lhs.range[1], rhs.range[2]],
+            } as BinaryExpression;
+
+        };
+
+        return lhs;
+    };
+
     parseExpression = (): Expression => {
         let Expr = {} as Expression;
         let token = this.at();
         
         switch (token.type) {
             default: {
-                Expr = this.parseAdditiveExpr();
+                Expr = this.parseLogicalBitwiseExpr();
                 break;
             };
         };

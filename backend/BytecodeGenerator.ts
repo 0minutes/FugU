@@ -65,6 +65,9 @@ export class BytecodeGenerator {
                             bytecode.push([Instructions.mod] as Byte);
                             break;
                         };
+
+                        
+
                     };
                     break;
                 };
@@ -101,7 +104,11 @@ export class BytecodeGenerator {
                     break;
                 };
 
-                
+                case NodeType.UnaryExpression : {
+                    traverse(ast.argument as Expression);
+                    bytecode.push([Instructions.not] as Byte);
+                    break;
+                };
 
                 case NodeType.Literal : {
                     bytecode.push([Instructions.push, ast.value] as Byte);
@@ -143,7 +150,7 @@ export class BytecodeGenerator {
                     bytecode.push(...this.bytePrimaryStatement(Stmt));
             };
         };
-
+        bytecode.push([Instructions.halt] as Byte);
         return bytecode;
     };
 };

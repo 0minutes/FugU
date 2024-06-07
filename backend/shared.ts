@@ -44,6 +44,10 @@ export const enum TokenType {
     notEquals = '<notEquals>',
     
     not = '<not>',
+    bitNot = '<bitNot>',
+    bitAnd = '<bitAnd>',
+    bitOr = '<bitOr>',
+    xor = '<xor>',
     and = '<and>',
     or = '<or>',
 
@@ -51,6 +55,9 @@ export const enum TokenType {
     lessEquals = '<lessOrEquals>',
     greater = '<greaterThan>',
     greaterEquals = '<greaterOrEquals>',
+
+    rightRight = '<rightRight>',
+    leftLeft = '<leftLeft>',
 
     equals = '<equals>',
     plusPlus = '<plusPlus>',
@@ -84,7 +91,6 @@ export const ValueTypes: Array<string> = [
     TokenType.bool,
 ];
 
-
 export const specialChars:Record<string, TokenType> = {
     '+' : TokenType.binaryOp,
     '-' : TokenType.binaryOp,
@@ -110,8 +116,16 @@ export const specialChars:Record<string, TokenType> = {
     '<>': TokenType.notEquals,
     
     '!' : TokenType.not,
+    '~' : TokenType.bitNot,
+    '^': TokenType.xor,
+    '&' : TokenType.bitAnd,
     '&&': TokenType.and,
+    '|' : TokenType.bitOr,
     '||': TokenType.or,
+
+    '>>': TokenType.rightRight,
+    '<<': TokenType.leftLeft,
+
 
     '<' : TokenType.less,
     '>' : TokenType.greater,
@@ -151,20 +165,6 @@ export const unaryChars: Record<string, TokenType> = {
     '-=': TokenType.minusEquals,
     '**': TokenType.binaryOp,
 };
-
-export const unaryOperators: Record <string, TokenType> = {
-    '&&': TokenType.and,
-    '||': TokenType.or,
-
-    '<>': TokenType.notEquals,
-
-    '>=': TokenType.lessEquals,
-    '<=': TokenType.greaterEquals,
-
-    '==': TokenType.equalsEquals,
-
-    '**': TokenType.binaryOp,
-}
 
 export const unaryUpdaters: Record <string, TokenType> = {
     '++': TokenType.plusPlus,
@@ -504,6 +504,8 @@ export const enum Instructions {
     div = 7,
     mod = 8,
     pow = 9,
+
+    not = 10
 };
 
 export type Const = string | number | boolean | null;
