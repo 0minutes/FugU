@@ -10,7 +10,7 @@ The source code for various components of the language can be found in the `./ba
 - [`./backend/shared.ts`](./backend/shared.ts) - Defines all the used Types Functions Enums etc etc.
 - [`./backend/Parser.ts`](./backend/Parser.ts) - Houses the parser code, currently a work in progress.
 - [`./backend/ConstantFolding.ts`](./backend/ConstantFolding.ts) - Contains the implementation of the Constantfolding (Something I've been experimenting on) Very early version
-- [`./backend/StackGenerator.ts`](./backend/StackGenerator.ts) - Contains the bytecode generator code
+- [`./backend/StackGenerator.ts`](./backend/BytecodeGenerator.ts) - Contains the bytecode generator code
 - Additional files for the Interpreter will be added as the project progresses.
 
 - [`./main.ts`](./main.ts) - Contains the shell code which allows the language to be run in the console.
@@ -22,7 +22,7 @@ The source code for various components of the language can be found in the `./ba
 - [x] **AST (Abstract Syntax Tree)** - Completed ([source](./backend/shared.ts))
 - [x] **Parser** - Completed and is able to parse Expressions and Numbers etc... ([source](./backend/Parser.ts))
 - [x] **Some sort of optimization** - Very early version with only removal of `EmptyStatement` ([source](./backend/ConstantFolding.ts))
-- [x] **Bytecode Generator** - Started, but only added support for Literals/Identifiers and Binary Expressions. ([source](./backend/StackGenerator.ts))
+- [x] **Bytecode Generator** - Started, but only added support for Literals/Identifiers and Binary Expressions. ([source](./backend/BytecodeGenerator.ts))
 - [ ] **Interpreter** - Not started
 
 ## How to Run
