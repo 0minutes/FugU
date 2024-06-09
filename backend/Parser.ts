@@ -62,7 +62,7 @@ export class Parser {
         
         this.tokens = this.lexer.tokens;
 
-        this.ast = this.generateAst();
+        this.ast = this.parseProgram();
     }
 
     at = (): Token => {
@@ -87,9 +87,8 @@ export class Parser {
     eat = (): any => {
         if (this.tokens.length > 0) {
             return this.tokens.shift();
-        } else {
-            return TokenType.eof;
         };
+        return TokenType.eof;
     };
 
 
@@ -206,10 +205,8 @@ export class Parser {
             return lhs;
         }
 
-        else {
-            let lhs = this.parseLiteralNode(prev);
-            return lhs;
-        };
+        let lhs = this.parseLiteralNode(prev);
+        return lhs;
     };
     
     parseUnaryExpr = (prev?: TokenType): Expression  => {
@@ -229,10 +226,8 @@ export class Parser {
             return lhs;
         }
 
-        else {
-            let lhs = this.parseUnaryUpdateExpression(prev);
-            return lhs;
-        };
+        let lhs = this.parseUnaryUpdateExpression(prev);
+        return lhs;
     };
 
     parseExponentiationExpr = (prev?: TokenType): Expression  => {
@@ -313,7 +308,6 @@ export class Parser {
                 right: rhs,
                 range: [lhs.range[0], lhs.range[1], rhs.range[2]],
             } as BinaryExpression;
-            console.log(1)
         };
 
         return lhs;
@@ -387,18 +381,16 @@ export class Parser {
 
         switch (token.type) {
             case TokenType.eol: {
-                if (token.value == ';') {
-                    Stmt = {
-                        type: NodeType.EmptyStatement,
-                        range: [token.loc.line, token.loc.start, this.at().loc.end],
-                    } as EmptyStatement;
-                    
+                if (!(token.value == ';')) {
                     this.eat();
-                }
-                
-                else if (token.value == '\\n') {
-                    this.eat();
+                    break;
                 };
+                
+                Stmt = {
+                    type: NodeType.EmptyStatement,
+                    range: [token.loc.line, token.loc.start, this.at().loc.end],
+                } as EmptyStatement;
+                this.eat();
 
                 break;
             };
@@ -418,7 +410,7 @@ export class Parser {
         return Stmt;
     };
 
-    generateAst = (): Program => {
+    parseProgram = (): Program => {
         let program: Program = {
             type: NodeType.Program,
             body: [],
@@ -447,6 +439,6 @@ export class Parser {
 
 // TESTING PURPOSES
 
-// const test = new Parser('1/3;;3', 'tst');
+// const test = new Parser('1/3**2', 'tst');
 // console.log(test.ast);
 

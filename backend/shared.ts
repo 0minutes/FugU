@@ -177,7 +177,6 @@ export const unaryBinOps: Record <string, TokenType> = {
     '!': TokenType.not,
 };
 
-
 export const keywords: Record<string, TokenType> = {
     'let': TokenType.let,
     'const': TokenType.const,
@@ -311,8 +310,8 @@ export const expected = (prev: TokenType): string => {
 
         default:
             return 'an appropriate token';
-    }
-}
+    };
+};
 
 export interface Position {
     filename: string;
@@ -369,19 +368,19 @@ export class Error {
 export class SyntaxErr extends Error {
     constructor(message: string, loc: Position, source: string) {
         super(message, loc, source, 'SyntaxError');
-    }
+    };
 };
 
 export class ParserErr extends Error {
     constructor(message: string, loc: Position, source: string) {
         super(message, loc, source, 'ParserErr');
-    }
+    };
 };
 
 export class LexerErr extends Error {
     constructor(message: string, loc: Position, source: string) {
         super(message, loc, source, 'LexerError');
-    }
+    };
 };
 
 // NODE TYPES
@@ -395,7 +394,7 @@ export const enum NodeType {
     UnaryUpdateExpression = 'UnaryUpdateExpression',
     Identifier = 'Identifier',
     Literal = 'Literal',
-}
+};
 
 export interface Program {
     type: NodeType;
@@ -432,7 +431,9 @@ export interface Expression {
     argument?: Expression;
     operator?: string;
     prefix?: boolean;
+
     value?: string | number | boolean | null;
+    runtimeValue?: LiteralValue;
 
     range: number[];
 };
@@ -469,12 +470,6 @@ export const enum LiteralValue {
     NumberLiteral = 'NumberLiteral',
     FloatLiteral = 'FloatLiteral',
     StringLiteral = 'StringLiteral'
-}
-
-export interface Node extends Expression {
-    type: NodeType;
-    value: string | number | boolean | null;
-    range: number[];
 };
 
 export interface Identifier extends Expression {
@@ -493,21 +488,45 @@ export interface Literal extends Expression {
 // STACK RELATED
 
 export const enum Instructions {
-    halt = 0,
-    pop = 1,
-    push = 2,
-    load = 3,
+    pop,
+    ipush,
+    fpush,
+    spush,
+    apush,
 
-    add = 4,
-    sub = 5,
-    mul = 6,
-    div = 7,
-    mod = 8,
-    pow = 9,
+    load,
 
-    not = 10
+    add,
+    sub,
+    mul,
+    div,
+    mod,
+    pow,
+    
+    not,
+    eqls,
+    neqls,
+    gt,
+    lt,
+    gteqls,
+    lteqls,
+
+    shl,
+    shr,
+
+    const_null,
+    const_0,
+    const_1,
+    const_2,
+    const_3,
+    const_4,
+    const_5,
+    const_6,
+
+    halt,
 };
 
-export type Const = string | number | boolean | null;
-export type Byte  = [Instructions, Const] | [Instructions];
-export type Bytecode = Byte[]
+
+export type Const = number[] | number | boolean ;
+export type Byte  = [Instructions, Const] | (Instructions | Const)[] | [Instructions];
+export type Bytecode = Byte[];

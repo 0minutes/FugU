@@ -90,7 +90,7 @@ export class Lexer {
 
                 else {
                     tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
+                };
             }
 
             else if (this.listSource[0] == '>') {
@@ -354,6 +354,7 @@ export class Lexer {
                 new LexerErr(`Unknown charecter token: ${this.listSource[0]}`, makePosition(this.filename, line, start, cur), this.source);
             };
         };
+        
         tokens.push(this.makeToken(TokenType.eof, TokenType.eof, makePosition(this.filename, line, this.source.length, this.source.length+1)))
 
         return tokens;
