@@ -20,9 +20,17 @@ Bitwise and Logical Operators (parseLogicalBitwiseExpr): &, ^, |, &&, ||
 */
 
 
-import { Lexer } from './Lexer.ts';
-import { ConstantFolding } from './ConstantFolding.ts';
-import {
+import
+{
+    Lexer
+} from './Lexer.ts';
+
+import
+{
+    ConstantFolding
+} from './ConstantFolding.ts';
+import
+{
     Program,
     Statement,
     Expression,
@@ -43,10 +51,11 @@ import {
     ValueTypes,
     unaryBinOps,
     UnaryExpression,
-} from './shared.ts';   
+} from './shared.ts';
 
 
-export class Parser {
+export class Parser
+{
     filename: string;
     source: string;
 
@@ -55,48 +64,59 @@ export class Parser {
 
     ast: Program;
 
-    constructor(source: string, filename?: string) {
+    constructor(source: string, filename ? : string)
+    {
         this.filename = filename == undefined ? 'shell' : filename;
         this.source = source;
         this.lexer = new Lexer(source, this.filename);
-        
+
         this.tokens = this.lexer.tokens;
 
         this.ast = this.parseProgram();
     }
 
-    at = (): Token => {
+    at = (): Token =>
+    {
         return this.tokens[0];
     };
-    
-    eof = (): boolean => {
+
+    eof = (): boolean =>
+    {
         return this.at().type == TokenType.eof;
     };
 
-    eol = (): boolean => {
+    eol = (): boolean =>
+    {
         return this.at().type == TokenType.eol;
     };
-    
-    next = (): any => {
-        if (this.tokens.length >= 1) {
+
+    next = (): any =>
+    {
+        if (this.tokens.length >= 1)
+        {
             return this.tokens[1];
         };
         return TokenType.eof;
     };
 
-    eat = (): any => {
-        if (this.tokens.length > 0) {
+    eat = (): any =>
+    {
+        if (this.tokens.length > 0)
+        {
             return this.tokens.shift();
         };
         return TokenType.eof;
     };
 
 
-    parseLiteralNode = (prevToken?: TokenType): Expression => {
+    parseLiteralNode = (prevToken ? : TokenType): Expression =>
+    {
         let token = this.eat();
 
-        switch (token.type) {
-            case TokenType.integer: {
+        switch (token.type)
+        {
+            case TokenType.integer:
+            {
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
@@ -105,7 +125,8 @@ export class Parser {
                 } as Literal;
             };
 
-            case TokenType.float: {
+            case TokenType.float:
+            {
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.FloatLiteral,
@@ -114,7 +135,8 @@ export class Parser {
                 } as Literal;
             };
 
-            case TokenType.string: {
+            case TokenType.string:
+            {
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.StringLiteral,
@@ -122,9 +144,10 @@ export class Parser {
                     range: [token.loc.line, token.loc.start, token.loc.end]
                 } as Literal;
             };
-                
 
-            case TokenType.bool: {
+
+            case TokenType.bool:
+            {
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.BoolLiteral,
@@ -133,7 +156,8 @@ export class Parser {
                 } as Literal;
             };
 
-            case TokenType.null: {
+            case TokenType.null:
+            {
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NullLiteral,
@@ -142,21 +166,25 @@ export class Parser {
                 } as Literal;
             };
 
-            case TokenType.oparen: {
-                if (this.at().type == TokenType.cparen) {
+            case TokenType.oparen:
+            {
+                if (this.at().type == TokenType.cparen)
+                {
                     new SyntaxErr('Expected an expression inside the parenthesis', makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
                 };
 
                 let value = this.parseAdditiveExpr(TokenType.oparen);
 
-                if (this.at().type != TokenType.cparen) {
+                if (this.at().type != TokenType.cparen)
+                {
                     new SyntaxErr('Expected a closing parenthesis', makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
                 };
                 this.eat();
                 return value;
             };
 
-            case TokenType.identifier: {
+            case TokenType.identifier:
+            {
                 return {
                     type: NodeType.Identifier,
                     value: token.value,
@@ -164,19 +192,22 @@ export class Parser {
                 } as Identifier;
             };
 
-            default: {
+            default:
+            {
                 new SyntaxErr(`Unexpected ${token.type} token: '${token.value}'. Expected ${expected(prevToken != undefined? prevToken : token.type)}`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
                 return {} as Literal; //Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
             };
         };
     };
-    
-    parseUnaryUpdateExpression = (prev?: TokenType): Expression  => {
+
+    parseUnaryUpdateExpression = (prev ? : TokenType): Expression =>
+    {
         let token = this.at();
 
-        if (token.value in unaryUpdaters) {
+        if (token.value in unaryUpdaters)
+        {
             let operator = this.eat();
-            let lhs = this.parseLiteralNode(prev != undefined? prev : operator.type);
+            let lhs = this.parseLiteralNode(prev != undefined ? prev : operator.type);
             lhs = {
                 type: NodeType.UnaryUpdateExpression,
                 operator: operator.value,
@@ -184,15 +215,17 @@ export class Parser {
                 argument: lhs,
                 range: [token.loc.line, lhs.range[1], lhs.range[2]],
             } as UnaryUpdateExpression;
-            
+
             return lhs;
         }
 
-        else if (ValueTypes.includes(token.type) || token.type == TokenType.oparen) {
-            let lhs = this.parseLiteralNode(prev != undefined? prev : token.type);
-            if (this.at().value in unaryUpdaters) {
+        else if (ValueTypes.includes(token.type) || token.type == TokenType.oparen)
+        {
+            let lhs = this.parseLiteralNode(prev != undefined ? prev : token.type);
+            if (this.at().value in unaryUpdaters)
+            {
                 let operator = this.eat();
-                
+
                 lhs = {
                     type: NodeType.UnaryUpdateExpression,
                     operator: operator.value,
@@ -201,28 +234,29 @@ export class Parser {
                     range: [token.loc.line, lhs.range[1], lhs.range[2]],
                 } as UnaryUpdateExpression;
             };
-            
+
             return lhs;
         }
 
         let lhs = this.parseLiteralNode(prev);
         return lhs;
     };
-    
-    parseUnaryExpr = (prev?: TokenType): Expression  => {
+
+    parseUnaryExpr = (prev ? : TokenType): Expression =>
+    {
         let token = this.at();
 
-        if (token.value in unaryBinOps) {
+        if (token.value in unaryBinOps)
+        {
             let operator = this.eat();
-            let lhs = this.parseUnaryUpdateExpression(prev != undefined? prev : operator.type);
+            let lhs = this.parseUnaryUpdateExpression(prev != undefined ? prev : operator.type);
             lhs = {
                 type: NodeType.UnaryExpression,
                 operator: operator.value,
-                prefix: true,
                 argument: lhs,
                 range: [token.loc.line, lhs.range[1], lhs.range[2]],
             } as UnaryExpression;
-            
+
             return lhs;
         }
 
@@ -230,9 +264,11 @@ export class Parser {
         return lhs;
     };
 
-    parseExponentiationExpr = (prev?: TokenType): Expression  => {
+    parseExponentiationExpr = (prev ? : TokenType): Expression =>
+    {
         let lhs = this.parseUnaryExpr(prev);
-        while ('**' == this.at().value) {
+        while ('**' == this.at().value)
+        {
             let operator = this.eat();
             let rhs = this.parseUnaryExpr(prev != undefined ? prev : operator.type);
             lhs = {
@@ -246,9 +282,11 @@ export class Parser {
         return lhs;
     };
 
-    parseMultiplicationExpr = (prev?: TokenType): Expression  => {
+    parseMultiplicationExpr = (prev ? : TokenType): Expression =>
+    {
         let lhs = this.parseExponentiationExpr(prev);
-        while ('*/%'.includes(this.at().value)) {
+        while ('*/%'.includes(this.at().value))
+        {
             let operator = this.eat();
             let rhs = this.parseExponentiationExpr(prev != undefined ? prev : operator.type);
             lhs = {
@@ -262,11 +300,13 @@ export class Parser {
         return lhs;
     };
 
-    parseAdditiveExpr = (prev?: TokenType): Expression  => {
+    parseAdditiveExpr = (prev ? : TokenType): Expression =>
+    {
         let lhs = this.parseMultiplicationExpr(prev);
-        while ('+-'.includes(this.at().value)) {
+        while ('+-'.includes(this.at().value))
+        {
             let operator = this.eat();
-            let rhs = this.parseMultiplicationExpr(prev != undefined? prev : operator.type);
+            let rhs = this.parseMultiplicationExpr(prev != undefined ? prev : operator.type);
             lhs = {
                 type: NodeType.BinaryExpression,
                 left: lhs,
@@ -279,11 +319,13 @@ export class Parser {
         return lhs;
     };
 
-    parseBitwiseExpr = (prev?: TokenType): Expression  => {
+    parseBitwiseExpr = (prev ? : TokenType): Expression =>
+    {
         let lhs = this.parseAdditiveExpr(prev);
-        while (['<<', '>>'].includes(this.at().value)) {
+        while (['<<', '>>'].includes(this.at().value))
+        {
             let operator = this.eat();
-            let rhs = this.parseAdditiveExpr(prev != undefined? prev : operator.type);
+            let rhs = this.parseAdditiveExpr(prev != undefined ? prev : operator.type);
             lhs = {
                 type: NodeType.BinaryExpression,
                 left: lhs,
@@ -295,12 +337,14 @@ export class Parser {
 
         return lhs;
     };
- 
-    parseRationalExpr = (prev?: TokenType): Expression  => {
+
+    parseRationalExpr = (prev ? : TokenType): Expression =>
+    {
         let lhs = this.parseBitwiseExpr(prev);
-        while (['<', '>', '<=', '>='].includes(this.at().value)) {
+        while (['<', '>', '<=', '>='].includes(this.at().value))
+        {
             let operator = this.eat();
-            let rhs = this.parseBitwiseExpr(prev != undefined? prev : operator.type);
+            let rhs = this.parseBitwiseExpr(prev != undefined ? prev : operator.type);
             lhs = {
                 type: NodeType.BinaryExpression,
                 left: lhs,
@@ -313,11 +357,13 @@ export class Parser {
         return lhs;
     };
 
-    parseEqualityExpr = (prev?: TokenType): Expression  => {
+    parseEqualityExpr = (prev ? : TokenType): Expression =>
+    {
         let lhs = this.parseRationalExpr(prev);
-        while (['==', '!='].includes(this.at().value)) {
+        while (['==', '!='].includes(this.at().value))
+        {
             let operator = this.eat();
-            let rhs = this.parseRationalExpr(prev != undefined? prev : operator.type);
+            let rhs = this.parseRationalExpr(prev != undefined ? prev : operator.type);
             lhs = {
                 type: NodeType.BinaryExpression,
                 left: lhs,
@@ -331,12 +377,14 @@ export class Parser {
         return lhs;
     };
 
-    parseLogicalBitwiseExpr = (prev?: TokenType): Expression  => {
+    parseLogicalBitwiseExpr = (prev ? : TokenType): Expression =>
+    {
         let lhs = this.parseEqualityExpr(prev);
-        
-        while (['&', '^', '|', '&&', '||'].includes(this.at().value)) {
+
+        while (['&', '^', '|', '&&', '||'].includes(this.at().value))
+        {
             let operator = this.eat();
-            let rhs = this.parseEqualityExpr(prev != undefined? prev : operator.type);
+            let rhs = this.parseEqualityExpr(prev != undefined ? prev : operator.type);
             lhs = {
                 type: NodeType.BinaryExpression,
                 left: lhs,
@@ -350,42 +398,52 @@ export class Parser {
         return lhs;
     };
 
-    parseExpression = (): Expression => {
+    parseExpression = (): Expression =>
+    {
         let Expr = {} as Expression;
         let token = this.at();
-        
-        switch (token.type) {
-            default: {
+
+        switch (token.type)
+        {
+            default:
+            {
                 Expr = this.parseLogicalBitwiseExpr();
                 break;
             };
         };
 
-        if (this.at().type == TokenType.eof) {
+        if (this.at().type == TokenType.eof)
+        {
             return Expr;
         }
-    
-        else if (this.at().type == TokenType.eol) {
+
+        else if (this.at().type == TokenType.eol)
+        {
             this.eat();
             return Expr;
         }
-        else {
+        else
+        {
             new SyntaxErr(`Expected an ${TokenType.eol} or ${TokenType.eof} but got: '${this.at().value}' (${this.at().type})`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
         };
         return Expr; // Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
     };
 
-    parseStatement = (): Statement => {
+    parseStatement = (): Statement =>
+    {
         let Stmt = {} as Statement;
         let token = this.at();
 
-        switch (token.type) {
-            case TokenType.eol: {
-                if (!(token.value == ';')) {
+        switch (token.type)
+        {
+            case TokenType.eol:
+            {
+                if (!(token.value == ';'))
+                {
                     this.eat();
                     break;
                 };
-                
+
                 Stmt = {
                     type: NodeType.EmptyStatement,
                     range: [token.loc.line, token.loc.start, this.at().loc.end],
@@ -395,14 +453,15 @@ export class Parser {
                 break;
             };
 
-            default : {
+            default:
+            {
                 Stmt = {
                     type: NodeType.ExpressionStatement,
                     body: [this.parseExpression()],
-                    range: [0,0]
+                    range: [0, 0]
                 } as ExpressionStatement;
 
-                Stmt.range = [token.loc.line, token.loc.start, Stmt.body[Stmt.body.length-1].range[2]];
+                Stmt.range = [token.loc.line, token.loc.start, Stmt.body[Stmt.body.length - 1].range[2]];
                 break;
             };
         };
@@ -410,26 +469,30 @@ export class Parser {
         return Stmt;
     };
 
-    parseProgram = (): Program => {
+    parseProgram = (): Program =>
+    {
         let program: Program = {
             type: NodeType.Program,
             body: [],
             range: [0, 0],
         } as Program;
 
-        while (!this.eof()) {
+        while (!this.eof())
+        {
             program.body.push(this.parseStatement());
         };
 
-        if (program.body.length == 0) {
+        if (program.body.length == 0)
+        {
             program.range = [0, 0, this.source.length];
         }
-        else {
+        else
+        {
             program.range = [program.body[0].range[0], 0, this.source.length];
         };
 
         const Folding = new ConstantFolding(this.source, this.filename);
-        
+
         program = Folding.fold(program);
 
         return program;
@@ -441,4 +504,3 @@ export class Parser {
 
 // const test = new Parser('1/3**2', 'tst');
 // console.log(test.ast);
-

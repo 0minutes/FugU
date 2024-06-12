@@ -3,14 +3,15 @@
 export const DIGITS = '0123456789';
 export const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
-export const enum TokenType {
+export const enum TokenType
+{
     identifier = '<identifier>',
     integer = '<integer>',
     float = '<float>',
     string = '<string>',
     null = '<null>',
     bool = '<boolean>',
-    
+
     let = '<ssignmentLet>',
     const = '<AssignmentConst>',
 
@@ -20,16 +21,16 @@ export const enum TokenType {
     switch = '<switch>',
     case = '<case>',
     default = '<default>',
-    
+
     while = '<while>',
     for = '<for>',
     in = '<in>',
     break = '<break>',
-    
+
     proc = '<proc>',
     class = '<class>',
     new = '<new>',
-    
+
     from = '<from>',
     include = '<include>',
 
@@ -42,7 +43,7 @@ export const enum TokenType {
 
     equalsEquals = '<equalsEquals>',
     notEquals = '<notEquals>',
-    
+
     not = '<not>',
     bitNot = '<bitNot>',
     bitAnd = '<bitAnd>',
@@ -82,7 +83,7 @@ export const enum TokenType {
     eof = '<endOfFile>',
 };
 
-export const ValueTypes: Array<string> = [
+export const ValueTypes: Array < string > = [
     TokenType.identifier,
     TokenType.integer,
     TokenType.float,
@@ -91,64 +92,64 @@ export const ValueTypes: Array<string> = [
     TokenType.bool,
 ];
 
-export const specialChars:Record<string, TokenType> = {
-    '+' : TokenType.binaryOp,
-    '-' : TokenType.binaryOp,
-    '*' : TokenType.binaryOp,
-    '/' : TokenType.binaryOp,
-    '%' : TokenType.binaryOp,
+export const specialChars: Record < string, TokenType > = {
+    '+': TokenType.binaryOp,
+    '-': TokenType.binaryOp,
+    '*': TokenType.binaryOp,
+    '/': TokenType.binaryOp,
+    '%': TokenType.binaryOp,
     '**': TokenType.binaryOp,
-    '(' : TokenType.oparen,
-    ')' : TokenType.cparen,
+    '(': TokenType.oparen,
+    ')': TokenType.cparen,
 
-    '{' : TokenType.ocurly,
-    '}' : TokenType.ccurly,
+    '{': TokenType.ocurly,
+    '}': TokenType.ccurly,
 
-    '[' : TokenType.osquare,
-    ']' : TokenType.csquare,
+    '[': TokenType.osquare,
+    ']': TokenType.csquare,
 
-    '.' : TokenType.dot,
-    ',' : TokenType.comma,
-    ';' : TokenType.eol,
-    ':' : TokenType.colon,
+    '.': TokenType.dot,
+    ',': TokenType.comma,
+    ';': TokenType.eol,
+    ':': TokenType.colon,
 
     '==': TokenType.equalsEquals,
     '<>': TokenType.notEquals,
-    
-    '!' : TokenType.not,
-    '~' : TokenType.bitNot,
+
+    '!': TokenType.not,
+    '~': TokenType.bitNot,
     '^': TokenType.xor,
-    '&' : TokenType.bitAnd,
+    '&': TokenType.bitAnd,
     '&&': TokenType.and,
-    '|' : TokenType.bitOr,
+    '|': TokenType.bitOr,
     '||': TokenType.or,
 
     '>>': TokenType.rightRight,
     '<<': TokenType.leftLeft,
 
 
-    '<' : TokenType.less,
-    '>' : TokenType.greater,
+    '<': TokenType.less,
+    '>': TokenType.greater,
     '>=': TokenType.lessEquals,
     '<=': TokenType.greaterEquals,
 
-    '=' : TokenType.equals,
+    '=': TokenType.equals,
     '++': TokenType.plusPlus,
     '+=': TokenType.plusEquals,
     '--': TokenType.minusMinus,
     '-=': TokenType.minusEquals,
 };
 
-export const unaryBuilders: Record<string, TokenType> = {
+export const unaryBuilders: Record < string, TokenType > = {
     '*': TokenType.binaryOp,
-    '<' : TokenType.less,
-    '>' : TokenType.greater,
-    '=' : TokenType.equals,
-    '+' : TokenType.binaryOp,
-    '-' : TokenType.binaryOp,
+    '<': TokenType.less,
+    '>': TokenType.greater,
+    '=': TokenType.equals,
+    '+': TokenType.binaryOp,
+    '-': TokenType.binaryOp,
 };
 
-export const unaryChars: Record<string, TokenType> = {
+export const unaryChars: Record < string, TokenType > = {
     '&&': TokenType.and,
     '||': TokenType.or,
 
@@ -157,7 +158,7 @@ export const unaryChars: Record<string, TokenType> = {
     '>=': TokenType.lessEquals,
     '<=': TokenType.greaterEquals,
 
-    '=' : TokenType.equals,
+    '=': TokenType.equals,
     '==': TokenType.equalsEquals,
     '++': TokenType.plusPlus,
     '+=': TokenType.plusEquals,
@@ -166,18 +167,18 @@ export const unaryChars: Record<string, TokenType> = {
     '**': TokenType.binaryOp,
 };
 
-export const unaryUpdaters: Record <string, TokenType> = {
+export const unaryUpdaters: Record < string, TokenType > = {
     '++': TokenType.plusPlus,
     '--': TokenType.minusMinus,
 };
 
-export const unaryBinOps: Record <string, TokenType> = {
+export const unaryBinOps: Record < string, TokenType > = {
     '+': TokenType.binaryOp,
     '-': TokenType.binaryOp,
     '!': TokenType.not,
 };
 
-export const keywords: Record<string, TokenType> = {
+export const keywords: Record < string, TokenType > = {
     'let': TokenType.let,
     'const': TokenType.const,
 
@@ -206,7 +207,8 @@ export const keywords: Record<string, TokenType> = {
     'in': TokenType.in,
 };
 
-export interface Token {
+export interface Token
+{
     type: TokenType;
     value: string;
     loc: Position;
@@ -214,8 +216,10 @@ export interface Token {
 
 // ERROR RELATED
 
-export const expected = (prev: TokenType): string => {
-    switch(prev) {
+export const expected = (prev: TokenType): string =>
+{
+    switch (prev)
+    {
         case TokenType.identifier:
             return 'an operator or an end of statement';
         case TokenType.integer:
@@ -313,90 +317,111 @@ export const expected = (prev: TokenType): string => {
     };
 };
 
-export interface Position {
+export interface Position
+{
     filename: string;
     line: number;
     start: number;
     end: number;
 };
 
-export const makePosition = (filename: string, line: number, start: number, end: number): Position => {
-    return { filename, line, end, start } as Position;
+export const makePosition = (filename: string, line: number, start: number, end: number): Position =>
+{
+    return {
+        filename,
+        line,
+        end,
+        start
+    } as Position;
 };
 
-export class Warning { 
+export class Warning
+{
     message: string;
     loc: Position;
     source: string;
-    
-    constructor(message: string, loc: Position, source: string, public type: string = 'Uncaught Warning'){
+
+    constructor(message: string, loc: Position, source: string, public type: string = 'Uncaught Warning')
+    {
 
         this.message = message;
         this.loc = loc;
         this.source = source;
 
         console.log(this.source.split('\n')[this.loc.line]);
-        console.log(' '.repeat(this.loc.start)+'^'.repeat(this.loc.end-this.loc.start));
+        console.log(' '.repeat(this.loc.start) + '^'.repeat(this.loc.end - this.loc.start));
         console.error(`${this.loc.filename}:${this.loc.line+1}:${this.loc.end}: ${this.type}: ${message}`);
     };
 };
 
-export class EmptyStatementWarning extends Warning {
-    constructor(message: string, loc: Position, source: string) {
+export class EmptyStatementWarning extends Warning
+{
+    constructor(message: string, loc: Position, source: string)
+    {
         super(message, loc, source, 'Empty Statement Warning');
     }
 };
 
-export class Error { 
+export class Error
+{
     message: string;
     loc: Position;
     source: string;
-    
-    constructor(message: string, loc: Position, source: string, public type: string = 'Uncaught'){
+
+    constructor(message: string, loc: Position, source: string, public type: string = 'Uncaught')
+    {
 
         this.message = message;
         this.loc = loc;
         this.source = source;
 
         console.log(this.source);
-        console.log(' '.repeat(this.loc.start)+'^'.repeat(this.loc.end-this.loc.start));
+        console.log(' '.repeat(this.loc.start) + '^'.repeat(this.loc.end - this.loc.start));
         console.error(`${this.loc.filename}:${this.loc.line}:${this.loc.end}: ${this.type}: ${message}`);
         Deno.exit(1);
     };
 };
 
-export class SyntaxErr extends Error {
-    constructor(message: string, loc: Position, source: string) {
+export class SyntaxErr extends Error
+{
+    constructor(message: string, loc: Position, source: string)
+    {
         super(message, loc, source, 'SyntaxError');
     };
 };
 
-export class ParserErr extends Error {
-    constructor(message: string, loc: Position, source: string) {
+export class ParserErr extends Error
+{
+    constructor(message: string, loc: Position, source: string)
+    {
         super(message, loc, source, 'ParserErr');
     };
 };
 
-export class LexerErr extends Error {
-    constructor(message: string, loc: Position, source: string) {
+export class LexerErr extends Error
+{
+    constructor(message: string, loc: Position, source: string)
+    {
         super(message, loc, source, 'LexerError');
     };
 };
 
 // NODE TYPES
 
-export const enum NodeType {
+export const enum NodeType
+{
     Program = 'Program',
-    ExpressionStatement = 'ExpressionStatement',
-    EmptyStatement = 'EmptyStatement',
-    BinaryExpression = 'BinaryExpression',
-    UnaryExpression = 'UnaryExpression',
-    UnaryUpdateExpression = 'UnaryUpdateExpression',
-    Identifier = 'Identifier',
-    Literal = 'Literal',
+        ExpressionStatement = 'ExpressionStatement',
+        EmptyStatement = 'EmptyStatement',
+        BinaryExpression = 'BinaryExpression',
+        UnaryExpression = 'UnaryExpression',
+        UnaryUpdateExpression = 'UnaryUpdateExpression',
+        Identifier = 'Identifier',
+        Literal = 'Literal',
 };
 
-export interface Program {
+export interface Program
+{
     type: NodeType;
     body: Statement[];
     range: number[];
@@ -404,41 +429,46 @@ export interface Program {
 
 // STATEMENTS
 
-export interface Statement {
+export interface Statement
+{
     type: NodeType;
     body: Expression[];
     range: number[];
 };
 
-export interface ExpressionStatement extends Statement {
+export interface ExpressionStatement extends Statement
+{
     type: NodeType;
     body: Expression[];
     range: number[];
 };
 
-export interface EmptyStatement extends Statement {
+export interface EmptyStatement extends Statement
+{
     type: NodeType,
     range: number[],
 }
 
 // EXPRESSIONS
 
-export interface Expression {
+export interface Expression
+{
     type: string;
-    
-    left?: Expression;
-    right?: Expression;
-    argument?: Expression;
-    operator?: string;
-    prefix?: boolean;
 
-    value?: string | number | boolean | null;
-    runtimeValue?: LiteralValue;
+    left ? : Expression;
+    right ? : Expression;
+    argument ? : Expression;
+    operator ? : string;
+    prefix ? : boolean;
+
+    value ? : string | number | boolean | null;
+    runtimeValue ? : LiteralValue;
 
     range: number[];
 };
 
-export interface BinaryExpression extends Expression {
+export interface BinaryExpression extends Expression
+{
     type: NodeType.BinaryExpression;
     left: Literal | Expression,
     operator: string,
@@ -446,7 +476,8 @@ export interface BinaryExpression extends Expression {
     range: number[],
 };
 
-export interface UnaryUpdateExpression extends Expression {
+export interface UnaryUpdateExpression extends Expression
+{
     type: NodeType.UnaryUpdateExpression;
     operator: string,
     prefix: boolean,
@@ -454,7 +485,8 @@ export interface UnaryUpdateExpression extends Expression {
     range: number[],
 };
 
-export interface UnaryExpression extends Expression {
+export interface UnaryExpression extends Expression
+{
     type: NodeType.UnaryExpression;
     operator: string,
     prefix: boolean,
@@ -463,22 +495,25 @@ export interface UnaryExpression extends Expression {
 };
 // LITERAL TYPES
 
-export const enum LiteralValue {
+export const enum LiteralValue
+{
     Literal = 'Literal',
-    NullLiteral = 'NullLiteral',
-    BoolLiteral = 'BoolLiteral',
-    NumberLiteral = 'NumberLiteral',
-    FloatLiteral = 'FloatLiteral',
-    StringLiteral = 'StringLiteral'
+        NullLiteral = 'NullLiteral',
+        BoolLiteral = 'BoolLiteral',
+        NumberLiteral = 'NumberLiteral',
+        FloatLiteral = 'FloatLiteral',
+        StringLiteral = 'StringLiteral'
 };
 
-export interface Identifier extends Expression {
+export interface Identifier extends Expression
+{
     type: NodeType.Identifier;
     value: string;
     range: number[];
 };
 
-export interface Literal extends Expression {
+export interface Literal extends Expression
+{
     type: NodeType.Literal;
     runtimeValue: LiteralValue;
     value: string | number | boolean | null;
@@ -487,13 +522,40 @@ export interface Literal extends Expression {
 
 // STACK RELATED
 
-export const enum Instructions {
+export const enum ConstantType
+{
+    string,
+    float,
+};
+
+export const enum Instructions
+{
     pop,
-    ipush,
+
+    s8push,
+    s16push,
+    s32push,
+    s64push,
+    slpush,
+
+    u8push,
+    u16push,
+    u32push,
+    u64push,
+
+    ulpush,
+
     fpush,
+    fload,
+
+    dload,
+    dfpush,
+
     spush,
     apush,
 
+    cload,
+    sload,
     load,
 
     add,
@@ -502,7 +564,7 @@ export const enum Instructions {
     div,
     mod,
     pow,
-    
+
     not,
     eqls,
     neqls,
@@ -526,7 +588,10 @@ export const enum Instructions {
     halt,
 };
 
-
-export type Const = number[] | number | boolean ;
-export type Byte  = [Instructions, Const] | (Instructions | Const)[] | [Instructions];
-export type Bytecode = Byte[];
+export const enum PoolElementCodes
+{
+    str,
+    flt,
+    dflt,
+}
+export type Bytecode = number[];
