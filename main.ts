@@ -14,7 +14,7 @@ import
 const VERSION = '1.2.0';
 const HOT = 'Parser';
 
-const shell = () =>
+const shell = (flags: any) =>
 {
     console.log(`HOT: ${HOT}!`);
     console.log(`FugU language v${VERSION} type '.exit' to exit!`);
@@ -30,7 +30,7 @@ const shell = () =>
         };
 
         let lexer: Lexer = new Lexer(userinput, 'shell');
-        let parser: Parser = new Parser(userinput, 'shell');
+        let parser: Parser = new Parser(userinput, 'shell', flags.semicolons);
 
         let tokens = lexer.tokens;
         let ast = parser.ast;
@@ -42,7 +42,7 @@ const shell = () =>
     };
 };
 
-const fromFile = (file: string) =>
+const fromFile = (file: string, flags: any) =>
 {
     let contents;
     try
@@ -57,7 +57,7 @@ const fromFile = (file: string) =>
     };
 
     let lexer: Lexer = new Lexer(contents, file);
-    let parser: Parser = new Parser(contents, file);
+    let parser: Parser = new Parser(contents, file, flags);
 
     let tokens: any = lexer.tokens;
     let ast = parser.ast;
@@ -66,6 +66,8 @@ const fromFile = (file: string) =>
 
     console.log(ast);
     console.log('----------------------------------------------');
+
+    Deno.exit(0);
 };
 
 const printHelp = () =>
@@ -73,16 +75,35 @@ const printHelp = () =>
     console.log('Usage: deno run main.ts [-h | --help] | [-r | --run] (path/to/file)');
     console.log('\t--help/-h - prints this message');
     console.log('\t--run/-r  - requires a path to a file. Will run the code provided from a file');
+    console.log('Other flags:');
+    console.log('\t--strict-semicolon/-ssc - enables strict semicolon checking')
 };
 
 const main = () =>
 {
     const args = Deno.args;
 
+    const flags =
+    {
+        semicolons: false,
+    };
+
     if (args.length === 0)
     {
-        shell();
+        shell(flags);
     }
+
+    if (args.includes('-ssc'))
+    {
+        flags.semicolons = true;
+        args.splice(args.indexOf('-ssc'), 1);
+    };
+
+    if (args.includes('--strict-semicolon'))
+    {
+        flags.semicolons = true;
+        args.splice(args.indexOf('--strict-semicolon'), 1);
+    };
 
     for (let i = 0; i < args.length; i++)
     {
@@ -103,7 +124,7 @@ const main = () =>
                     Deno.exit(1);
                 }
                 const filePath = args[i + 1] as string;
-                fromFile(filePath);
+                fromFile(filePath, flags);
                 break;
 
             default:
@@ -111,8 +132,8 @@ const main = () =>
                 Deno.exit(1);
         };
     };
-
+    shell(flags);
     return 0;
 };
 
-main();
+main()

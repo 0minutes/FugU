@@ -280,7 +280,7 @@ export class Lexer
                 let dot = false;
                 let number = '';
 
-                while (this.listSource.length > 0 && DIGITS.includes(this.listSource[0]) || this.listSource[0] == '.')
+                while (this.listSource.length > 0 && DIGITS.includes(this.listSource[0]) || this.listSource[0] == '.' || this.listSource[0] == '_')
                 {
                     if (this.listSource[0] == '.' && dot == false)
                     {
@@ -394,9 +394,10 @@ export class Lexer
             {
                 start = cur;
                 this.eat();
-                cur = 0;
+                tokens.push(this.makeToken(TokenType.eol, '\\n', makePosition(this.filename, line, start, cur+1)));
                 line++;
-                tokens.push(this.makeToken(TokenType.eol, '\\n', makePosition(this.filename, line, start, cur)))
+
+                cur = 0;
             }
 
             else if (this.listSource[0] == '\t')
@@ -408,7 +409,6 @@ export class Lexer
             else if (this.listSource[0] == '\r')
             {
                 this.eat();
-                // cur++;
             }
 
             else if (this.listSource[0] == ';')
@@ -416,7 +416,7 @@ export class Lexer
                 start = cur
                 this.eat();
                 cur++;
-                tokens.push(this.makeToken(TokenType.eol, ';', makePosition(this.filename, line, start, cur)))
+                tokens.push(this.makeToken(TokenType.semicolon, ';', makePosition(this.filename, line, start, cur)))
             }
 
             else
@@ -427,7 +427,7 @@ export class Lexer
             };
         };
 
-        tokens.push(this.makeToken(TokenType.eof, TokenType.eof, makePosition(this.filename, line, this.source.length, this.source.length + 1)))
+        tokens.push(this.makeToken(TokenType.eof, TokenType.eof, makePosition(this.filename, line, cur, cur + 1)))
 
         return tokens;
     };
@@ -437,5 +437,5 @@ export class Lexer
 
 // TESTING PURPOSES
 
-// const test = new Lexer('|||&&&', 'tst');
+// const test = new Lexer('|||&&&123_456"123_123"ident_ifier;', 'tst');
 // console.log(test.tokens);

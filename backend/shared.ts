@@ -78,6 +78,7 @@ export const enum TokenType
     dot = '<dot>',
     comma = '<comma>',
     colon = '<colon>',
+    semicolon = '<semicolon>',
 
     eol = '<endOfLine>',
     eof = '<endOfFile>',
@@ -110,7 +111,7 @@ export const specialChars: Record < string, TokenType > = {
 
     '.': TokenType.dot,
     ',': TokenType.comma,
-    ';': TokenType.eol,
+    ';': TokenType.semicolon,
     ':': TokenType.colon,
 
     '==': TokenType.equalsEquals,
@@ -362,27 +363,27 @@ export class EmptyStatementWarning extends Warning
     }
 };
 
-export class Error
+export class error
 {
     message: string;
     loc: Position;
     source: string;
 
-    constructor(message: string, loc: Position, source: string, public type: string = 'Uncaught')
+    constructor(message: string, loc: Position, source: string, public type: string = 'Uncaught Error')
     {
 
         this.message = message;
         this.loc = loc;
         this.source = source;
 
-        console.log(this.source);
+        console.log(this.source.split('\n')[this.loc.line]);
         console.log(' '.repeat(this.loc.start) + '^'.repeat(this.loc.end - this.loc.start));
         console.error(`${this.loc.filename}:${this.loc.line}:${this.loc.end}: ${this.type}: ${message}`);
         Deno.exit(1);
     };
 };
 
-export class SyntaxErr extends Error
+export class SyntaxErr extends error
 {
     constructor(message: string, loc: Position, source: string)
     {
@@ -390,7 +391,7 @@ export class SyntaxErr extends Error
     };
 };
 
-export class ParserErr extends Error
+export class ParserErr extends error
 {
     constructor(message: string, loc: Position, source: string)
     {
@@ -398,7 +399,7 @@ export class ParserErr extends Error
     };
 };
 
-export class LexerErr extends Error
+export class LexerErr extends error
 {
     constructor(message: string, loc: Position, source: string)
     {
@@ -411,13 +412,13 @@ export class LexerErr extends Error
 export const enum NodeType
 {
     Program = 'Program',
-        ExpressionStatement = 'ExpressionStatement',
-        EmptyStatement = 'EmptyStatement',
-        BinaryExpression = 'BinaryExpression',
-        UnaryExpression = 'UnaryExpression',
-        UnaryUpdateExpression = 'UnaryUpdateExpression',
-        Identifier = 'Identifier',
-        Literal = 'Literal',
+    ExpressionStatement = 'ExpressionStatement',
+    EmptyStatement = 'EmptyStatement',
+    BinaryExpression = 'BinaryExpression',
+    UnaryExpression = 'UnaryExpression',
+    UnaryUpdateExpression = 'UnaryUpdateExpression',
+    Identifier = 'Identifier',
+    Literal = 'Literal',
 };
 
 export interface Program
@@ -493,16 +494,17 @@ export interface UnaryExpression extends Expression
     argument: Expression,
     range: number[],
 };
+
 // LITERAL TYPES
 
 export const enum LiteralValue
 {
     Literal = 'Literal',
-        NullLiteral = 'NullLiteral',
-        BoolLiteral = 'BoolLiteral',
-        NumberLiteral = 'NumberLiteral',
-        FloatLiteral = 'FloatLiteral',
-        StringLiteral = 'StringLiteral'
+    NullLiteral = 'NullLiteral',
+    BoolLiteral = 'BoolLiteral',
+    NumberLiteral = 'NumberLiteral',
+    FloatLiteral = 'FloatLiteral',
+    StringLiteral = 'StringLiteral'
 };
 
 export interface Identifier extends Expression
@@ -516,47 +518,22 @@ export interface Literal extends Expression
 {
     type: NodeType.Literal;
     runtimeValue: LiteralValue;
-    value: string | number | boolean | null;
+    value: number | string | boolean | null;
     range: number[];
 };
 
-// STACK RELATED
+// BYTECODE RELATED
 
-export const enum ConstantType
-{
-    string,
-    float,
-};
-
-export const enum Instructions
-{
+export const enum Instructions {
     pop,
-
-    s8push,
-    s16push,
-    s32push,
-    s64push,
-    slpush,
 
     u8push,
     u16push,
     u32push,
     u64push,
-
-    ulpush,
-
     fpush,
-    fload,
-
-    dload,
-    dfpush,
-
+    dpush,
     spush,
-    apush,
-
-    cload,
-    sload,
-    load,
 
     add,
     sub,
@@ -566,6 +543,7 @@ export const enum Instructions
     pow,
 
     not,
+
     eqls,
     neqls,
     gt,
@@ -584,14 +562,129 @@ export const enum Instructions
     const_4,
     const_5,
     const_6,
+}
 
-    halt,
+
+export interface Byte
+{
+    type: Instructions,
+    value?: CustomIntXArray,
 };
 
-export const enum PoolElementCodes
+export type Bytecode = CustomIntXArray;
+
+
+// OTHER
+
+export class CustomIntXArray
 {
-    str,
-    flt,
-    dflt,
-}
-export type Bytecode = number[];
+    buffer: number | undefined;
+    Bitsize: number;
+    IntXArr: number[];
+    maxUnsignedValue: number;
+
+    maxSignedValue: number;
+    minSignedValue: number;
+
+    constructor(buffer: number | undefined, bitsize: number = 8)
+    {
+        this.buffer = buffer;
+        this.Bitsize = bitsize;
+        this.IntXArr = new Array(buffer).fill(0);
+
+        this.maxUnsignedValue = (2**bitsize - 1);
+
+        this.maxSignedValue = (2**bitsize)/2 - 1;
+        this.minSignedValue = -((2**bitsize)/2);
+
+        return new Proxy // Basically machine code, least obfuscated code ever made
+        (this, 
+            {
+                // deno-lint-ignore no-explicit-any
+                get: function (target: any, idx: any) 
+                {
+                    if (typeof idx == "string" && !isNaN(Number(idx)))
+                    {
+                        return target.IntXArr[idx];
+                    }
+                    
+                    else
+                    {
+                        return target[idx];
+                    };
+                },
+                // deno-lint-ignore no-explicit-any
+                set: function (target: any, idx: any, value: any) 
+                {
+                    if (typeof idx == "string" && !isNaN(Number(idx)))
+                    {
+                        target.pushSignedIntX(value, Number(idx));
+                        return true;
+                    }
+                    else
+                    {
+                        target[idx] = value;
+                        return true;
+                    };
+                }
+            }
+        );
+    };
+
+    pushUnsignedIntX(value: number, idx: number) {   
+    
+        if (idx >= this.IntXArr.length)
+        {
+            throw new Error("Index is out of buffer bounds");
+        };
+    
+        while (value > this.maxUnsignedValue) {
+            this.IntXArr[idx++] = this.maxUnsignedValue;
+            value -= this.maxUnsignedValue;
+    
+            if (idx >= this.IntXArr.length)
+            {
+                throw new Error("Buffer overflow, cannot store all values");
+            };
+        };
+    
+        this.IntXArr[idx] = value;
+    };
+
+    pushSignedIntX(value: number, idx: number) {   
+
+    
+        if (idx >= this.IntXArr.length)
+        {
+            throw new Error("Index is out of buffer bounds");
+        };
+    
+        while (value > this.maxSignedValue || value < this.minSignedValue) {
+            this.IntXArr[idx++] = value > 0 ? this.maxSignedValue : this.minSignedValue;
+            value = value > 0 ? value - this.maxSignedValue : value - this.minSignedValue;
+    
+            if (idx >= this.IntXArr.length)
+            {
+                throw new Error("Buffer overflow, cannot store all values");
+            };
+        };
+    
+        this.IntXArr[idx] = value;
+    };
+
+    toString() 
+    {
+        return this.IntXArr.toString();
+    };
+
+    [Symbol.iterator] = () => {
+        let idx = 0;
+        return {
+            next: () => 
+            {
+                if (idx >= this.IntXArr.length) return {value: this.IntXArr[idx++], done: false};
+                else return {done: true};
+            }
+        };
+    }
+};

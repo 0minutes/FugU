@@ -64,10 +64,14 @@ export class Parser
 
     ast: Program;
 
-    constructor(source: string, filename ? : string)
+    flags: any; 
+
+    constructor(source: string, filename ? : string, flags?: any)
     {
         this.filename = filename == undefined ? 'shell' : filename;
         this.source = source;
+        this.flags = flags;
+
         this.lexer = new Lexer(source, this.filename);
 
         this.tokens = this.lexer.tokens;
@@ -87,7 +91,7 @@ export class Parser
 
     eol = (): boolean =>
     {
-        return this.at().type == TokenType.eol;
+        return this.at().type == TokenType.eol || this.at().type == TokenType.semicolon;
     };
 
     next = (): any =>
@@ -127,6 +131,16 @@ export class Parser
 
             case TokenType.float:
             {
+                if (parseInt(token.value) == token.value)
+                {
+                    return {
+                        type: NodeType.Literal,
+                        runtimeValue: LiteralValue.NumberLiteral,
+                        value: parseInt(token.value),
+                        range: [token.loc.line, token.loc.start, token.loc.end]
+                    } as Literal;
+                }
+
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.FloatLiteral,
@@ -412,16 +426,17 @@ export class Parser
             };
         };
 
-        if (this.at().type == TokenType.eof)
+        if (this.eof())
         {
             return Expr;
         }
 
-        else if (this.at().type == TokenType.eol)
+        else if (this.at().type == TokenType.eol || this.at().type == TokenType.semicolon)
         {
             this.eat();
             return Expr;
         }
+        
         else
         {
             new SyntaxErr(`Expected an ${TokenType.eol} or ${TokenType.eof} but got: '${this.at().value}' (${this.at().type})`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
@@ -436,9 +451,10 @@ export class Parser
 
         switch (token.type)
         {
+            case TokenType.semicolon:
             case TokenType.eol:
             {
-                if (!(token.value == ';'))
+                if (token.value != ';')
                 {
                     this.eat();
                     break;
@@ -449,7 +465,6 @@ export class Parser
                     range: [token.loc.line, token.loc.start, this.at().loc.end],
                 } as EmptyStatement;
                 this.eat();
-
                 break;
             };
 
@@ -479,6 +494,7 @@ export class Parser
 
         while (!this.eof())
         {
+
             program.body.push(this.parseStatement());
         };
 
