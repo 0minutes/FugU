@@ -6,11 +6,11 @@ The source code for various components of the language can be found in the `./ba
 
 ## Project Structure
 
-- [`./backend/Lexer.ts`](./backend/Parser/Lexer.ts) - Contains the lexer implementation.
+- [`./backend/Parser/Lexer.ts`](./backend/Parser/Lexer.ts) - Contains the lexer implementation.
 - [`./backend/shared.ts`](./backend/shared.ts) - Defines all the used Types Functions Enums etc etc.
-- [`./backend/Parser.ts`](./backend/Parser/Parser.ts) - Houses the parser code, currently a work in progress.
-- [`./backend/ConstantFolding.ts`](./backend/Parser/ConstantFolding.ts) - Contains the implementation of the Constantfolding (Something I've been experimenting on) Very early version
-- [`./backend/ByteEncoder.ts`](./backend/Bytecode/ByteEncoder.ts) - Contains the bytecode generator code
+- [`./backend/Parser/Parser.ts`](./backend/Parser/Parser.ts) - Houses the parser code, currently a work in progress.
+- [`./backend/Parser/ConstantFolding.ts`](./backend/Parser/ConstantFolding.ts) - Contains the implementation of the Constantfolding (Something I've been experimenting on) Very early version
+- [`./backend/Bytecode/ByteEncoder.ts`](./backend/Bytecode/ByteEncoder.ts) - Contains the bytecode generator code
 - Additional files for the Interpreter will be added as the project progresses.
 
 - [`./main.ts`](./main.ts) - Contains the shell code which allows the language to be run in the console.
