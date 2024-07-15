@@ -36,7 +36,7 @@
                                 5
                             ]
                         },
-                        "operator": "*",
+                        "operator": "+",
                         "right": 
                         {
                             "type": "Literal",

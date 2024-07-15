@@ -6,11 +6,11 @@ The source code for various components of the language can be found in the `./ba
 
 ## Project Structure
 
-- [`./backend/Lexer.ts`](./backend/Lexer.ts) - Contains the lexer implementation.
+- [`./backend/Lexer.ts`](./backend/Parser/Lexer.ts) - Contains the lexer implementation.
 - [`./backend/shared.ts`](./backend/shared.ts) - Defines all the used Types Functions Enums etc etc.
-- [`./backend/Parser.ts`](./backend/Parser.ts) - Houses the parser code, currently a work in progress.
-- [`./backend/ConstantFolding.ts`](./backend/ConstantFolding.ts) - Contains the implementation of the Constantfolding (Something I've been experimenting on) Very early version
-- [`./backend/ByteEncoder.ts`](./backend/ByteEncoder.ts) - Contains the bytecode generator code
+- [`./backend/Parser.ts`](./backend/Parser/Parser.ts) - Houses the parser code, currently a work in progress.
+- [`./backend/ConstantFolding.ts`](./backend/Parser/ConstantFolding.ts) - Contains the implementation of the Constantfolding (Something I've been experimenting on) Very early version
+- [`./backend/ByteEncoder.ts`](./backend/Bytecode/ByteEncoder.ts) - Contains the bytecode generator code
 - Additional files for the Interpreter will be added as the project progresses.
 
 - [`./main.ts`](./main.ts) - Contains the shell code which allows the language to be run in the console.
@@ -18,11 +18,11 @@ The source code for various components of the language can be found in the `./ba
 
 ## Progress
 
-- [x] **Lexer** - Completed ([source](./backend/Lexer.ts))
-- [x] **AST (Abstract Syntax Tree)** - Completed ([source](./backend/shared.ts))
-- [x] **Parser** - Completed and is able to parse Expressions and Numbers etc... ([source](./backend/Parser.ts))
-- [x] **Some sort of optimization** - Very early version with only removal/replacement of `EmptyStatement` and simple Expressions ([source](./backend/ConstantFolding.ts))
-- [x] **Bytecode Generator** - Started, but only added support for Literals/Identifiers and Binary Expressions. ([source](./backend/ByteEncoder.ts))
+- [x] **Lexer** - Completed ([source](./backend/Parser/Lexer.ts))
+- [x] **AST (Abstract Syntax Tree)** - Completed and can be found in ([source](./backend/shared.ts))
+- [x] **Parser** - Completed and is able to parse Expressions and Numbers etc... ([source](./backend/Parser/Parser.ts))
+- [x] **Some sort of optimization** - Very early version with only removal/replacement of `EmptyStatement` and simple Expressions ([source](./backend/Parser/ConstantFolding.ts))
+- [x] **Bytecode Generator** - Started, but only added support for `Literals` and `BinaryExpressions`. ([source](./backend/Bytecode/ByteEncoder.ts))
 - [ ] **Interpreter** - Going to be written in C or C++ or other fast language
 
 ## How to Run

@@ -4,11 +4,11 @@
 import
 {
     Lexer
-} from './backend/Lexer.ts';
+} from './backend/Parser/Lexer.ts';
 import
 {
     Parser
-} from './backend/Parser.ts';
+} from './backend/Parser/Parser.ts';
 
 
 const VERSION = '1.2.0';
