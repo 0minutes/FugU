@@ -450,7 +450,12 @@ export class Parser
             {
                 if (token.value != ';')
                 {
+                    Stmt = {
+                        type: NodeType.EmptyStatement,
+                        range: [token.loc.line, token.loc.start, this.at().loc.end],
+                    } as EmptyStatement;
                     this.eat();
+                    break;
                 }
                 else
                 {
@@ -491,13 +496,19 @@ export class Parser
         {
             const statement = this.parseStatement();
             
+            if (statement.type == NodeType.EmptyStatement)
+            {
+                continue;
+            };
+
             program.body.push(statement);
         };
-
+        
         if (program.body.length == 0)
         {
-            program.range = [0, 0, this.source.length];
+            program.range = [0, 0, this.at().loc.end];
         }
+
         else
         {
             program.range = [program.body[0].range[0], 0, this.source.length];

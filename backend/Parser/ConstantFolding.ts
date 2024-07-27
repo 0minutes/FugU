@@ -246,11 +246,6 @@ export class ConstantFolding
             ast.body[0] = this.foldExpressionStatement(ast.body[0]);
             return ast;
         }
-
-        else if (ast.type == NodeType.EmptyStatement)
-        {
-            return undefined;
-        }
         
         else if (ast.type == NodeType.Program)
         {
@@ -259,11 +254,7 @@ export class ConstantFolding
             ast.body.forEach((Stmt: Statement) =>
             {
                 const folded = this.fold(Stmt);
-
-                if (folded != undefined)
-                {
-                    newBody.push(folded);
-                };
+                newBody.push(folded);
             });
 
             ast.body = newBody;
