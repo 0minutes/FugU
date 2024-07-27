@@ -12,6 +12,7 @@ import
     keywords,
     unaryBuilders,
     unaryChars,
+    Flags,
 }
 from '../shared.ts';
 
@@ -22,17 +23,19 @@ export class Lexer
     filename: string;
     listSource: string[];
 
-    specialChars: Record <string, TokenType> = specialChars;
-    keywords: Record <string, TokenType > = keywords;
-    unaryBuilders: Record <string, TokenType> = unaryBuilders;
-    unaryChars: Record <string, TokenType> = unaryChars;
+    specialChars: Record < string, TokenType > = specialChars;
+    keywords: Record < string, TokenType > = keywords;
+    unaryBuilders: Record < string, TokenType > = unaryBuilders;
+    unaryChars: Record < string, TokenType > = unaryChars;
 
     tokens: Token[];
+    flags: Flags;
 
-    constructor(source: string, filename ? : string)
+    constructor(flags: Flags, source: string, filename ? : string)
     {
-        this.filename = filename == undefined ? 'shell' : filename;
 
+        this.filename = filename == undefined ? 'shell' : filename;
+        this.flags = flags;
         this.source = source;
         this.listSource = source.split('');
 
@@ -76,7 +79,7 @@ export class Lexer
 
         let cur = 0;
         let start = 0;
-        let line = 0;
+        let line = 1;
 
         while (this.listSource.length > 0)
         {

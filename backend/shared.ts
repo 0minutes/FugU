@@ -271,7 +271,14 @@ export const expected = (prev: TokenType): string =>
         case TokenType.typeof:
             return 'an expression';
 
+        case TokenType.not:
         case TokenType.binaryOp:
+        case TokenType.bitNot:
+        case TokenType.bitAnd:
+        case TokenType.bitOr:
+        case TokenType.xor:
+        case TokenType.rightRight:
+        case TokenType.leftLeft:
             return 'an expression or a value';
         case TokenType.equalsEquals:
         case TokenType.notEquals:
@@ -291,7 +298,7 @@ export const expected = (prev: TokenType): string =>
             return 'an identifier or an expression';
 
         case TokenType.oparen:
-            return 'an expression or closing parenthesis';
+            return 'an expression';
         case TokenType.cparen:
             return 'an operator or an end of statement';
         case TokenType.ocurly:
@@ -309,15 +316,26 @@ export const expected = (prev: TokenType): string =>
             return 'an identifier, value, or parameter';
         case TokenType.colon:
             return 'a value or block';
+        case TokenType.semicolon:
+            return 'an end of statement';
 
         case TokenType.eol:
             return 'a statement or expression';
         case TokenType.eof:
             return 'an end of file';
 
+        case TokenType.break:
+            return 'an end of loop or switch';
+
         default:
             return 'an appropriate token';
     };
+};
+
+export interface Flags
+{
+    warnings: boolean;
+    strictWarnings: boolean;
 };
 
 export interface Position
@@ -344,26 +362,35 @@ export class Warning
     loc: Position;
     source: string;
 
-    constructor(message: string, loc: Position, source: string, public type: string = 'Uncaught Warning')
+    constructor(flags: Flags, message: string, loc: Position, source: string, public type: string = 'Uncaught Warning')
     {
 
         this.message = message;
         this.loc = loc;
         this.source = source;
-
-        console.log(this.source.split('\n')[this.loc.line]);
-        console.log(' '.repeat(this.loc.start) + '^'.repeat(this.loc.end - this.loc.start));
-        console.error(`${this.loc.filename}:${this.loc.line+1}:${this.loc.end}: ${this.type}: ${message}`);
+        
+        if (flags.warnings)
+        {
+            console.log(this.source.split('\n')[this.loc.line-1]);
+            console.log(' '.repeat(this.loc.start) + '^'.repeat(this.loc.end - this.loc.start));
+            console.error(`${this.loc.filename}:${this.loc.line+1}:${this.loc.end}: ${this.type}: ${message}`);
+        };
+        
+        if (flags.strictWarnings)
+        {
+            Deno.exit(1);
+        };
     };
 };
 
-export class EmptyStatementWarning extends Warning
+export class TypeConversionWarning extends Warning
 {
-    constructor(message: string, loc: Position, source: string)
+    constructor(flags: Flags, message: string, loc: Position, source: string)
     {
-        super(message, loc, source, 'Empty Statement Warning');
-    }
+        super(flags, message, loc, source, 'TypeConversion Warning');
+    };
 };
+
 
 export class error
 {
@@ -378,7 +405,7 @@ export class error
         this.loc = loc;
         this.source = source;
 
-        console.log(this.source.split('\n')[this.loc.line]);
+        console.log(this.source.split('\n')[this.loc.line-1]);
         console.log(' '.repeat(this.loc.start) + '^'.repeat(this.loc.end - this.loc.start));
         console.error(`${this.loc.filename}:${this.loc.line}:${this.loc.end}: ${this.type}: ${message}`);
         Deno.exit(1);
@@ -590,7 +617,7 @@ export const enum InstructionType
 
 // OTHER
 
-export const CHAR_BIT =8,
+export const CHAR_BIT = 8,
 SCHAR_MIN             = (-128),
 SCHAR_MAX             =   127,
 UCHAR_MAX             =   0xff,

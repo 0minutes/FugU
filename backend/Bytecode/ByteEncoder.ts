@@ -9,6 +9,7 @@ import
     Statement,
 
     MethodType,
+    Flags,
 } from "../shared.ts";
 
 
@@ -17,17 +18,20 @@ export class ByteEncoder
 {
     filename: string;
     source: string;
+    flags: Flags
 
     parser: Parser;
     ast: Program;
 
     bytecode: number[];
 
-    constructor(source: string, filename : string)
+
+    constructor(flags: Flags, source: string, filename : string)
     {
         this.filename = filename == undefined ? 'shell' : filename;
         this.source = source;
-        this.parser = new Parser(source, this.filename);
+        this.flags = flags,
+        this.parser = new Parser(this.flags, source, this.filename);
         this.ast = this.parser.ast;
 
         this.bytecode = this.generateProgram(this.ast);
@@ -81,5 +85,5 @@ export class ByteEncoder
 
 // TESTING PURPOSES
 
-// const test = new ByteEncoder('922337203685477580123123', 'tst');
+// const test = new ByteEncoder({warnings: true} as Flags, '922337203685477580123123', 'tst');
 // console.log(test.bytecode); 

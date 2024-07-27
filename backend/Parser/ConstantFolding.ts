@@ -1,20 +1,29 @@
 // deno-lint-ignore-file
-import { LiteralValue } from '../shared.ts';
-import {
+import
+{
+    TokenType,
     NodeType,
     Statement,
     Literal,
+    LiteralValue,
+    error,
     Warning,
     makePosition,
+    Flags,
+    TypeConversionWarning,
 } from '../shared.ts';
 
-export class ConstantFolding {
+export class ConstantFolding
+{
     source: string;
     filename: string;
-    constructor(source: string, filename?: string)
+    flags: Flags;
+
+    constructor(flags: Flags, source: string, filename?: string)
     {
         this.filename = filename == undefined ? 'shell' : filename;
         this.source = source;
+        this.flags = flags;
     };
 
     evaluateSimpleIntExpressions(ast: any, integer: boolean = true)
@@ -143,6 +152,62 @@ export class ConstantFolding {
         return ast;
     };
 
+    evaluateUnaryExpr = (ast: any) =>
+    {
+        switch (ast.operator)
+        {
+            case '!':
+            {
+                ast.argument = this.foldExpressionStatement(ast.argument);
+
+                if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
+                {
+                    new TypeConversionWarning(this.flags, `${TokenType.not} operator on the type ${ast.argument.runtimeValue} converts it into a ${LiteralValue.NumberLiteral}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source);
+                };
+
+                return {
+                    type: NodeType.Literal,
+                    runtimeValue: LiteralValue.NumberLiteral,
+                    value: !(ast.argument.value),
+                    range: [ast.range[0], ast.range[1], ast.range[2]],
+                } as Literal; 
+            };
+
+            case '+':
+            {
+                ast.argument = this.foldExpressionStatement(ast.argument);
+
+                if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
+                {
+                    new error(`Unable to use <unaryPlus> operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source, 'TypeConversion');
+                };
+
+                return {
+                    type: NodeType.Literal,
+                    runtimeValue: LiteralValue.NumberLiteral,
+                    value: 0n+(ast.argument.value),
+                    range: [ast.range[0], ast.range[1], ast.range[2]],
+                } as Literal; 
+            };
+            case '-':
+            {
+                ast.argument = this.foldExpressionStatement(ast.argument);
+
+                if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
+                {
+                    new error(`Unable to use <unaryMinus> operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source, 'TypeConversion');
+                };
+
+                return {
+                    type: NodeType.Literal,
+                    runtimeValue: LiteralValue.NumberLiteral,
+                    value: 0n-(ast.argument.value),
+                    range: [ast.range[0], ast.range[1], ast.range[2]],
+                } as Literal; 
+            };
+        };
+    };
+
     foldExpressionStatement(ast: any)
     {
         if (ast.type == NodeType.Literal)
@@ -165,6 +230,10 @@ export class ConstantFolding {
             {
                 return this.evaluateSimpleIntExpressions(ast, false);
             };
+        }
+        else if (ast.type == NodeType.UnaryExpression)
+        {
+            return this.evaluateUnaryExpr(ast);
         };
 
         return ast;
@@ -180,8 +249,7 @@ export class ConstantFolding {
 
         else if (ast.type == NodeType.EmptyStatement)
         {
-            new Warning('Empty Statement', makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source);
-            return 'Next';
+            return undefined;
         }
         
         else if (ast.type == NodeType.Program)
@@ -192,7 +260,7 @@ export class ConstantFolding {
             {
                 const folded = this.fold(Stmt);
 
-                if (folded != 'Next')
+                if (folded != undefined)
                 {
                     newBody.push(folded);
                 };

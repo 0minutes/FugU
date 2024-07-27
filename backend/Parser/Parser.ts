@@ -31,6 +31,7 @@ import
 } from './ConstantFolding.ts';
 import
 {
+    Flags,
     Program,
     Statement,
     Expression,
@@ -64,15 +65,15 @@ export class Parser
 
     ast: Program;
 
-    flags: any; 
+    flags: Flags; 
 
-    constructor(source: string, filename ? : string, flags?: any)
+    constructor(flags: Flags, source: string, filename ? : string)
     {
         this.filename = filename == undefined ? 'shell' : filename;
         this.source = source;
         this.flags = flags;
 
-        this.lexer = new Lexer(source, this.filename);
+        this.lexer = new Lexer(flags, source, this.filename);
 
         this.tokens = this.lexer.tokens;
 
@@ -103,13 +104,13 @@ export class Parser
         return TokenType.eof;
     };
 
-    eat = (): any =>
+    eat = (): Token =>
     {
-        if (this.tokens.length > 0)
-        {
-            return this.tokens.shift();
-        };
-        return TokenType.eof;
+        // if (this.tokens.length > 0)
+        // {
+        return this.tokens.shift() as Token;
+        // };
+        // return TokenType.eof;
     };
 
 
@@ -131,7 +132,7 @@ export class Parser
 
             case TokenType.float:
             {
-                if (parseInt(token.value) == token.value)
+                if (parseInt(token.value) == parseFloat(token.value))
                 {
                     return {
                         type: NodeType.Literal,
@@ -184,14 +185,14 @@ export class Parser
             {
                 if (this.at().type == TokenType.cparen)
                 {
-                    new SyntaxErr('Expected an expression inside the parenthesis', makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
+                    new SyntaxErr(`Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
                 };
 
                 let value = this.parseAdditiveExpr(TokenType.oparen);
 
                 if (this.at().type != TokenType.cparen)
                 {
-                    new SyntaxErr('Expected a closing parenthesis', makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
+                    new SyntaxErr(`Expected a ')' (${TokenType.cparen}) before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
                 };
                 this.eat();
                 return value;
@@ -207,8 +208,8 @@ export class Parser
             };
 
             default:
-            {
-                new SyntaxErr(`Unexpected ${token.type} token: '${token.value}'. Expected ${expected(prevToken != undefined? prevToken : token.type)}`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
+            {   
+                new SyntaxErr(`Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a '${token.value}' (${token.type}) token`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
                 return {} as Literal; //Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
             };
         };
@@ -263,7 +264,7 @@ export class Parser
         if (token.value in unaryBinOps)
         {
             let operator = this.eat();
-            let lhs = this.parseUnaryUpdateExpression(prev != undefined ? prev : operator.type);
+            let lhs = this.parseLogicalBitwiseExpr(prev != undefined ? prev : operator.type);
             lhs = {
                 type: NodeType.UnaryExpression,
                 operator: operator.value,
@@ -425,20 +426,15 @@ export class Parser
             };
         };
 
-        if (this.eof())
-        {
-            return Expr;
-        }
-
-        else if (this.at().type == TokenType.eol || this.at().type == TokenType.semicolon)
+        if (this.at().type == TokenType.semicolon)
         {
             this.eat();
             return Expr;
         }
-        
+
         else
         {
-            new SyntaxErr(`Expected an ${TokenType.eol} or ${TokenType.eof} but got: '${this.at().value}' (${this.at().type})`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+            new SyntaxErr(`Expected an ';' (${TokenType.semicolon}) before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
         };
         return Expr; // Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
     };
@@ -447,7 +443,6 @@ export class Parser
     {
         let Stmt = {} as Statement;
         let token = this.at();
-
         switch (token.type)
         {
             case TokenType.semicolon:
@@ -456,15 +451,16 @@ export class Parser
                 if (token.value != ';')
                 {
                     this.eat();
+                }
+                else
+                {
+                    Stmt = {
+                        type: NodeType.EmptyStatement,
+                        range: [token.loc.line, token.loc.start, this.at().loc.end],
+                    } as EmptyStatement;
+                    this.eat();
                     break;
                 };
-
-                Stmt = {
-                    type: NodeType.EmptyStatement,
-                    range: [token.loc.line, token.loc.start, this.at().loc.end],
-                } as EmptyStatement;
-                this.eat();
-                break;
             };
 
             default:
@@ -493,8 +489,9 @@ export class Parser
 
         while (!this.eof())
         {
-
-            program.body.push(this.parseStatement());
+            const statement = this.parseStatement();
+            
+            program.body.push(statement);
         };
 
         if (program.body.length == 0)
@@ -506,7 +503,7 @@ export class Parser
             program.range = [program.body[0].range[0], 0, this.source.length];
         };
 
-        const Folding = new ConstantFolding(this.source, this.filename);
+        const Folding = new ConstantFolding(this.flags, this.source, this.filename);
 
         program = Folding.fold(program);
 

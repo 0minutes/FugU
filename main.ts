@@ -9,66 +9,64 @@ import
 {
     Parser
 } from './backend/Parser/Parser.ts';
+
 import
 {
-    ByteEncoder
-} from './backend/Bytecode/ByteEncoder.ts'
+    Flags
+} from './backend/shared.ts';
 
-const VERSION = '1.2.0';
-const HOT = 'Parser';
 
-const shell = (flags: any) =>
+const VERSION = '1.5.0';
+
+const shell = (flags: Flags) =>
 {
-    console.log(`HOT: ${HOT}!`);
     console.log(`FugU language v${VERSION} type '.exit' to exit!`);
 
     while (true)
     {
 
-        let userinput = String(prompt('>'));
+        const userinput = String(prompt('>'));
 
-        if (userinput == 'exit')
+        if (userinput == '.exit')
         {
             Deno.exit(0);
         };
 
-        let lexer: Lexer = new Lexer(userinput, 'shell');
-        let parser: Parser = new Parser(userinput, 'shell', flags.semicolons);
-        let generator: ByteEncoder = new ByteEncoder(userinput, 'shell')
+        if (userinput == '.flags')
+        {
+            console.log(flags);
+            continue;
+        };
 
-        let tokens = lexer.tokens;
+        let parser: Parser = new Parser(flags, userinput, 'shell');
+
         let ast = parser.ast;
-        let bytecode = generator.bytecode;
 
-        console.log('--------------TOKENS-----------');
-        console.log(tokens);
         console.log('--------------AST--------------');
         console.log(ast)
-        console.log('--------------BYTECODE---------');
-        console.log(bytecode);
         console.log('--------------END--------------');
     };
 };
 
-const fromFile = (file: string, flags: any) =>
+const fromFile = (file: string, flags: Flags) =>
 {
     let contents;
     try
     {
         contents = Deno.readTextFileSync(file);
     }
-
     catch (e)
     {
         console.log(`Unknown file path: ${file}`);
         Deno.exit(1);
     };
 
-    let lexer: Lexer = new Lexer(contents, file);
-    let parser: Parser = new Parser(contents, file, flags);
+    let lexer: Lexer = new Lexer(flags, contents, file);
+    let parser: Parser = new Parser(flags, contents, file);
 
     let tokens: any = lexer.tokens;
     let ast = parser.ast;
+
     console.log(tokens);
     console.log('----------------------------------------------');
 
@@ -84,33 +82,52 @@ const printHelp = () =>
     console.log('\t--help/-h - prints this message');
     console.log('\t--run/-r  - requires a path to a file. Will run the code provided from a file');
     console.log('Other flags:');
-    console.log('\t--strict-semicolon/-ssc - enables strict semicolon checking')
+    console.log('\t--no-warnings/-nws - disable warnings');
+    console.log('\t--strict-warnings/-sws - crash on warning');
 };
 
 const main = () =>
 {
     const args = Deno.args;
 
-    const flags =
+    const flags: Flags = 
     {
-        semicolons: false,
+        warnings: true,
+        strictWarnings: false,
     };
 
     if (args.length === 0)
     {
         shell(flags);
-    }
-
-    if (args.includes('-ssc'))
-    {
-        flags.semicolons = true;
-        args.splice(args.indexOf('-ssc'), 1);
     };
 
-    if (args.includes('--strict-semicolon'))
+    if (args.includes('-nws'))
     {
-        flags.semicolons = true;
-        args.splice(args.indexOf('--strict-semicolon'), 1);
+        flags.warnings = false;
+        args.splice(args.indexOf('-nws'), 1);
+    };
+
+    if (args.includes('--no-warnings'))
+    {
+        flags.warnings = false;
+        args.splice(args.indexOf('--no-warnings'), 1);
+    };
+
+    if (args.includes('-sws'))
+    {
+        flags.strictWarnings = true;
+        args.splice(args.indexOf('-sws'), 1);
+    };
+
+    if (args.includes('--strict-warnings'))
+    {
+        flags.strictWarnings = true;
+        args.splice(args.indexOf('--strict-warnings'), 1);
+    };
+
+    if (flags.strictWarnings)
+    {
+        flags.warnings = true;
     };
 
     for (let i = 0; i < args.length; i++)
@@ -121,23 +138,28 @@ const main = () =>
         {
             case '-h':
             case '--help':
+            {
                 printHelp();
-                break;
+                Deno.exit(0);
+            };
 
             case '-r':
             case '--run':
+            {
                 if (i + 1 >= args.length)
                 {
                     console.log('Expected a path to a file');
                     Deno.exit(1);
-                }
+                };
                 const filePath = args[i + 1] as string;
                 fromFile(filePath, flags);
                 break;
-
+            };
             default:
+            {
                 console.log(`Unknown argument ${arg}`);
                 Deno.exit(1);
+            };
         };
     };
     shell(flags);
