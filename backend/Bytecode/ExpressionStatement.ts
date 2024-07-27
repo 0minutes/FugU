@@ -10,11 +10,12 @@ import
 
     LiteralValue,
 
-
     Expression,
     Literal,
     InstructionType,
     BinaryExpression,
+    UnaryExpression,
+
 } from "../shared.ts";
 
 export class ExpressionStatementGenerator
@@ -50,6 +51,16 @@ export class ExpressionStatementGenerator
                     ExpressionBytecode.push(...this.generateBinaryExpression(ast.left, ast.operator, ast.right))
                     break;
                 };
+                case NodeType.UnaryExpression:
+                {
+                    ast = ast as UnaryExpression
+                    ExpressionBytecode.push(...this.generateUnaryExpression(ast.argument, ast.operator));
+                };
+                case NodeType.UnaryUpdateExpression:
+                {
+                    ast = ast as UnaryExpression
+                    ExpressionBytecode.push(...this.generateUnaryUpdateExpression(ast.argument, ast.operator, ast.prefix));
+                };
             };
         };
 
@@ -57,6 +68,88 @@ export class ExpressionStatementGenerator
 
         return ExpressionBytecode;
     };
+    generateUnaryUpdateExpression = (argument: Literal, operator: string, prefix: boolean) =>
+    {
+        const UnaryUpdateBytecode: number[] = [];
+
+        if (prefix)
+        {
+            switch (operator)
+            {
+                case '++':
+                {
+                    UnaryUpdateBytecode.push(InstructionType.const1);
+                    UnaryUpdateBytecode.push(...this.generateExpression(argument));
+                    UnaryUpdateBytecode.push(InstructionType.add);
+                    break;
+                };
+
+                case '--':
+                {
+                    UnaryUpdateBytecode.push(InstructionType.const1);
+                    UnaryUpdateBytecode.push(...this.generateExpression(argument));
+                    UnaryUpdateBytecode.push(InstructionType.sub);
+                    break;
+                };
+            };
+        }
+        
+        else
+        {
+            switch (operator)
+            {
+                case '++':
+                {
+                    UnaryUpdateBytecode.push(...this.generateExpression(argument));
+                    UnaryUpdateBytecode.push(InstructionType.const1);
+                    UnaryUpdateBytecode.push(InstructionType.add);
+                    break;
+                }
+                case '--':
+                {
+                    UnaryUpdateBytecode.push(...this.generateExpression(argument));
+                    UnaryUpdateBytecode.push(InstructionType.const1);
+                    UnaryUpdateBytecode.push(InstructionType.sub);
+                    break;
+                };
+            };
+        };
+        return UnaryUpdateBytecode;
+    };
+
+    generateUnaryExpression = (argument: Literal, operator: string): number[] => 
+    {
+        const UnaryBytecode: number[] = [];
+        
+        switch (operator)
+        {
+            case '!':
+            {
+                UnaryBytecode.push(...this.generateExpression(argument));
+                UnaryBytecode.push(InstructionType.not);
+                break;
+            }
+            case '+':
+            {
+                UnaryBytecode.push(...this.generateExpression(argument));
+                break;
+            };
+            case '-':
+            {
+                UnaryBytecode.push(InstructionType.const0);
+                UnaryBytecode.push(...this.generateExpression(argument));
+                UnaryBytecode.push(InstructionType.sub);
+                break;
+            }
+        }
+
+        return UnaryBytecode;
+    };
+//
+// case NodeType.UnaryUpdateExpression:
+//     {
+//         
+//     };
 
     generateBinaryExpression = (left: Literal, operator: string, right: Literal) =>
         {

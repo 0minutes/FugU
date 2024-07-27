@@ -9,7 +9,10 @@ import
 {
     Parser
 } from './backend/Parser/Parser.ts';
-
+import
+{
+    ByteEncoder
+} from './backend/Bytecode/ByteEncoder.ts'
 
 const VERSION = '1.2.0';
 const HOT = 'Parser';
@@ -31,14 +34,19 @@ const shell = (flags: any) =>
 
         let lexer: Lexer = new Lexer(userinput, 'shell');
         let parser: Parser = new Parser(userinput, 'shell', flags.semicolons);
+        let generator: ByteEncoder = new ByteEncoder(userinput, 'shell')
 
         let tokens = lexer.tokens;
         let ast = parser.ast;
+        let bytecode = generator.bytecode;
 
+        console.log('--------------TOKENS-----------');
         console.log(tokens);
-        console.log('----------------------------------------------');
+        console.log('--------------AST--------------');
         console.log(ast)
-        console.log('----------------------------------------------');
+        console.log('--------------BYTECODE---------');
+        console.log(bytecode);
+        console.log('--------------END--------------');
     };
 };
 

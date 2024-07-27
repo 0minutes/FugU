@@ -72,20 +72,29 @@ export class LiteralGenerator
 
         if (ast.value as number >= 0)
         {
+            console.log(ast.value);
             switch (ast.value)
             {
+                case 0n:
                 case 0: NumberBytecode.push(InstructionType.const0); break;
+                case 1n:
                 case 1: NumberBytecode.push(InstructionType.const1); break;
+                case 2n:
                 case 2: NumberBytecode.push(InstructionType.const2); break;
+                case 3n:
                 case 3: NumberBytecode.push(InstructionType.const3); break;
+                case 4n:
                 case 4: NumberBytecode.push(InstructionType.const4); break;
+                case 5n:
                 case 5: NumberBytecode.push(InstructionType.const5); break;
+                case 6n:
                 case 6: NumberBytecode.push(InstructionType.const6); break;
             
                 default:
                 {
                     if (ast.value as number <= _UI8_MAX)
                     {
+                        console.log(1)
                         NumberBytecode.push(InstructionType.u8);
                         ast.value = Number(ast.value)
                         NumberBytecode.push(...this.generateInteger(ast.value, 8));
@@ -167,7 +176,7 @@ export class LiteralGenerator
                             `Overflow of the I64 integer '${ast.value}' changes its value to '${ast.value as bigint % _I64_MIN}'`,
                             makePosition(this.parent.filename,ast.range[0], ast.range[1], ast.range[2]),
                             this.parent.source, 'IntOverflow');
-                        ast.value = ast.value as bigint % _I64_MIN
+                        ast.value = ast.value as bigint % _I64_MIN;
 
                         NumberBytecode.push(...this.generateNumberLiterals(ast));
                     };

@@ -31,6 +31,17 @@ export class ByteEncoder
         this.ast = this.parser.ast;
 
         this.bytecode = this.generateProgram(this.ast);
+
+        for (let i = 0; i < this.bytecode.length; i++)
+        {
+            const byte = this.bytecode[i];
+            if (byte > 255)
+            {
+                console.log(this.bytecode);
+                console.log(`FATAL ERROR: Byte size overflow -> byte $${byte.toString(16)} at position ${i}`);
+                Deno.exit(1);
+            };
+        };
     };
 
     generateProgram = (ast: Program): number[] =>
@@ -70,5 +81,5 @@ export class ByteEncoder
 
 // TESTING PURPOSES
 
-const test = new ByteEncoder('922337203685477580123123', 'tst');
-console.log(test.bytecode); 
+// const test = new ByteEncoder('922337203685477580123123', 'tst');
+// console.log(test.bytecode); 
