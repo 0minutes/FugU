@@ -13,7 +13,6 @@ import
 } from "../shared.ts";
 
 
-
 export class ByteEncoder
 {
     filename: string;
@@ -42,9 +41,14 @@ export class ByteEncoder
             if (byte > 255)
             {
                 console.log(this.bytecode);
-                console.log(`FATAL ERROR: Byte size overflow -> byte $${byte.toString(16)} at position ${i}`);
+                console.error(`FATAL ERROR: Byte size overflow -> byte $${byte.toString(16)} at position ${i}`);
                 Deno.exit(1);
             };
+        };
+
+        if (!this.flags.shellMode)
+        {
+            this.writeToFile();
         };
     };
 
@@ -81,9 +85,24 @@ export class ByteEncoder
         return StatementBytecode;
     };
 
+    writeToFile = () => 
+    {
+        const encoded = [];
+
+        for (let i = 0; i < this.bytecode.length; i++)
+        {
+            const byte = this.bytecode[i];
+            encoded.push(String.fromCharCode(byte))
+        };
+
+        const encoder = new TextEncoder();
+        const data = encoder.encode(encoded.join());
+        
+        Deno.writeFileSync(`./${this.filename.split('.')[0]}.fo`, data);
+    };
 };
 
 // TESTING PURPOSES
 
-// const test = new ByteEncoder({warnings: true} as Flags, '922337203685477580123123', 'tst');
+// const test = new ByteEncoder({warnings: true, strictWarnings: true,} as Flags, '256;', 'tst');
 // console.log(test.bytecode); 

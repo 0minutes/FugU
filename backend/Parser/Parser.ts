@@ -185,14 +185,14 @@ export class Parser
             {
                 if (this.at().type == TokenType.cparen)
                 {
-                    new SyntaxErr(`Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+                    new SyntaxErr(this.flags, `Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
                 };
 
                 let value = this.parseAdditiveExpr(TokenType.oparen);
 
                 if (this.at().type != TokenType.cparen)
                 {
-                    new SyntaxErr(`Expected a ')' (${TokenType.cparen}) before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+                    new SyntaxErr(this.flags, `Expected a ')' (${TokenType.cparen}) before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
                 };
                 this.eat();
                 return value;
@@ -209,7 +209,7 @@ export class Parser
 
             default:
             {   
-                new SyntaxErr(`Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a '${token.value}' (${token.type}) token`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
+                new SyntaxErr(this.flags, `Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a '${token.value}' (${token.type}) token`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
                 return {} as Literal; //Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
             };
         };
@@ -434,7 +434,7 @@ export class Parser
 
         else
         {
-            new SyntaxErr(`Expected a ';' (${TokenType.semicolon}) before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+            new SyntaxErr(this.flags, `Expected a ';' (${TokenType.semicolon}) before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
         };
         return Expr; // Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
     };

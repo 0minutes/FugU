@@ -312,12 +312,12 @@ export class Lexer
 
                         if (this.listSource.length == 0)
                         {
-                            new LexerErr(`Expected a number token instead got '${this.eat()}'`, makePosition(this.filename, line, start, cur), this.source);
+                            new LexerErr(this.flags, `Expected a number token instead got '${this.eat()}'`, makePosition(this.filename, line, start, cur), this.source);
                         };
 
                         if (this.listSource.length > 0 && !(DIGITS.includes(this.listSource[0])))
                         {
-                            new LexerErr(`Expected a number token instead got '${this.eat()}'`, makePosition(this.filename, line, start, cur), this.source);
+                            new LexerErr(this.flags, `Expected a number token instead got '${this.eat()}'`, makePosition(this.filename, line, start, cur), this.source);
                         };
                     }
 
@@ -326,7 +326,7 @@ export class Lexer
                         start = cur;
                         cur++;
 
-                        new LexerErr(`Unexpected token: '${this.eat()}' during the parsing of a float`, makePosition(this.filename, line, start, cur), this.source)
+                        new LexerErr(this.flags, `Unexpected token: '${this.eat()}' during the parsing of a float`, makePosition(this.filename, line, start, cur), this.source)
                     }
 
                     else
@@ -379,7 +379,7 @@ export class Lexer
                 };
                 if (this.listSource[0] != '"')
                 {
-                    new LexerErr('Undetermined string literal', makePosition(this.filename, line, start, cur), this.source);
+                    new LexerErr(this.flags, 'Undetermined string literal', makePosition(this.filename, line, start, cur), this.source);
                 };
                 this.eat();
                 cur++;
@@ -399,7 +399,7 @@ export class Lexer
                 };
                 if (this.listSource[0] != '\'')
                 {
-                    new LexerErr('Undetermined string literal', makePosition(this.filename, line, start, cur), this.source);
+                    new LexerErr(this.flags, 'Undetermined string literal', makePosition(this.filename, line, start, cur), this.source);
                 };
                 this.eat();
                 cur++;
@@ -445,7 +445,7 @@ export class Lexer
             {
                 start = cur
                 cur++;
-                new LexerErr(`Unknown charecter token: ${this.listSource[0]}`, makePosition(this.filename, line, start, cur), this.source);
+                new LexerErr(this.flags, `Unknown charecter token: ${this.listSource[0]}`, makePosition(this.filename, line, start, cur), this.source);
             };
         };
 

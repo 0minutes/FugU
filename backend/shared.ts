@@ -334,6 +334,7 @@ export const expected = (prev: TokenType): string =>
 
 export interface Flags
 {
+    shellMode: boolean;
     warnings: boolean;
     strictWarnings: boolean;
 };
@@ -379,7 +380,7 @@ export class Warning
             console.error(' '.repeat(String(this.loc.line).length) + ' | '+' '.repeat(this.loc.start) + `${message}`);  
         };
         
-        if (flags.strictWarnings)
+        if (flags.strictWarnings && !flags.shellMode)
         {
             Deno.exit(1);
         };
@@ -400,14 +401,16 @@ export class error
     message: string;
     loc: Position;
     source: string;
+    flags: Flags
 
-    constructor(message: string, loc: Position, source: string, public type: string = 'Uncaught Error')
+    constructor(flags: Flags, message: string, loc: Position, source: string, public type: string = 'Uncaught Error')
     {
 
         this.message = message;
         this.loc = loc;
         this.source = source;
-
+        this.flags = flags;
+        
         console.log(`a ${this.type} at ${this.loc.filename}:${this.loc.line}:${this.loc.end}`);
         console.log('\n');
 
@@ -429,32 +432,33 @@ export class error
 
 export class SyntaxErr extends error
 {
-    constructor(message: string, loc: Position, source: string)
+    constructor(flags: Flags, message: string, loc: Position, source: string)
     {
-        super(message, loc, source, 'SyntaxError');
+        super(flags, message, loc, source, 'SyntaxError');
     };
 };
+
 export class LogicalErr extends error
 {
-    constructor(message: string, loc: Position, source: string)
+    constructor(flags: Flags, message: string, loc: Position, source: string)
     {
-        super(message, loc, source, 'LogicalErr');
+        super(flags, message, loc, source, 'LogicalErr');
     };
 };
 
 export class ParserErr extends error
 {
-    constructor(message: string, loc: Position, source: string)
+    constructor(flags: Flags, message: string, loc: Position, source: string)
     {
-        super(message, loc, source, 'ParserErr');
+        super(flags, message, loc, source, 'ParserErr');
     };
 };
 
 export class LexerErr extends error
 {
-    constructor(message: string, loc: Position, source: string)
+    constructor(flags: Flags, message: string, loc: Position, source: string)
     {
-        super(message, loc, source, 'LexerError');
+        super(flags, message, loc, source, 'LexerError');
     };
 };
 
