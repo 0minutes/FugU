@@ -434,7 +434,7 @@ export class Parser
 
         else
         {
-            new SyntaxErr(`Expected an ';' (${TokenType.semicolon}) before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+            new SyntaxErr(`Expected a ';' (${TokenType.semicolon}) before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
         };
         return Expr; // Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
     };
@@ -511,7 +511,7 @@ export class Parser
 
         else
         {
-            program.range = [program.body[0].range[0], 0, this.source.length];
+            program.range = [program.body[program.body.length-1].range[0], 0, this.at().loc.end];
         };
 
         const Folding = new ConstantFolding(this.flags, this.source, this.filename);

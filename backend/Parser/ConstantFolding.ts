@@ -1,4 +1,5 @@
 // deno-lint-ignore-file
+import { Expression } from '../shared.ts';
 import
 {
     TokenType,
@@ -7,7 +8,7 @@ import
     Literal,
     LiteralValue,
     error,
-    Warning,
+    LogicalErr,
     makePosition,
     Flags,
     TypeConversionWarning,
@@ -28,6 +29,9 @@ export class ConstantFolding
 
     evaluateSimpleIntExpressions(ast: any, integer: boolean = true)
     {
+        ast.left.value = BigInt(ast.left.value);
+        ast.right.value = BigInt(ast.right.value);
+
         switch (ast.operator)
         {
             case '+':
@@ -70,6 +74,10 @@ export class ConstantFolding
             };
             case '/':
             {
+                if (ast.right.value == 0)
+                {
+                    new LogicalErr(`Unable to '/' (<Division>) by 0`, makePosition(this.filename, ast.right.range[0], ast.right.range[1], ast.right.range[2]), this.source);
+                };
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.FloatLiteral,
@@ -80,6 +88,11 @@ export class ConstantFolding
 
             case '%':
             {
+                if (ast.right.value == 0)
+                {
+                    new LogicalErr(`Unable to '%' (<Modulo>) by 0`, makePosition(this.filename, ast.right.range[0], ast.right.range[1], ast.right.range[2]), this.source);
+                };
+
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.FloatLiteral,
@@ -154,6 +167,8 @@ export class ConstantFolding
 
     evaluateUnaryExpr = (ast: any) =>
     {
+        if (ast.argument.value != null) ast.argument.value = BigInt(ast.argument.value);
+
         switch (ast.operator)
         {
             case '!':
@@ -179,7 +194,7 @@ export class ConstantFolding
 
                 if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new error(`Unable to use <unaryPlus> operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source, 'TypeConversion');
+                    new LogicalErr(`Unable to '+' (<unaryPlus>) operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source);
                 };
 
                 return {
@@ -195,7 +210,7 @@ export class ConstantFolding
 
                 if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new error(`Unable to use <unaryMinus> operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source, 'TypeConversion');
+                    new error(`Unable to '-' (<unaryMinus>) operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source);
                 };
 
                 return {

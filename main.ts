@@ -3,10 +3,6 @@
 
 import
 {
-    Lexer
-} from './backend/Parser/Lexer.ts';
-import
-{
     Parser
 } from './backend/Parser/Parser.ts';
 
@@ -15,7 +11,7 @@ import
     Flags
 } from './backend/shared.ts';
 
-
+const EXTENSION = '.fugu';
 const VERSION = '1.5.0';
 
 const shell = (flags: Flags) =>
@@ -61,17 +57,13 @@ const fromFile = (file: string, flags: Flags) =>
         Deno.exit(1);
     };
 
-    let lexer: Lexer = new Lexer(flags, contents, file);
     let parser: Parser = new Parser(flags, contents, file);
 
-    let tokens: any = lexer.tokens;
     let ast = parser.ast;
 
-    console.log(tokens);
-    console.log('----------------------------------------------');
-
-    console.log(ast);
-    console.log('----------------------------------------------');
+    console.log('--------------AST--------------');
+    console.log(ast)
+    console.log('--------------END--------------');
 
     Deno.exit(0);
 };

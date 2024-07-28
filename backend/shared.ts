@@ -368,12 +368,15 @@ export class Warning
         this.message = message;
         this.loc = loc;
         this.source = source;
-        
+
+        console.log(`a ${this.type} at ${this.loc.filename}:${this.loc.line}:${this.loc.end}`);
+        console.log('\n');
+
         if (flags.warnings)
         {
-            console.log(this.source.split('\n')[this.loc.line-1]);
-            console.log(' '.repeat(this.loc.start) + '^'.repeat(this.loc.end - this.loc.start));
-            console.error(`${this.loc.filename}:${this.loc.line+1}:${this.loc.end}: ${this.type}: ${message}`);
+            console.log(`${this.loc.line} | ` + this.source.split('\n')[this.loc.line-1]);
+            console.log(' '.repeat(String(this.loc.line).length) + ' | '+' '.repeat(this.loc.start) + '^'.repeat(this.loc.end - this.loc.start));
+            console.error(' '.repeat(String(this.loc.line).length) + ' | '+' '.repeat(this.loc.start) + `${message}`);  
         };
         
         if (flags.strictWarnings)
@@ -405,9 +408,21 @@ export class error
         this.loc = loc;
         this.source = source;
 
-        console.log(this.source.split('\n')[this.loc.line-1]);
-        console.log(' '.repeat(this.loc.start) + '^'.repeat(this.loc.end - this.loc.start));
-        console.error(`${this.loc.filename}:${this.loc.line}:${this.loc.end}: ${this.type}: ${message}`);
+        console.log(`a ${this.type} at ${this.loc.filename}:${this.loc.line}:${this.loc.end}`);
+        console.log('\n');
+
+        if (this.loc.line > 1) 
+        {
+            console.log(`${this.loc.line-1} | ` + this.source.split('\n')[this.loc.line-2]);
+        };
+
+        console.log(`${this.loc.line} | ` + this.source.split('\n')[this.loc.line-1]);
+        console.log(' '.repeat(String(this.loc.line).length) + ' | '+' '.repeat(this.loc.start) + '^'.repeat(this.loc.end - this.loc.start));
+        console.error(' '.repeat(String(this.loc.line).length) + ' | '+' '.repeat(this.loc.start) + `${message}`);   
+        if (this.source.split('\n')[this.loc.line] != undefined)
+        {
+            console.log(`${this.loc.line+1} | ` + this.source.split('\n')[this.loc.line]);
+        };
         Deno.exit(1);
     };
 };
@@ -417,6 +432,13 @@ export class SyntaxErr extends error
     constructor(message: string, loc: Position, source: string)
     {
         super(message, loc, source, 'SyntaxError');
+    };
+};
+export class LogicalErr extends error
+{
+    constructor(message: string, loc: Position, source: string)
+    {
+        super(message, loc, source, 'LogicalErr');
     };
 };
 
