@@ -81,6 +81,17 @@ export class ByteEncoder
         return StatementBytecode;
     };
 
+    writeToFile = (filepath: string) => 
+    {
+        const encrypted: string[] = [];
+        for (let i = 0; i < this.bytecode.length; i++)
+        {
+            encrypted.push(String.fromCharCode(this.bytecode[i]));
+        }
+        const encoder = new TextEncoder();
+        const data = encoder.encode(encrypted.join(''));
+        Deno.writeFile(filepath, data);
+    }
 };
 
 // TESTING PURPOSES

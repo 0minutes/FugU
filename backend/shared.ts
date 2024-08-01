@@ -235,42 +235,6 @@ export const expected = (prev: TokenType): string =>
         case TokenType.const:
             return `${ErrorColors.Green_DARK_GREEN}an identifier${ErrorColors.reset}`;
 
-        case TokenType.if:
-        case TokenType.elif:
-        case TokenType.while:
-        case TokenType.for:
-        case TokenType.switch:
-            return `${ErrorColors.Green_DARK_GREEN}an expression or a block${ErrorColors.reset}`;
-        case TokenType.else:
-            return `${ErrorColors.Green_DARK_GREEN}a block${ErrorColors.reset}`;
-        case TokenType.case:
-            return `${ErrorColors.Green_DARK_GREEN}a value${ErrorColors.reset}`;
-        case TokenType.default:
-            return `${ErrorColors.Green_DARK_GREEN}a block${ErrorColors.reset}`;
-
-        case TokenType.in:
-            return `${ErrorColors.Green_DARK_GREEN}an iterable${ErrorColors.reset}`;
-
-        case TokenType.proc:
-        case TokenType.class:
-            return `${ErrorColors.Green_DARK_GREEN}an identifier${ErrorColors.reset}`;
-        case TokenType.new:
-            return `${ErrorColors.Green_DARK_GREEN}a class name${ErrorColors.reset}`;
-
-        case TokenType.from:
-            return `${ErrorColors.Green_DARK_GREEN}a module name${ErrorColors.reset}`;
-        case TokenType.include:
-            return `${ErrorColors.Green_DARK_GREEN}a module or identifier${ErrorColors.reset}`;
-
-        case TokenType.return:
-            return `${ErrorColors.Green_DARK_GREEN}an expression${ErrorColors.reset}`;
-        case TokenType.print:
-        case TokenType.input:
-            return `${ErrorColors.Green_DARK_GREEN}a string or expression${ErrorColors.reset}`;
-        case TokenType.typeof:
-            return `${ErrorColors.Green_DARK_GREEN}an expression${ErrorColors.reset}`;
-
-        case TokenType.not:
         case TokenType.binaryOp:
         case TokenType.bitNot:
         case TokenType.bitAnd:
@@ -300,31 +264,14 @@ export const expected = (prev: TokenType): string =>
             return `${ErrorColors.Green_DARK_GREEN}an expression${ErrorColors.reset}`;
         case TokenType.cparen:
             return `${ErrorColors.Green_DARK_GREEN}an operator or a ';' ${TokenType.semicolon}${ErrorColors.reset} to end the statement`;
-        case TokenType.ocurly:
-            return `${ErrorColors.Green_DARK_GREEN}a block or closing curly brace${ErrorColors.reset}`;
-        case TokenType.ccurly:
-            return `${ErrorColors.Green_DARK_GREEN}an operator or a ';' ${TokenType.semicolon}${ErrorColors.reset} to end the statement`;
-        case TokenType.osquare:
-            return `${ErrorColors.Green_DARK_GREEN}an index or closing square bracket${ErrorColors.reset}`;
-        case TokenType.csquare:
-            return `${ErrorColors.Green_DARK_GREEN}an operator or a ';' ${TokenType.semicolon}${ErrorColors.reset} to end the statement`;
 
-        case TokenType.dot:
-            return `${ErrorColors.Green_DARK_GREEN}an identifier or method${ErrorColors.reset}`;
         case TokenType.comma:
             return `${ErrorColors.Green_DARK_GREEN}an identifier, value, or parameter${ErrorColors.reset}`;
-        case TokenType.colon:
-            return `${ErrorColors.Green_DARK_GREEN}a value or block${ErrorColors.reset}`;
-        case TokenType.semicolon:
-            return `${ErrorColors.Green_DARK_GREEN}an end of statement${ErrorColors.reset}`;
 
         case TokenType.eol:
             return `${ErrorColors.Green_DARK_GREEN}a statement or expression${ErrorColors.reset}`;
         case TokenType.eof:
             return `${ErrorColors.Green_DARK_GREEN}an end of file${ErrorColors.reset}`;
-
-        case TokenType.break:
-            return `${ErrorColors.Green_DARK_GREEN}an end of loop or switch${ErrorColors.reset}`;
 
         default:
             return `${ErrorColors.Green_DARK_GREEN}an appropriate token${ErrorColors.reset}`;
