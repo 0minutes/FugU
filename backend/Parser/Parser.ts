@@ -14,6 +14,7 @@ Multiplication etc (parseMultiplicationExpr): *, /, %
 Addition and Subtraction (parseAdditiveExpr): +, -
 Bitwise Shift (parseBitwiseExpr): <<, >>
 Relational (parseRationalExpr): <, <=, >, >=
+in expression (parseInExpr): in
 Equality (parseEqualityExpr): ==, !=
 Bitwise and Logical Operators (parseLogicalBitwiseExpr): &, ^, |, &&, ||
 
@@ -37,6 +38,7 @@ import
     Expression,
     Token,
     TokenType,
+    ErrorColors,
     SyntaxErr,
     expected,
     makePosition,
@@ -117,7 +119,6 @@ export class Parser
     parseLiteralNode = (prevToken ? : TokenType): Expression =>
     {
         let token = this.eat();
-
         switch (token.type)
         {
             case TokenType.integer:
@@ -185,14 +186,14 @@ export class Parser
             {
                 if (this.at().type == TokenType.cparen)
                 {
-                    new SyntaxErr(this.flags, `Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+                    new SyntaxErr(`Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a \`${this.at().value}\` (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
                 };
 
                 let value = this.parseAdditiveExpr(TokenType.oparen);
 
                 if (this.at().type != TokenType.cparen)
                 {
-                    new SyntaxErr(this.flags, `Expected a ')' (${TokenType.cparen}) before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+                    new SyntaxErr(`Expected a ${ErrorColors.Green_DARK_GREEN}')'${ErrorColors.reset} (${TokenType.cparen}) before getting a \`${this.at().value}\` (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
                 };
                 this.eat();
                 return value;
@@ -209,7 +210,7 @@ export class Parser
 
             default:
             {   
-                new SyntaxErr(this.flags, `Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a '${token.value}' (${token.type}) token`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
+                new SyntaxErr(`Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a \`${token.value}\` (${token.type}) token`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
                 return {} as Literal; //Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
             };
         };
@@ -261,7 +262,7 @@ export class Parser
     {
         let token = this.at();
 
-        if (token.value in unaryBinOps)
+        while (token.value in unaryBinOps)
         {
             let operator = this.eat();
             let lhs = this.parseLogicalBitwiseExpr(prev != undefined ? prev : operator.type);
@@ -300,7 +301,7 @@ export class Parser
     parseMultiplicationExpr = (prev ? : TokenType): Expression =>
     {
         let lhs = this.parseExponentiationExpr(prev);
-        while ('*/%'.includes(this.at().value))
+        while (['*','/','%'].includes(this.at().value))
         {
             let operator = this.eat();
             let rhs = this.parseExponentiationExpr(prev != undefined ? prev : operator.type);
@@ -318,7 +319,7 @@ export class Parser
     parseAdditiveExpr = (prev ? : TokenType): Expression =>
     {
         let lhs = this.parseMultiplicationExpr(prev);
-        while ('+-'.includes(this.at().value))
+        while (['+', '-'].includes(this.at().value))
         {
             let operator = this.eat();
             let rhs = this.parseMultiplicationExpr(prev != undefined ? prev : operator.type);
@@ -372,10 +373,10 @@ export class Parser
         return lhs;
     };
 
-    parseEqualityExpr = (prev ? : TokenType): Expression =>
+    parseInExpr = (prev ? : TokenType): Expression =>
     {
         let lhs = this.parseRationalExpr(prev);
-        while (['==', '!=', '<>'].includes(this.at().value))
+        while (['in'].includes(this.at().value))
         {
             let operator = this.eat();
             let rhs = this.parseRationalExpr(prev != undefined ? prev : operator.type);
@@ -391,9 +392,28 @@ export class Parser
         return lhs;
     };
 
+    parseEqualityExpr = (prev ? : TokenType): Expression =>
+    {
+        let lhs = this.parseInExpr(prev);
+        while (['==', '!=', '<>'].includes(this.at().value))
+        {
+            let operator = this.eat();
+            let rhs = this.parseInExpr(prev != undefined ? prev : operator.type);
+            lhs = {
+                type: NodeType.BinaryExpression,
+                left: lhs,
+                operator: operator.value,
+                right: rhs,
+                range: [lhs.range[0], lhs.range[1], rhs.range[2]],
+            } as BinaryExpression;
+        };
+
+        return lhs;
+    };
+
     parseLogicalBitwiseExpr = (prev ? : TokenType): Expression =>
     {
-        let lhs = this.parseEqualityExpr(prev);
+        let lhs = this.parseEqualityExpr(prev); 
 
         while (['&', '^', '|', '&&', '||'].includes(this.at().value))
         {
@@ -416,7 +436,7 @@ export class Parser
     {
         let Expr = {} as Expression;
         let token = this.at();
-
+        
         switch (token.type)
         {
             default:
@@ -434,8 +454,9 @@ export class Parser
 
         else
         {
-            new SyntaxErr(this.flags, `Expected a ';' (${TokenType.semicolon}) before getting a '${this.at().value}' (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+            new SyntaxErr(`Expected a ${ErrorColors.Green_DARK_GREEN}';'${ErrorColors.reset} (${TokenType.semicolon}) before getting a \`${this.at().value}\` (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
         };
+
         return Expr; // Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
     };
 

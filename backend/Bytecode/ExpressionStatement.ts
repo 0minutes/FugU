@@ -167,7 +167,7 @@ export class ExpressionStatementGenerator
 
                 if (left.runtimeValue == LiteralValue.NullLiteral || right.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for the Null type`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for the Null type`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                 };
 
                 break;
@@ -177,12 +177,12 @@ export class ExpressionStatementGenerator
             {
                 if (left.runtimeValue == LiteralValue.NullLiteral || right.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                 };
 
                 if (left.runtimeValue == LiteralValue.StringLiteral || right.runtimeValue == LiteralValue.StringLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                     break;
                 };
 
@@ -201,7 +201,7 @@ export class ExpressionStatementGenerator
 
                 if (left.runtimeValue == LiteralValue.NullLiteral || right.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for the Null type`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for the Null type`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                 };
 
                 ExpressionBytecode.push(InstructionType.mul);
@@ -212,12 +212,12 @@ export class ExpressionStatementGenerator
             {
                 if (left.runtimeValue == LiteralValue.NullLiteral || right.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                 };
 
                 if (left.runtimeValue == LiteralValue.StringLiteral || right.runtimeValue == LiteralValue.StringLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                     break;
                 };
 
@@ -229,12 +229,12 @@ export class ExpressionStatementGenerator
             {
                 if (left.runtimeValue == LiteralValue.NullLiteral || right.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                 };
 
                 if (left.runtimeValue == LiteralValue.StringLiteral || right.runtimeValue == LiteralValue.StringLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                     break;
                 };
 
@@ -246,12 +246,12 @@ export class ExpressionStatementGenerator
             {
                 if (left.runtimeValue == LiteralValue.NullLiteral || right.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                 };
 
                 if (left.runtimeValue == LiteralValue.StringLiteral || right.runtimeValue == LiteralValue.StringLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                     break;
                 };
     
@@ -302,12 +302,12 @@ export class ExpressionStatementGenerator
             {
                 if (left.runtimeValue == LiteralValue.NullLiteral || right.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                 };
 
                 if (left.runtimeValue == LiteralValue.StringLiteral || right.runtimeValue == LiteralValue.StringLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                     break;
                 };
     
@@ -319,12 +319,12 @@ export class ExpressionStatementGenerator
             {
                 if (left.runtimeValue == LiteralValue.NullLiteral || right.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for Strings`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                 };
 
                 if (left.runtimeValue == LiteralValue.StringLiteral || right.runtimeValue == LiteralValue.StringLiteral)
                 {
-                    new SyntaxErr(this.parent.flags, `Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
+                    new SyntaxErr(`Unsupported '${operator}' operand for nulls`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                     break;
                 };
                     

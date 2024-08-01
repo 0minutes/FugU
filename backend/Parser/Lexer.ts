@@ -13,6 +13,7 @@ import
     unaryBuilders,
     unaryChars,
     Flags,
+    ErrorColors,
 }
 from '../shared.ts';
 
@@ -311,22 +312,34 @@ export class Lexer
                         cur++;
 
                         if (this.listSource.length == 0)
-                        {
-                            new LexerErr(this.flags, `Expected a number token instead got '${this.eat()}'`, makePosition(this.filename, line, start, cur), this.source);
-                        };
-
-                        if (this.listSource.length > 0 && !(DIGITS.includes(this.listSource[0])))
-                        {
-                            new LexerErr(this.flags, `Expected a number token instead got '${this.eat()}'`, makePosition(this.filename, line, start, cur), this.source);
-                        };
-                    }
+                            {
+                                new LexerErr(
+                                    `Unexpected end of input. Expected a number token, but the input ended.`,
+                                    makePosition(this.filename, line, cur, cur+1),
+                                    this.source
+                                );
+                            };
+                            
+                            if (this.listSource.length > 0 && !(DIGITS.includes(this.listSource[0])))
+                            {
+                                new LexerErr(
+                                    `Expected a digit but found '${this.listSource[0]}'. The lexer expected a number token here.`,
+                                    makePosition(this.filename, line, cur, cur+1),
+                                    this.source
+                                );
+                            };
+                    }      
 
                     else if (this.listSource[0] == '.' && dot == true)
                     {
                         start = cur;
                         cur++;
-
-                        new LexerErr(this.flags, `Unexpected token: '${this.eat()}' during the parsing of a float`, makePosition(this.filename, line, start, cur), this.source)
+                    
+                        new LexerErr(   
+                            `Make sure to remove the unexpected '.' (dot) as only one dot is allowed in a float.`,
+                            makePosition(this.filename, line, start, cur),
+                            this.source
+                        );
                     }
 
                     else
@@ -379,7 +392,7 @@ export class Lexer
                 };
                 if (this.listSource[0] != '"')
                 {
-                    new LexerErr(this.flags, 'Undetermined string literal', makePosition(this.filename, line, start, cur), this.source);
+                    new LexerErr('Undetermined string literal. Make sure to add a \'"\' (closing quotes) token as Expected', makePosition(this.filename, line, cur, cur+1), this.source, ErrorColors.Green_DARK_GREEN+'+'+ErrorColors.reset);
                 };
                 this.eat();
                 cur++;
@@ -399,7 +412,7 @@ export class Lexer
                 };
                 if (this.listSource[0] != '\'')
                 {
-                    new LexerErr(this.flags, 'Undetermined string literal', makePosition(this.filename, line, start, cur), this.source);
+                    new LexerErr('Undetermined string literal', makePosition(this.filename, line, start, cur), this.source);
                 };
                 this.eat();
                 cur++;
@@ -445,7 +458,7 @@ export class Lexer
             {
                 start = cur
                 cur++;
-                new LexerErr(this.flags, `Unknown charecter token: ${this.listSource[0]}`, makePosition(this.filename, line, start, cur), this.source);
+                new LexerErr(`Unknown charecter token: ${this.listSource[0]}`, makePosition(this.filename, line, start, cur), this.source);
             };
         };
 
@@ -457,7 +470,7 @@ export class Lexer
 
 
 
-// TESTING PURPOSES
+// // TESTING PURPOSES
 
-// const test = new Lexer('|||&&&123_456"123_123"ident_ifier;', 'tst');
+// const test = new Lexer({warnings: false, strictWarnings: false} as Flags, 'in', 'tst');
 // console.log(test.tokens);

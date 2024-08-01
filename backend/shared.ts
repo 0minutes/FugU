@@ -224,52 +224,51 @@ export const expected = (prev: TokenType): string =>
     switch (prev)
     {
         case TokenType.identifier:
-            return 'an operator or an end of statement';
         case TokenType.integer:
         case TokenType.float:
         case TokenType.string:
         case TokenType.null:
         case TokenType.bool:
-            return 'an operator or an end of statement';
+            return `${ErrorColors.Green_DARK_GREEN}an expression or a ';' ${TokenType.semicolon}${ErrorColors.reset} to end the statement`;
 
         case TokenType.let:
         case TokenType.const:
-            return 'an identifier';
+            return `${ErrorColors.Green_DARK_GREEN}an identifier${ErrorColors.reset}`;
 
         case TokenType.if:
         case TokenType.elif:
         case TokenType.while:
         case TokenType.for:
         case TokenType.switch:
-            return 'an expression or a block';
+            return `${ErrorColors.Green_DARK_GREEN}an expression or a block${ErrorColors.reset}`;
         case TokenType.else:
-            return 'a block';
+            return `${ErrorColors.Green_DARK_GREEN}a block${ErrorColors.reset}`;
         case TokenType.case:
-            return 'a value';
+            return `${ErrorColors.Green_DARK_GREEN}a value${ErrorColors.reset}`;
         case TokenType.default:
-            return 'a block';
+            return `${ErrorColors.Green_DARK_GREEN}a block${ErrorColors.reset}`;
 
         case TokenType.in:
-            return 'an iterable';
+            return `${ErrorColors.Green_DARK_GREEN}an iterable${ErrorColors.reset}`;
 
         case TokenType.proc:
         case TokenType.class:
-            return 'an identifier';
+            return `${ErrorColors.Green_DARK_GREEN}an identifier${ErrorColors.reset}`;
         case TokenType.new:
-            return 'a class name';
+            return `${ErrorColors.Green_DARK_GREEN}a class name${ErrorColors.reset}`;
 
         case TokenType.from:
-            return 'a module name';
+            return `${ErrorColors.Green_DARK_GREEN}a module name${ErrorColors.reset}`;
         case TokenType.include:
-            return 'a module or identifier';
+            return `${ErrorColors.Green_DARK_GREEN}a module or identifier${ErrorColors.reset}`;
 
         case TokenType.return:
-            return 'an expression';
+            return `${ErrorColors.Green_DARK_GREEN}an expression${ErrorColors.reset}`;
         case TokenType.print:
         case TokenType.input:
-            return 'a string or expression';
+            return `${ErrorColors.Green_DARK_GREEN}a string or expression${ErrorColors.reset}`;
         case TokenType.typeof:
-            return 'an expression';
+            return `${ErrorColors.Green_DARK_GREEN}an expression${ErrorColors.reset}`;
 
         case TokenType.not:
         case TokenType.binaryOp:
@@ -279,7 +278,7 @@ export const expected = (prev: TokenType): string =>
         case TokenType.xor:
         case TokenType.rightRight:
         case TokenType.leftLeft:
-            return 'an expression or a value';
+            return `${ErrorColors.Green_DARK_GREEN}an expression or a value${ErrorColors.reset}`;
         case TokenType.equalsEquals:
         case TokenType.notEquals:
         case TokenType.less:
@@ -291,50 +290,50 @@ export const expected = (prev: TokenType): string =>
         case TokenType.minusEquals:
         case TokenType.and:
         case TokenType.or:
-            return 'an expression or a value';
+            return `${ErrorColors.Green_DARK_GREEN}an expression or a value${ErrorColors.reset}`;
 
         case TokenType.plusPlus:
         case TokenType.minusMinus:
-            return 'an identifier or an expression';
+            return `${ErrorColors.Green_DARK_GREEN}an identifier or an expression${ErrorColors.reset}`;
 
         case TokenType.oparen:
-            return 'an expression';
+            return `${ErrorColors.Green_DARK_GREEN}an expression${ErrorColors.reset}`;
         case TokenType.cparen:
-            return 'an operator or an end of statement';
+            return `${ErrorColors.Green_DARK_GREEN}an operator or a ';' ${TokenType.semicolon}${ErrorColors.reset} to end the statement`;
         case TokenType.ocurly:
-            return 'a block or closing curly brace';
+            return `${ErrorColors.Green_DARK_GREEN}a block or closing curly brace${ErrorColors.reset}`;
         case TokenType.ccurly:
-            return 'an operator or an end of statement';
+            return `${ErrorColors.Green_DARK_GREEN}an operator or a ';' ${TokenType.semicolon}${ErrorColors.reset} to end the statement`;
         case TokenType.osquare:
-            return 'an index or closing square bracket';
+            return `${ErrorColors.Green_DARK_GREEN}an index or closing square bracket${ErrorColors.reset}`;
         case TokenType.csquare:
-            return 'an operator or an end of statement';
+            return `${ErrorColors.Green_DARK_GREEN}an operator or a ';' ${TokenType.semicolon}${ErrorColors.reset} to end the statement`;
 
         case TokenType.dot:
-            return 'an identifier or method';
+            return `${ErrorColors.Green_DARK_GREEN}an identifier or method${ErrorColors.reset}`;
         case TokenType.comma:
-            return 'an identifier, value, or parameter';
+            return `${ErrorColors.Green_DARK_GREEN}an identifier, value, or parameter${ErrorColors.reset}`;
         case TokenType.colon:
-            return 'a value or block';
+            return `${ErrorColors.Green_DARK_GREEN}a value or block${ErrorColors.reset}`;
         case TokenType.semicolon:
-            return 'an end of statement';
+            return `${ErrorColors.Green_DARK_GREEN}an end of statement${ErrorColors.reset}`;
 
         case TokenType.eol:
-            return 'a statement or expression';
+            return `${ErrorColors.Green_DARK_GREEN}a statement or expression${ErrorColors.reset}`;
         case TokenType.eof:
-            return 'an end of file';
+            return `${ErrorColors.Green_DARK_GREEN}an end of file${ErrorColors.reset}`;
 
         case TokenType.break:
-            return 'an end of loop or switch';
+            return `${ErrorColors.Green_DARK_GREEN}an end of loop or switch${ErrorColors.reset}`;
 
         default:
-            return 'an appropriate token';
+            return `${ErrorColors.Green_DARK_GREEN}an appropriate token${ErrorColors.reset}`;
     };
 };
+    
 
 export interface Flags
 {
-    shellMode: boolean;
     warnings: boolean;
     strictWarnings: boolean;
 };
@@ -357,6 +356,45 @@ export const makePosition = (filename: string, line: number, start: number, end:
     } as Position;
 };
 
+export enum ErrorColors {
+    Black_BLACK = '\x1b[30m',
+
+    Red_DARK_RED = '\x1b[31m',
+
+    Green_DARK_GREEN = '\x1b[32m',
+
+    Yellow_DARK_YELLOW = '\x1b[33m',
+
+    Blue_DARK_BLUE = '\x1b[34m',
+    
+    Magenta_DARK_MAGENTA = '\x1b[35m',
+
+    Cyan_DARK_CYAN = '\x1b[36m',
+
+    Light_gray = '\x1b[37m',
+
+    Dark_gray = '\x1b[90m',
+
+    Light_red = '\x1b[91m',
+    
+    Light_green = '\x1b[92m',
+
+    Light_yellow = '\x1b[93m',
+
+    Light_blue = '\x1b[94m',
+
+    Light_magenta = '\x1b[95m',
+
+    Light_cyan = '\x1b[96m',
+
+    White_WHITE = '\x1b[97m',
+
+    Bold = '\x1b[1m',
+
+    reset = '\x1b[0m'
+}
+  
+
 export class Warning
 {
     message: string;
@@ -370,7 +408,7 @@ export class Warning
         this.loc = loc;
         this.source = source;
 
-        console.log(`a ${this.type} at ${this.loc.filename}:${this.loc.line}:${this.loc.end}`);
+        console.log(`${ErrorColors.Yellow_DARK_YELLOW}${this.type}${ErrorColors.reset} at ${this.loc.filename}:${this.loc.line}:${this.loc.end}`);
         console.log('\n');
 
         if (flags.warnings)
@@ -380,7 +418,7 @@ export class Warning
             console.error(' '.repeat(String(this.loc.line).length) + ' | '+' '.repeat(this.loc.start) + `${message}`);  
         };
         
-        if (flags.strictWarnings && !flags.shellMode)
+        if (flags.strictWarnings)
         {
             Deno.exit(1);
         };
@@ -401,30 +439,30 @@ export class error
     message: string;
     loc: Position;
     source: string;
-    flags: Flags
 
-    constructor(flags: Flags, message: string, loc: Position, source: string, public type: string = 'Uncaught Error')
+    constructor(message: string, loc: Position, source: string, pointers: string, public type: string = 'Uncaught Error',)
     {
 
         this.message = message;
         this.loc = loc;
         this.source = source;
-        this.flags = flags;
-        
-        console.log(`a ${this.type} at ${this.loc.filename}:${this.loc.line}:${this.loc.end}`);
+
+        console.log(`${ErrorColors.Red_DARK_RED}${this.type}${ErrorColors.reset} at ${this.loc.filename}:${this.loc.line}:${this.loc.end}`);
         console.log('\n');
 
         if (this.loc.line > 1) 
         {
             console.log(`${this.loc.line-1} | ` + this.source.split('\n')[this.loc.line-2]);
+            console.log(' '.repeat(String(this.loc.line-1).length) +` |`);
         };
-
-        console.log(`${this.loc.line} | ` + this.source.split('\n')[this.loc.line-1]);
-        console.log(' '.repeat(String(this.loc.line).length) + ' | '+' '.repeat(this.loc.start) + '^'.repeat(this.loc.end - this.loc.start));
-        console.error(' '.repeat(String(this.loc.line).length) + ' | '+' '.repeat(this.loc.start) + `${message}`);   
+        console.log(`${ErrorColors.Red_DARK_RED}${this.loc.line} | ` + ErrorColors.reset + this.source.split('\n')[this.loc.line - 1]);
+        console.log(ErrorColors.Red_DARK_RED + ' '.repeat(String(this.loc.line).length) + ' | ' + ErrorColors.reset + ' '.repeat(this.loc.start) + pointers.repeat(this.loc.end - this.loc.start));
+        console.error(ErrorColors.Red_DARK_RED + ' '.repeat(String(this.loc.line).length) + ' | ' + ErrorColors.reset + ' '.repeat(this.loc.start) + `${message}`);
+        
         if (this.source.split('\n')[this.loc.line] != undefined)
         {
             console.log(`${this.loc.line+1} | ` + this.source.split('\n')[this.loc.line]);
+            console.log(' '.repeat(String(this.loc.line-1).length) +` |`);
         };
         Deno.exit(1);
     };
@@ -432,33 +470,33 @@ export class error
 
 export class SyntaxErr extends error
 {
-    constructor(flags: Flags, message: string, loc: Position, source: string)
+    constructor(message: string, loc: Position, source: string, pointers: string = '^')
     {
-        super(flags, message, loc, source, 'SyntaxError');
+        super(message, loc, source, pointers,'SyntaxError');
     };
 };
 
 export class LogicalErr extends error
 {
-    constructor(flags: Flags, message: string, loc: Position, source: string)
+    constructor(message: string, loc: Position, source: string, pointers: string = '^')
     {
-        super(flags, message, loc, source, 'LogicalErr');
+        super(message, loc, source, pointers, 'LogicalErr');
     };
 };
 
 export class ParserErr extends error
 {
-    constructor(flags: Flags, message: string, loc: Position, source: string)
+    constructor(message: string, loc: Position, source: string, pointers: string = '^')
     {
-        super(flags, message, loc, source, 'ParserErr');
+        super(message, loc, source, pointers, 'ParserErr');
     };
 };
 
 export class LexerErr extends error
 {
-    constructor(flags: Flags, message: string, loc: Position, source: string)
+    constructor(message: string, loc: Position, source: string, pointers: string = '^')
     {
-        super(flags, message, loc, source, 'LexerError');
+        super(message, loc, source, pointers, 'LexerError');
     };
 };
 

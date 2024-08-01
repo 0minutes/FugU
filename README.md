@@ -12,9 +12,8 @@ The source code for various components of the language can be found in the `./ba
 - [`./backend/Parser/ConstantFolding.ts`](./backend/Parser/ConstantFolding.ts) - Contains the implementation of the Constantfolding (Something I've been experimenting on) Very early version
 - [`./backend/Bytecode/ByteEncoder.ts`](./backend/Bytecode/ByteEncoder.ts) - Contains the bytecode generator code
 - Additional files for the Interpreter will be added as the project progresses.
-
-- [`./main.ts`](./main.ts) - Contains the shell code which allows the language to be run in the console.
-- [`./ast.json`](./ast.json) - Contains the AST tree I'm able to produce as of now.
+- [`./backend/Interpreter/main.cpp`](./backend/Interpreter/main.cpp) - Contains the first simple code of the bytecode interpreter
+- [`./main.ts`](./main.ts) - Contains the shell code which allows the language to be run in the console (when interpreter somewhat working ill add support).
 
 ## Progress
 
@@ -23,20 +22,20 @@ The source code for various components of the language can be found in the `./ba
 - [x] **Parser** - Completed and is able to parse Expressions and Numbers etc... ([source](./backend/Parser/Parser.ts))
 - [x] **Some sort of optimization** - Very early version with only removal/replacement of `EmptyStatement` and simple Expressions ([source](./backend/Parser/ConstantFolding.ts))
 - [x] **Bytecode Generator** - Started, but only added support for `Literals` and `BinaryExpressions`. ([source](./backend/Bytecode/ByteEncoder.ts))
-- [ ] **Interpreter** - Going to be written in C or C++ or other fast language
+- [ ] **Interpreter** - Started writing in C, havnt added anything yet, just setting up
 
 ## How to Run
 
 To run the project, execute the following command in your terminal (*No arguments automatically runs the shell*):
 
 ```bash
-deno run main.ts [[-h | --help] | [-r | --run [path/to/file]]]
+deno run main.ts [-h | --help];
 ```
 
 To *read from file* use the following command
 
 ```bash
-deno run --allow-read main.ts -r [path/to/file]
+deno run --allow-read main.ts -r [path/to/file];
 ```
 
 **Stay tuned for updates as I continue to build and refine this programming language!**

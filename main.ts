@@ -3,18 +3,8 @@
 
 import
 {
-    Lexer
-} from './backend/Parser/Lexer.ts';
-
-import
-{
     Parser
 } from './backend/Parser/Parser.ts';
-
-import 
-{
-    ByteEncoder
-} from './backend/Bytecode/ByteEncoder.ts'
 
 import
 {
@@ -30,6 +20,7 @@ const shell = (flags: Flags) =>
 
     while (true)
     {
+
         const userinput = String(prompt('>'));
 
         if (userinput == '.exit')
@@ -43,15 +34,12 @@ const shell = (flags: Flags) =>
             continue;
         };
 
-        // let lexer: Lexer = new Lexer(flags, userinput, 'shell');
-        let generator: ByteEncoder = new ByteEncoder(flags, userinput, 'shell');
-        
-        // let tokens = lexer.tokens;
-        // let ast = generator.parser.ast;
-        let bytecode = generator.bytecode;
+        let parser: Parser = new Parser(flags, userinput, 'shell');
 
-        console.log('--------------BYTES------------');
-        console.log(generator.ast);
+        let ast = parser.ast;
+
+        console.log('--------------AST--------------');
+        console.log(ast)
         console.log('--------------END--------------');
     };
 };
@@ -69,15 +57,12 @@ const fromFile = (file: string, flags: Flags) =>
         Deno.exit(1);
     };
 
-    let lexer: Lexer = new Lexer(flags, contents, file);
-    let generator: ByteEncoder = new ByteEncoder(flags, contents, file);
-    
-    // let tokens = lexer.tokens;
-    // let ast = generator.parser.ast;
-    let bytecode = generator.bytecode;
+    let parser: Parser = new Parser(flags, contents, file);
 
-    console.log('--------------BYTES------------');
-    console.log(bytecode);
+    let ast = parser.ast;
+
+    console.log('--------------AST--------------');
+    console.log(ast)
     console.log('--------------END--------------');
 
     Deno.exit(0);
@@ -99,7 +84,6 @@ const main = () =>
 
     const flags: Flags = 
     {
-        shellMode: true,
         warnings: true,
         strictWarnings: false,
     };
@@ -154,8 +138,6 @@ const main = () =>
             case '-r':
             case '--run':
             {
-                flags.shellMode = false;
-
                 if (i + 1 >= args.length)
                 {
                     console.log('Expected a path to a file');

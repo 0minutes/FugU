@@ -76,7 +76,7 @@ export class ConstantFolding
             {
                 if (ast.right.value == 0)
                 {
-                    new LogicalErr(this.flags, `Unable to '/' (<Division>) by 0`, makePosition(this.filename, ast.right.range[0], ast.right.range[1], ast.right.range[2]), this.source);
+                    new LogicalErr(`Unable to '/' (<Division>) by 0`, makePosition(this.filename, ast.right.range[0], ast.right.range[1], ast.right.range[2]), this.source);
                 };
                 return {
                     type: NodeType.Literal,
@@ -90,7 +90,7 @@ export class ConstantFolding
             {
                 if (ast.right.value == 0)
                 {
-                    new LogicalErr(this.flags, `Unable to '%' (<Modulo>) by 0`, makePosition(this.filename, ast.right.range[0], ast.right.range[1], ast.right.range[2]), this.source);
+                    new LogicalErr(`Unable to '%' (<Modulo>) by 0`, makePosition(this.filename, ast.right.range[0], ast.right.range[1], ast.right.range[2]), this.source);
                 };
 
                 return {
@@ -194,7 +194,7 @@ export class ConstantFolding
 
                 if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new LogicalErr(this.flags, `Unable to '+' (<unaryPlus>) operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source);
+                    new LogicalErr(`Unable to '+' (<unaryPlus>) operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source);
                 };
 
                 return {
@@ -210,7 +210,7 @@ export class ConstantFolding
 
                 if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new LogicalErr(this.flags, `Unable to '-' (<unaryMinus>) operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source);
+                    new error(`Unable to '-' (<unaryMinus>) operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source);
                 };
 
                 return {
