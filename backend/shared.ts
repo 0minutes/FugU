@@ -569,6 +569,14 @@ export const enum MethodType
     ExpressionStmt,
 };
 
+export const enum ExpressionType
+{
+    Literal,
+    BinaryExpression,
+    UnaryExpression,
+    UnaryUpdateExpression,
+}
+
 export const enum InstructionType
 {
 
@@ -623,6 +631,8 @@ export const enum InstructionType
 
     shl,
     shr,
+
+    halt = 0xFF,
 };
 
 

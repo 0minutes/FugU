@@ -1,6 +1,8 @@
 // deno-lint-ignore-file
 import { Parser } from "../Parser/Parser.ts";
 import { ExpressionStatementGenerator } from "./ExpressionStatement.ts"
+import { LiteralGenerator } from "./Literals.ts"
+
 import
 {
     NodeType,
@@ -10,8 +12,8 @@ import
 
     MethodType,
     Flags,
+    InstructionType,
 } from "../shared.ts";
-
 
 
 export class ByteEncoder
@@ -25,6 +27,7 @@ export class ByteEncoder
 
     bytecode: number[];
 
+    LiteralGen: LiteralGenerator;
 
     constructor(flags: Flags, source: string, filename : string)
     {
@@ -33,6 +36,8 @@ export class ByteEncoder
         this.flags = flags,
         this.parser = new Parser(this.flags, source, this.filename);
         this.ast = this.parser.ast;
+
+        this.LiteralGen = new LiteralGenerator(this);
 
         this.bytecode = this.generateProgram(this.ast);
 
@@ -57,7 +62,9 @@ export class ByteEncoder
             Bytecode.push(...this.generateStatement(ast.body[i]));
         };
 
-        Bytecode.unshift(ast.body.length);
+        Bytecode.push(InstructionType.halt);
+
+        Bytecode.unshift(...this.LiteralGen.generateInteger(this.ast.body.length));
         Bytecode.unshift(MethodType.Program);
 
         return Bytecode;
@@ -81,16 +88,19 @@ export class ByteEncoder
         return StatementBytecode;
     };
 
-    writeToFile = (filepath: string) => 
+    writeToFile = async (outputFile: string) => 
     {
         const encrypted: string[] = [];
+        
+        console.log('Converted this bytecode:\n' + this.bytecode)
+        
         for (let i = 0; i < this.bytecode.length; i++)
         {
             encrypted.push(String.fromCharCode(this.bytecode[i]));
         }
         const encoder = new TextEncoder();
         const data = encoder.encode(encrypted.join(''));
-        Deno.writeFile(filepath, data);
+        await Deno.writeFile(outputFile, data);
     }
 };
 

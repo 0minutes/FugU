@@ -1,6 +1,5 @@
 // deno-lint-ignore-file
 import { ByteEncoder } from "./ByteEncoder.ts";
-import { LiteralGenerator } from "./Literals.ts";
 import
 {
     makePosition,
@@ -15,7 +14,7 @@ import
     InstructionType,
     BinaryExpression,
     UnaryExpression,
-
+    ExpressionType,
 } from "../shared.ts";
 
 export class ExpressionStatementGenerator
@@ -37,28 +36,30 @@ export class ExpressionStatementGenerator
             {
                 case NodeType.Literal:
                 {
-                    const LiteralGen = new LiteralGenerator(this.parent);
-                    ExpressionBytecode.push(...LiteralGen.generateLiteral(ast));
+                    ExpressionBytecode.push(ExpressionType.Literal);
+                    ExpressionBytecode.push(...this.parent.LiteralGen.generateLiteral(ast));
                     break;
                 };
     
                 case NodeType.BinaryExpression:
                 {
                     ast = ast as BinaryExpression;
+                    ExpressionBytecode.push(ExpressionType.BinaryExpression);
+                    ExpressionBytecode.push(...this.generateBinaryExpression(ast.left, ast.operator, ast.right))
                     traverse(ast.left);
                     traverse(ast.right);
-                    
-                    ExpressionBytecode.push(...this.generateBinaryExpression(ast.left, ast.operator, ast.right))
                     break;
                 };
                 case NodeType.UnaryExpression:
                 {
                     ast = ast as UnaryExpression
+                    ExpressionBytecode.push(ExpressionType.UnaryExpression);
                     ExpressionBytecode.push(...this.generateUnaryExpression(ast.argument, ast.operator));
                 };
                 case NodeType.UnaryUpdateExpression:
                 {
                     ast = ast as UnaryExpression
+                    ExpressionBytecode.push(ExpressionType.UnaryUpdateExpression);
                     ExpressionBytecode.push(...this.generateUnaryUpdateExpression(ast.argument, ast.operator, ast.prefix));
                 };
             };
@@ -78,17 +79,17 @@ export class ExpressionStatementGenerator
             {
                 case '++':
                 {
+                    UnaryUpdateBytecode.push(InstructionType.add);
                     UnaryUpdateBytecode.push(InstructionType.const1);
                     UnaryUpdateBytecode.push(...this.generateExpression(argument));
-                    UnaryUpdateBytecode.push(InstructionType.add);
                     break;
                 };
 
                 case '--':
                 {
-                    UnaryUpdateBytecode.push(InstructionType.const1);
-                    UnaryUpdateBytecode.push(...this.generateExpression(argument));
                     UnaryUpdateBytecode.push(InstructionType.sub);
+                    UnaryUpdateBytecode.push(...this.generateExpression(argument));
+                    UnaryUpdateBytecode.push(InstructionType.const1);
                     break;
                 };
             };
@@ -100,16 +101,16 @@ export class ExpressionStatementGenerator
             {
                 case '++':
                 {
+                    UnaryUpdateBytecode.push(InstructionType.add);
                     UnaryUpdateBytecode.push(...this.generateExpression(argument));
                     UnaryUpdateBytecode.push(InstructionType.const1);
-                    UnaryUpdateBytecode.push(InstructionType.add);
                     break;
                 }
                 case '--':
                 {
+                    UnaryUpdateBytecode.push(InstructionType.sub);
                     UnaryUpdateBytecode.push(...this.generateExpression(argument));
                     UnaryUpdateBytecode.push(InstructionType.const1);
-                    UnaryUpdateBytecode.push(InstructionType.sub);
                     break;
                 };
             };
@@ -125,8 +126,8 @@ export class ExpressionStatementGenerator
         {
             case '!':
             {
-                UnaryBytecode.push(...this.generateExpression(argument));
                 UnaryBytecode.push(InstructionType.not);
+                UnaryBytecode.push(...this.generateExpression(argument));
                 break;
             }
             case '+':
@@ -136,9 +137,9 @@ export class ExpressionStatementGenerator
             };
             case '-':
             {
+                UnaryBytecode.push(InstructionType.sub);
                 UnaryBytecode.push(InstructionType.const0);
                 UnaryBytecode.push(...this.generateExpression(argument));
-                UnaryBytecode.push(InstructionType.sub);
                 break;
             }
         }
@@ -152,7 +153,7 @@ export class ExpressionStatementGenerator
 //     };
 
     generateBinaryExpression = (left: Literal, operator: string, right: Literal) =>
-        {
+    {
         const ExpressionBytecode: number[] = [];
 
         switch (operator)
