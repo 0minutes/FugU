@@ -26,16 +26,22 @@ export class ByteEncoder
     ast: Program;
 
     bytecode: number[];
+    ConstPool: Map<number, any[]>;
+    ConstPoolCounter: number;
+
 
     LiteralGen: LiteralGenerator;
 
-    constructor(flags: Flags, source: string, filename : string)
+    constructor(flags: Flags, source: string, filename: string)
     {
-        this.filename = filename == undefined ? 'shell' : filename;
+        this.filename = filename === undefined ? 'shell' : filename;
         this.source = source;
-        this.flags = flags,
+        this.flags = flags;
         this.parser = new Parser(this.flags, source, this.filename);
         this.ast = this.parser.ast;
+
+        this.ConstPoolCounter = 0;
+        this.ConstPool = new Map<number, []>;
 
         this.LiteralGen = new LiteralGenerator(this);
 
@@ -90,11 +96,9 @@ export class ByteEncoder
 
     writeToFile = async (outputFile: string) => 
     {
-        console.log('Converted this bytecode:\n' + this.bytecode)
+        console.log('Converted this bytecode:\n' + this.bytecode);
 
         const data = new Uint8Array(this.bytecode);
-
-        console.log(data)
 
         await Deno.writeFile(outputFile + '.fug', data);
     }

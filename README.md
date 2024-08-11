@@ -12,7 +12,7 @@ The source code for various components of the language can be found in the `./ba
 - [`./backend/Parser/ConstantFolding.ts`](./backend/Parser/ConstantFolding.ts) - Contains the implementation of the Constantfolding (Something I've been experimenting on) Very early version
 - [`./backend/Bytecode/ByteEncoder.ts`](./backend/Bytecode/ByteEncoder.ts) - Contains the bytecode generator code
 - Additional files for the Interpreter will be added as the project progresses.
-- [`./Interpreter/main.cpp`](./Interpreter/main.cpp) - Contains the first simple code of the bytecode interpreter
+- [`./VM/main.cpp`](./VM/main.cpp) - Contains the first simple code of the bytecode vm
 - [`./main.ts`](./main.ts) - Contains the shell code which allows the language to be run in the console (when interpreter somewhat working ill add support).
 
 ## Progress
@@ -22,7 +22,7 @@ The source code for various components of the language can be found in the `./ba
 - [x] **Parser** - Completed and is able to parse Expressions and Numbers etc... ([source](./backend/Parser/Parser.ts))
 - [x] **Some sort of optimization** - Very early version with only removal/replacement of `EmptyStatement` and simple Expressions ([source](./backend/Parser/ConstantFolding.ts))
 - [x] **Bytecode Generator** - Started, but only added support for `Literals` and `BinaryExpressions`. ([source](./backend/Bytecode/ByteEncoder.ts))
-- [ ] **Interpreter** - Started writing in C++, havent added anything much yet, just setting up
+- [ ] **Interpreter** - Started writing in C++, havent added anything much yet, just setting up ([source](./VM/main.cpp))
 
 ## How to Run
 
@@ -35,7 +35,7 @@ deno run main.ts [-h | --help];
 To *read from file* use the following command
 
 ```bash
-deno run --allow-read main.ts -r [path/to/file];
+deno run --allow-read --allow-write main.ts -r [path/to/file];
 ```
 
 **Stay tuned for updates as I continue to build and refine this programming language!**

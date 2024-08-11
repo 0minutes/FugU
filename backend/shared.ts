@@ -563,6 +563,14 @@ export interface Literal extends Expression
 
 // BYTECODE
 
+export const enum ConstPoolType
+{
+    StringInfo,
+    BigIntInfo,
+    SignedInto,
+    FloatInfo,
+};
+
 export const enum MethodType
 {
     Program,
@@ -579,6 +587,8 @@ export const enum ExpressionType
 
 export const enum InstructionType
 {
+
+    ldc,
 
     const0,
     const1,

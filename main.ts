@@ -6,10 +6,15 @@ import
     ByteEncoder
 } from './backend/Bytecode/ByteEncoder.ts';
 
-import
+import 
 {
     Parser
 } from './backend/Parser/Parser.ts';
+
+import 
+{
+    Lexer
+} from './backend/Parser/Lexer.ts';
 
 import
 {
@@ -48,13 +53,29 @@ const shell = (flags: Flags) =>
             continue;
         };
 
-        let generator: ByteEncoder = new ByteEncoder(flags, userinput, 'shell');
+        if (userinput.startsWith('.parse '))
+        {
+            let input = [userinput.substr(0, 6), userinput.substr(6)]
+            let parser = new Parser(flags, input[1], 'shell');
+            console.log(parser.ast);
+            continue;
+        };
 
-        let bytecode = generator.bytecode;
+        if (userinput.startsWith('.lexer '))
+        {
+            let input = [userinput.substr(0, 6), userinput.substr(6)]
+            let lexer = new Lexer(flags, input[1], 'shell');
+            console.log(lexer.tokens);
+            continue;
+        };
 
-        console.log('--------------BYTECODE--------------');
-        console.log(bytecode)
-        console.log('--------------END-------------------');
+        if (userinput.startsWith('.bytecode '))
+        {
+            let input = [userinput.substr(0, 9), userinput.substr(9)]
+            let generator = new ByteEncoder(flags, input[1], 'shell');
+            console.log(generator.bytecode);
+            continue;
+        };
     };
 };
 
@@ -78,9 +99,11 @@ const fromFile = async (filepath: string, outputFile: string, flags: Flags) =>
 
 const printHelp = () =>
 {
-    console.log('Usage: deno run main.ts [-h | --help] | [-r | --run] (path/to/file)');
-    console.log('\t--help/-h - prints this message');
-    console.log('\t--run/-r  - requires a path to a file. Will run the code provided from a file');
+    console.log('Usage: deno run main.ts -r (path/to/file)');
+    console.log('No arguments will start the shell')
+    console.log('\t--help/-h   - prints this message');
+    console.log('\t--run/-r    - requires a path to a file. Will run the code provided from a file');
+    console.log('\t--output/-o - output file')
     console.log('Other flags:');
     console.log('\t--no-warnings/-nws - disable warnings');
     console.log('\t--strict-warnings/-sws - crash on warning');
@@ -192,6 +215,13 @@ const argParse = (): argvFlags =>
             };
         };
     };
+
+    if (!flags.run && flags.outputfile != 'o')
+    {
+        console.log('No input file to have an output file');
+        Deno.exit(0);
+    };
+
     return flags;
 }
 

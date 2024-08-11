@@ -39,6 +39,7 @@ import
     Literal,
     LiteralValue,
 
+    ConstPoolType,
     InstructionType,
 } from "../shared.ts";
 
@@ -111,7 +112,8 @@ export class LiteralGenerator
                     }
                     else if (ast.value as number <= _UI64_MAX)
                     {
-                        NumberBytecode.push(InstructionType.u64);
+                        this.parent.ConstPool.set(this.parent.ConstPoolCounter++, [ConstPoolType.BigIntInfo, ...this.generateBigInteger(ast.value as bigint, 64)])
+                        NumberBytecode.push(InstructionType.ldc, ...this.generateInteger(this.parent.ConstPoolCounter));
                         NumberBytecode.push(...this.generateBigInteger(ast.value as bigint, 64));
                     }
                     else
