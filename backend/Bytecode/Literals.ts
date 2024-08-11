@@ -189,7 +189,15 @@ export class LiteralGenerator
 
     generateInteger = (value: number, bitWidth?: number): number[] =>
     {
-        bitWidth == undefined ? bitWidth = Math.ceil(Math.log2(value)) : bitWidth;
+        if (value == 0)
+        {
+            bitWidth = 8;
+        }
+        else
+        {
+            bitWidth = bitWidth == undefined ? Math.ceil(Math.log2(value + 1)) : bitWidth;
+        };
+    
         const Chunks = Math.ceil(bitWidth / 8);
         const IntegerBytecode: number[] = [];
     

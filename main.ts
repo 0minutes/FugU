@@ -94,7 +94,7 @@ const argParse = (): argvFlags =>
     {
         help: false,
         run: false,
-        outputfile: 'a.fug',
+        outputfile: 'o',
         filepath: null,
         flags: {
             warnings: true,

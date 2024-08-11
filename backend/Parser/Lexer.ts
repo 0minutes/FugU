@@ -84,7 +84,6 @@ export class Lexer
 
         while (this.listSource.length > 0)
         {
-
             if (this.listSource[0] == '<')
             {
                 start = cur;
@@ -284,6 +283,34 @@ export class Lexer
                     unary += this.eat()
                     cur++;
                     tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
+                };
+            }
+
+            else if (this.listSource[0] == '/')
+            {
+                start = cur;
+                let unary = this.eat();
+                cur++;
+                // @ts-ignore
+                if (this.listSource[0] != '/')
+                {
+                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
+                }
+                else
+                {
+                    let comment = '';
+
+                    unary += this.eat();
+                    cur++;
+                    // @ts-ignore
+                    while (this.listSource.length > 0 && this.listSource[0] != '\n' )
+                    {
+                        comment += this.eat();
+                        cur++;
+                    };
+                    this.eat();
+                    line++;
+                    cur = 0;
                 };
             }
 

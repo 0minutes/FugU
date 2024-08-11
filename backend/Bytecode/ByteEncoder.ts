@@ -90,17 +90,13 @@ export class ByteEncoder
 
     writeToFile = async (outputFile: string) => 
     {
-        const encrypted: string[] = [];
-        
         console.log('Converted this bytecode:\n' + this.bytecode)
-        
-        for (let i = 0; i < this.bytecode.length; i++)
-        {
-            encrypted.push(String.fromCharCode(this.bytecode[i]));
-        }
-        const encoder = new TextEncoder();
-        const data = encoder.encode(encrypted.join(''));
-        await Deno.writeFile(outputFile, data);
+
+        const data = new Uint8Array(this.bytecode);
+
+        console.log(data)
+
+        await Deno.writeFile(outputFile + '.fug', data);
     }
 };
 

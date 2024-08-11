@@ -12,7 +12,7 @@ The source code for various components of the language can be found in the `./ba
 - [`./backend/Parser/ConstantFolding.ts`](./backend/Parser/ConstantFolding.ts) - Contains the implementation of the Constantfolding (Something I've been experimenting on) Very early version
 - [`./backend/Bytecode/ByteEncoder.ts`](./backend/Bytecode/ByteEncoder.ts) - Contains the bytecode generator code
 - Additional files for the Interpreter will be added as the project progresses.
-- [`./backend/Interpreter/main.cpp`](./backend/Interpreter/main.cpp) - Contains the first simple code of the bytecode interpreter
+- [`./Interpreter/main.cpp`](./Interpreter/main.cpp) - Contains the first simple code of the bytecode interpreter
 - [`./main.ts`](./main.ts) - Contains the shell code which allows the language to be run in the console (when interpreter somewhat working ill add support).
 
 ## Progress
