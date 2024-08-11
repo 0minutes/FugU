@@ -22,7 +22,7 @@ The source code for various components of the language can be found in the `./ba
 - [x] **Parser** - Completed and is able to parse Expressions and Numbers etc... ([source](./backend/Parser/Parser.ts))
 - [x] **Some sort of optimization** - Very early version with only removal/replacement of `EmptyStatement` and simple Expressions ([source](./backend/Parser/ConstantFolding.ts))
 - [x] **Bytecode Generator** - Started, but only added support for `Literals` and `BinaryExpressions`. ([source](./backend/Bytecode/ByteEncoder.ts))
-- [ ] **Interpreter** - Started writing in C, havnt added anything yet, just setting up
+- [ ] **Interpreter** - Started writing in C++, havent added anything much yet, just setting up
 
 ## How to Run
 
