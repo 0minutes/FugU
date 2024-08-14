@@ -167,8 +167,6 @@ export class ConstantFolding
 
     evaluateUnaryExpr = (ast: any) =>
     {
-        if (ast.argument.value != null) ast.argument.value = BigInt(ast.argument.value);
-
         switch (ast.operator)
         {
             case '!':
@@ -200,7 +198,7 @@ export class ConstantFolding
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: 0n+(ast.argument.value),
+                    value: 0n+BigInt(ast.argument.value),
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal; 
             };
@@ -216,7 +214,7 @@ export class ConstantFolding
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: 0n-(ast.argument.value),
+                    value: 0n-BigInt(ast.argument.value),
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal; 
             };

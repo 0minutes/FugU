@@ -28,7 +28,7 @@ interface argvFlags
     filepath: string | null;
     outputfile: string;
     flags: Flags,
-}
+};
 
 const EXTENSION = '.fugu';
 const VERSION = '1.5.0';
@@ -74,6 +74,13 @@ const shell = (flags: Flags) =>
             let input = [userinput.substr(0, 9), userinput.substr(9)]
             let generator = new ByteEncoder(flags, input[1], 'shell');
             console.log(generator.bytecode);
+            continue;
+        };
+        if (userinput.startsWith('.constpool '))
+        {
+            let input = [userinput.substr(0, 10), userinput.substr(10)]
+            let generator = new ByteEncoder(flags, input[1], 'shell');
+            console.log(generator.ConstPool);
             continue;
         };
     };

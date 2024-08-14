@@ -387,7 +387,7 @@ export class error
     loc: Position;
     source: string;
 
-    constructor(message: string, loc: Position, source: string, pointers: string, public type: string = 'Uncaught Error',)
+    constructor(message: string, loc: Position, source: string, pointers: string = '^', public type: string = 'Uncaught Error',)
     {
 
         this.message = message;
@@ -568,7 +568,7 @@ export const enum ConstPoolType
     StringInfo,
     BigIntInfo,
     SignedInto,
-    FloatInfo,
+    DoubleInfo,
 };
 
 export const enum MethodType
@@ -604,6 +604,8 @@ export const enum InstructionType
     constm4,
     constm5,
     constm6,
+
+    cosntnull,
 
     u8,
     u16,
@@ -642,6 +644,7 @@ export const enum InstructionType
     shl,
     shr,
 
+    ret = 0xFE,
     halt = 0xFF,
 };
 

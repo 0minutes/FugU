@@ -11,6 +11,14 @@ using std::cout;
 using std::cin;
 using std::vector;
 
+enum ConstPoolType
+{
+    StringInfo,
+    BigIntInfo,
+    SignedInto,
+    FloatInfo,
+};
+
 enum InstructionTypes
 {
     Const0,

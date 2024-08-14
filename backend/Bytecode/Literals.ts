@@ -61,6 +61,26 @@ export class LiteralGenerator
             case (LiteralValue.NumberLiteral):
             {
                 LiteralBytecode.push(...this.generateNumberLiterals(ast as Literal));
+                break;
+            };
+            case LiteralValue.NullLiteral:
+            {
+                LiteralBytecode.push(InstructionType.cosntnull);
+                break;
+            };
+            case LiteralValue.StringLiteral:
+            {
+                this.parent.ConstPoolCounter++;
+                this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.StringInfo, ast.value as string]);
+                LiteralBytecode.push(InstructionType.ldc, ...this.generateInteger(this.parent.ConstPoolCounter));
+                break;
+            };
+            case LiteralValue.FloatLiteral:
+            {
+                this.parent.ConstPoolCounter++;
+                this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.DoubleInfo, ...this.generateIEEE754(ast.value as number)]);
+                LiteralBytecode.push(InstructionType.ldc, ...this.generateInteger(this.parent.ConstPoolCounter));
+                break;
             };
         };
 
@@ -112,9 +132,9 @@ export class LiteralGenerator
                     }
                     else if (ast.value as number <= _UI64_MAX)
                     {
-                        this.parent.ConstPool.set(this.parent.ConstPoolCounter++, [ConstPoolType.BigIntInfo, ...this.generateBigInteger(ast.value as bigint, 64)])
+                        this.parent.ConstPoolCounter++
+                        this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.BigIntInfo, ...this.generateBigInteger(ast.value as bigint, 64)])
                         NumberBytecode.push(InstructionType.ldc, ...this.generateInteger(this.parent.ConstPoolCounter));
-                        NumberBytecode.push(...this.generateBigInteger(ast.value as bigint, 64));
                     }
                     else
                     {
@@ -129,6 +149,7 @@ export class LiteralGenerator
                 };
             };    
         }
+
         else if (Number(ast.value) < 0)
         {
             switch (ast.value)
@@ -189,6 +210,85 @@ export class LiteralGenerator
         return NumberBytecode;
     };
 
+
+    generateIEEE754(value: number) {
+        const IEEE754 = [];
+
+        const sign = value < 0 ? 1 : 0;
+        if (sign) value = -value;
+    
+        if (value === 0)
+        {
+            IEEE754.push(8, 0, 0, 0, 0, 0, 0, 0, 0);
+            return IEEE754;
+        }
+    
+        if (value === Infinity)
+        {
+            IEEE754.push(8, (sign << 7) | 0x7F, 0xF0, 0, 0, 0, 0, 0, 0);
+            return IEEE754;
+        }
+    
+        if (isNaN(value))
+        {
+            IEEE754.push(8, (sign << 7) | 0x7F, 0xF8, 0, 0, 0, 0, 0, 0);
+            return IEEE754;
+        }
+    
+        let exponent = 0;
+        let mantissa = value;
+    
+        while (mantissa >= 2)
+        {
+            mantissa /= 2;
+            exponent++;
+        }
+    
+        while (mantissa < 1)
+        {
+            mantissa *= 2;
+            exponent--;
+        }
+    
+        exponent += 1023;
+        mantissa -= 1;
+    
+        let mantissaBitsLow = 0;
+        let mantissaBitsHigh = 0;
+        for (let i = 0; i < 52; i++)
+        {
+            mantissa *= 2;
+            if (mantissa >= 1)
+            {
+                if (i < 32)
+                {
+                    mantissaBitsLow |= 1 << (i);
+                } 
+                else
+                {
+                    mantissaBitsHigh |= 1 << (i - 32);
+                }
+                mantissa -= 1;
+            }
+        }
+    
+        const exponentBits = (exponent << 20) | (mantissaBitsHigh & 0xFFFFF);
+        const signBits = sign << 31;
+    
+        IEEE754.push(
+            exponentBits & 0xFF, (exponentBits >> 8) & 0xFF,
+            (exponentBits >> 16) & 0xFF, (signBits | (exponentBits >> 24)) & 0xFF,
+            mantissaBitsLow & 0xFF, (mantissaBitsLow >> 8) & 0xFF,
+            (mantissaBitsLow >> 16) & 0xFF, (mantissaBitsLow >> 24) & 0xFF
+        );
+    
+        IEEE754.reverse();
+        IEEE754.unshift(8);
+    
+        return IEEE754;
+    }
+    
+
     generateInteger = (value: number, bitWidth?: number): number[] =>
     {
         if (value == 0)
@@ -238,7 +338,7 @@ export class LiteralGenerator
         for (let i = 0; i < value.length; i++)
         {
             stringBytecode.push()
-        }
+        };
 
         return stringBytecode;
     };
