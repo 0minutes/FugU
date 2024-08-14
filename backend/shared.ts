@@ -12,7 +12,7 @@ export const enum TokenType
     null = '<null>',
     bool = '<boolean>',
 
-    let = '<ssignmentLet>',
+    let = '<AssignmentLet>',
     const = '<AssignmentConst>',
 
     if = '<if>',

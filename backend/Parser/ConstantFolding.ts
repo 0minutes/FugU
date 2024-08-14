@@ -29,9 +29,16 @@ export class ConstantFolding
 
     evaluateSimpleIntExpressions(ast: any, integer: boolean = true)
     {
-        ast.left.value = BigInt(ast.left.value);
-        ast.right.value = BigInt(ast.right.value);
-
+        if (integer)
+        {
+            ast.left.value = BigInt(ast.left.value);
+            ast.right.value = BigInt(ast.right.value);
+        }
+        else
+        {
+            ast.left.value = Number(ast.left.value);
+            ast.right.value = Number(ast.right.value);
+        }
         switch (ast.operator)
         {
             case '+':
@@ -236,10 +243,10 @@ export class ConstantFolding
 
             if (ast.left.runtimeValue == LiteralValue.NumberLiteral && ast.right.runtimeValue == LiteralValue.NumberLiteral)
             {
-                return this.evaluateSimpleIntExpressions(ast);
+                return this.evaluateSimpleIntExpressions(ast, true);
             };
             
-            if (ast.left.runtimeValue == LiteralValue.FloatLiteral || ast.right.runtimeValue == LiteralValue.FloatLiteral)
+            if ((ast.left.runtimeValue == LiteralValue.FloatLiteral && ast.right.runtimeValue == LiteralValue.NumberLiteral) || (ast.right.runtimeValue == LiteralValue.FloatLiteral && ast.left.runtimeValue == LiteralValue.NumberLiteral))
             {
                 return this.evaluateSimpleIntExpressions(ast, false);
             };

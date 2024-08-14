@@ -113,7 +113,7 @@ export class LiteralGenerator
                 default:
                 {
                     if (ast.value as number <= _UI8_MAX)
-                    {
+                    {   
                         NumberBytecode.push(InstructionType.u8);
                         ast.value = Number(ast.value)
                         NumberBytecode.push(...this.generateInteger(ast.value, 8));
@@ -211,82 +211,21 @@ export class LiteralGenerator
     };
 
 
-    generateIEEE754(value: number) {
-        const IEEE754 = [];
+    generateIEEE754(value: number): number[]
+    {
+        const IEEE754: number[] = [];
 
-        const sign = value < 0 ? 1 : 0;
-        if (sign) value = -value;
+        const buffer = new ArrayBuffer(8);
+        const view = new DataView(buffer);
+        view.setFloat64(0, value, true);
     
-        if (value === 0)
+        for (let i = 0; i < 8; i++)
         {
-            IEEE754.push(8, 0, 0, 0, 0, 0, 0, 0, 0);
-            return IEEE754;
-        }
-    
-        if (value === Infinity)
-        {
-            IEEE754.push(8, (sign << 7) | 0x7F, 0xF0, 0, 0, 0, 0, 0, 0);
-            return IEEE754;
-        }
-    
-        if (isNaN(value))
-        {
-            IEEE754.push(8, (sign << 7) | 0x7F, 0xF8, 0, 0, 0, 0, 0, 0);
-            return IEEE754;
-        }
-    
-        let exponent = 0;
-        let mantissa = value;
-    
-        while (mantissa >= 2)
-        {
-            mantissa /= 2;
-            exponent++;
-        }
-    
-        while (mantissa < 1)
-        {
-            mantissa *= 2;
-            exponent--;
-        }
-    
-        exponent += 1023;
-        mantissa -= 1;
-    
-        let mantissaBitsLow = 0;
-        let mantissaBitsHigh = 0;
-        for (let i = 0; i < 52; i++)
-        {
-            mantissa *= 2;
-            if (mantissa >= 1)
-            {
-                if (i < 32)
-                {
-                    mantissaBitsLow |= 1 << (i);
-                } 
-                else
-                {
-                    mantissaBitsHigh |= 1 << (i - 32);
-                }
-                mantissa -= 1;
-            }
-        }
-    
-        const exponentBits = (exponent << 20) | (mantissaBitsHigh & 0xFFFFF);
-        const signBits = sign << 31;
-    
-        IEEE754.push(
-            exponentBits & 0xFF, (exponentBits >> 8) & 0xFF,
-            (exponentBits >> 16) & 0xFF, (signBits | (exponentBits >> 24)) & 0xFF,
-            mantissaBitsLow & 0xFF, (mantissaBitsLow >> 8) & 0xFF,
-            (mantissaBitsLow >> 16) & 0xFF, (mantissaBitsLow >> 24) & 0xFF
-        );
-    
-        IEEE754.reverse();
-        IEEE754.unshift(8);
+            IEEE754.push(view.getUint8(i));
+        };
     
         return IEEE754;
-    }
+    };
     
 
     generateInteger = (value: number, bitWidth?: number): number[] =>

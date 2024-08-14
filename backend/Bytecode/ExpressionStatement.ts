@@ -50,12 +50,14 @@ export class ExpressionStatementGenerator
                     traverse(ast.right);
                     break;
                 };
+
                 case NodeType.UnaryExpression:
                 {
                     ast = ast as UnaryExpression
                     ExpressionBytecode.push(ExpressionType.UnaryExpression);
                     ExpressionBytecode.push(...this.generateUnaryExpression(ast.argument, ast.operator));
                 };
+                
                 case NodeType.UnaryUpdateExpression:
                 {
                     ast = ast as UnaryExpression
@@ -146,11 +148,6 @@ export class ExpressionStatementGenerator
 
         return UnaryBytecode;
     };
-//
-// case NodeType.UnaryUpdateExpression:
-//     {
-//         
-//     };
 
     generateBinaryExpression = (left: Literal, operator: string, right: Literal) =>
     {

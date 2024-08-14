@@ -71,6 +71,7 @@ export class ByteEncoder
         Bytecode.push(InstructionType.halt);
 
         Bytecode.unshift(...this.LiteralGen.generateInteger(this.ast.body.length));
+        Bytecode.unshift(...this.generateConstPool()); 
         Bytecode.unshift(MethodType.Program);
 
         return Bytecode;
@@ -94,6 +95,13 @@ export class ByteEncoder
         return StatementBytecode;
     };
 
+    generateConstPool = (): number[] => 
+    {
+        const constPoolByteCode: number[] = [];
+// TODO
+        return constPoolByteCode;
+    };
+
     writeToFile = async (outputFile: string) => 
     {
         console.log('Converted this bytecode:\n' + this.bytecode);
@@ -101,7 +109,7 @@ export class ByteEncoder
         const data = new Uint8Array(this.bytecode);
 
         await Deno.writeFile(outputFile + '.fug', data);
-    }
+    };
 };
 
 // TESTING PURPOSES
