@@ -1,4 +1,4 @@
-# Learning TypeScript by Creating a Programming Language
+# Learning TypeScript and C++ by Creating a Programming Language
 
 Welcome to my project, where I am learning TypeScript by creating a programming language from scratch. This hands-on approach helps me deepen my understanding of TypeScript, building on my existing JavaScript knowledge.
 
