@@ -39,6 +39,7 @@ export class ConstantFolding
             ast.left.value = Number(ast.left.value);
             ast.right.value = Number(ast.right.value);
         }
+
         switch (ast.operator)
         {
             case '+':
@@ -83,7 +84,11 @@ export class ConstantFolding
             {
                 if (ast.right.value == 0)
                 {
-                    new LogicalErr(`Unable to '/' (<Division>) by 0`, makePosition(this.filename, ast.right.range[0], ast.right.range[1], ast.right.range[2]), this.source);
+                    new LogicalErr (
+                    `Unable to '/' (<Division>) by 0`,
+                    makePosition(this.filename, ast.right.range[0], ast.right.range[1], ast.right.range[2]),
+                    this.source
+                    );
                 };
                 return {
                     type: NodeType.Literal,
@@ -97,7 +102,11 @@ export class ConstantFolding
             {
                 if (ast.right.value == 0)
                 {
-                    new LogicalErr(`Unable to '%' (<Modulo>) by 0`, makePosition(this.filename, ast.right.range[0], ast.right.range[1], ast.right.range[2]), this.source);
+                    new LogicalErr (
+                    `Unable to '%' (<Modulo>) by 0`,
+                    makePosition(this.filename, ast.right.range[0], ast.right.range[1], ast.right.range[2]),
+                    this.source
+                    );
                 };
 
                 return {
@@ -169,6 +178,8 @@ export class ConstantFolding
             };
         };
 
+
+        console.log(ast)
         return ast;
     };
 
@@ -182,7 +193,12 @@ export class ConstantFolding
 
                 if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new TypeConversionWarning(this.flags, `${TokenType.not} operator on the type ${ast.argument.runtimeValue} converts it into a ${LiteralValue.NumberLiteral}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source);
+                    new TypeConversionWarning (
+                    this.flags,
+                    `${TokenType.not} operator on the type ${ast.argument.runtimeValue} converts it into a ${LiteralValue.NumberLiteral}`,
+                    makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]),
+                    this.source
+                    );
                 };
 
                 return {
@@ -199,7 +215,11 @@ export class ConstantFolding
 
                 if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new LogicalErr(`Unable to '+' (<unaryPlus>) operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source);
+                    new LogicalErr (
+                    `Unable to '+' (<unaryPlus>) operator on the type ${ast.argument.runtimeValue}`,
+                    makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]),
+                    this.source
+                    );
                 };
 
                 return {
@@ -215,7 +235,11 @@ export class ConstantFolding
 
                 if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
-                    new error(`Unable to '-' (<unaryMinus>) operator on the type ${ast.argument.runtimeValue}`, makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]), this.source);
+                    new error (
+                    `Unable to '-' (<unaryMinus>) operator on the type ${ast.argument.runtimeValue}`,
+                    makePosition(this.filename, ast.range[0], ast.range[1], ast.range[2]),
+                    this.source
+                    );
                 };
 
                 return {
@@ -246,7 +270,10 @@ export class ConstantFolding
                 return this.evaluateSimpleIntExpressions(ast, true);
             };
             
-            if ((ast.left.runtimeValue == LiteralValue.FloatLiteral && ast.right.runtimeValue == LiteralValue.NumberLiteral) || (ast.right.runtimeValue == LiteralValue.FloatLiteral && ast.left.runtimeValue == LiteralValue.NumberLiteral))
+            if (
+                (ast.left.runtimeValue == LiteralValue.FloatLiteral && ast.right.runtimeValue == LiteralValue.NumberLiteral) ||
+                (ast.right.runtimeValue == LiteralValue.FloatLiteral && ast.left.runtimeValue == LiteralValue.NumberLiteral)
+            )
             {
                 return this.evaluateSimpleIntExpressions(ast, false);
             };

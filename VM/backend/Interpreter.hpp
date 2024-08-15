@@ -13,6 +13,7 @@ class VM
     private:
     std::vector<uint8_t> bytecode;
 
+    std::map<int, int> stringPointerPool;
     std::map<int, std::string> stringPool;
     std::map<int, double> doublePool;
     std::map<int, unsigned long long int> bigIntPool;

@@ -10,494 +10,236 @@ import
     DIGITS,
     specialChars,
     keywords,
-    unaryBuilders,
-    unaryChars,
     Flags,
-    ErrorColors,
-}
-from '../shared.ts';
-
+} from '../shared.ts';
 
 export class Lexer
 {
     source: string;
     filename: string;
     listSource: string[];
-
-    specialChars: Record < string, TokenType > = specialChars;
-    keywords: Record < string, TokenType > = keywords;
-    unaryBuilders: Record < string, TokenType > = unaryBuilders;
-    unaryChars: Record < string, TokenType > = unaryChars;
-
-    tokens: Token[];
+    tokens: Token[] = [];
     flags: Flags;
+    cur: number = 0;
+    line: number = 1;
 
-    constructor(flags: Flags, source: string, filename ? : string)
+    specialChars: Record<string, TokenType> = specialChars;
+    keywords: Record<string, TokenType> = keywords;
+
+    constructor(flags: Flags, source: string, filename: string = 'shell')
     {
-
-        this.filename = filename == undefined ? 'shell' : filename;
-        this.flags = flags;
         this.source = source;
-        this.listSource = source.split('');
-
+        this.filename = filename;
+        this.flags = flags;
+        this.listSource = [...source];
         this.tokens = this.tokenize();
     };
 
-    makeToken = (type: TokenType, value: string, loc: any): Token =>
+    makeToken(type: TokenType, value: string, start: number, end: number): Token
     {
         return {
             type,
             value,
-            loc
+            loc: makePosition(this.filename, this.line, start, end)
         } as Token;
     };
 
-    next = (): any =>
+    next(): string | TokenType
     {
-        if (this.listSource.length >= 1)
-        {
-            return this.listSource[1];
-        };
-        return TokenType.eof;
+        return this.listSource.length > 0 ? this.listSource[0] : TokenType.eof;
     };
 
-    eat = (): any =>
+    eat(): string | TokenType
     {
-        if (this.listSource.length > 0)
-        {
-            return this.listSource.shift();
-        }
-        else
-        {
-            return TokenType.eof;
-        };
-
+        return this.listSource.length > 0 ? this.listSource.shift()! : TokenType.eof;
     };
 
-    tokenize = () =>
+    tokenize(): Token[]
     {
-        let tokens: Token[] = [];
-
-        let cur = 0;
-        let start = 0;
-        let line = 1;
+        const tokens: Token[] = [];
+        this.cur = 0;
+        this.line = 1;
 
         while (this.listSource.length > 0)
         {
-            if (this.listSource[0] == '<')
+            const start = this.cur;
+            const char = this.eat();
+            this.cur++;
+
+            if (char in this.specialChars)
             {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-                // @ts-ignore
-                if (this.listSource[0] == '=')
-                {
-                    unary += this.eat();
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-
-                else if (this.listSource[0] == '<')
-                {
-                    unary += this.eat();
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-
-                // @ts-ignore
-                else if (this.listSource[0] == '>')
-                {
-                    unary += this.eat();
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-
-                else
-                {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                };
+                this.handleSpecialChars(tokens, char as string, start);
             }
-
-            else if (this.listSource[0] == '>')
+            else if (DIGITS.includes(char))
             {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-                // @ts-ignore
-                if (this.listSource[0] == '=')
-                {
-                    unary += this.eat();
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-
-                else if (this.listSource[0] == '>')
-                {
-                    unary += this.eat();
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-
-                else
-                {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                };
+                this.handleNumber(tokens, char as string, start);
             }
-
-            else if (this.listSource[0] == '=')
+            else if (LETTERS.includes(char) || char === '_')
             {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-                // @ts-ignore
-                if (this.listSource[0] == '=')
-                {
-                    unary += this.eat();
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-                else
-                {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
+                this.handleIdentifier(tokens, char as string, start);
             }
-
-            else if (this.listSource[0] == '+')
+            else if (char === '"' || char === '\'')
             {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-                // @ts-ignore
-                if (this.listSource[0] == '=')
-                {
-                    unary += this.eat();
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-
-                else if (this.listSource[0] == '+')
-                {
-                    unary += this.eat();
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-
-                else
-                {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                };
+                this.handleString(tokens, char as string, start);
             }
-
-            else if (this.listSource[0] == '-')
+            else if (char === '\n')
             {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-                // @ts-ignore
-                if (this.listSource[0] == '=')
-                {
-                    unary += this.eat();
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-
-                else if (this.listSource[0] == '-')
-                {
-                    unary += this.eat();
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-
-                else
-                {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                };
+                tokens.push(this.makeToken(TokenType.eol, '\\n', start, this.cur));
+                this.line++;
+                this.cur = 0;
             }
-
-            else if (this.listSource[0] == '*')
+            else if (char === '\t' || char === '\r' || char === ' ')
             {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-
-                if (this.listSource[0] != '*')
-                {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-                else
-                {
-                    unary += this.eat()
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
             }
-
-            else if (this.listSource[0] == '&')
+            else if (char === ';')
             {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-
-                if (this.listSource[0] != '&')
-                {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-                else
-                {
-                    unary += this.eat()
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                };
+                tokens.push(this.makeToken(TokenType.semicolon, ';', start, this.cur));
             }
-
-            else if (this.listSource[0] == '|')
-            {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-
-                if (this.listSource[0] != '|')
-                {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-                else
-                {
-                    unary += this.eat()
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                };
-            }
-
-            else if (this.listSource[0] == '!')
-            {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-                // @ts-ignore
-                if (this.listSource[0] != '=')
-                {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-                else
-                {
-                    unary += this.eat()
-                    cur++;
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                };
-            }
-
-            else if (this.listSource[0] == '/')
-            {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-                // @ts-ignore
-                if (this.listSource[0] != '/')
-                {
-                    tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-                }
-                else
-                {
-                    let comment = '';
-
-                    unary += this.eat();
-                    cur++;
-                    // @ts-ignore
-                    while (this.listSource.length > 0 && this.listSource[0] != '\n' )
-                    {
-                        comment += this.eat();
-                        cur++;
-                    };
-                    this.eat();
-                    line++;
-                    cur = 0;
-                };
-            }
-
-            else if (this.listSource[0] in this.specialChars)
-            {
-                start = cur;
-                let unary = this.eat();
-                cur++;
-
-                tokens.push(this.makeToken(this.specialChars[unary], unary, makePosition(this.filename, line, start, cur)));
-            }
-
-            else if (DIGITS.includes(this.listSource[0]))
-            {
-                start = cur;
-                let dot = false;
-                let number = '';
-
-                while (this.listSource.length > 0 && DIGITS.includes(this.listSource[0]) || this.listSource[0] == '.' || this.listSource[0] == '_')
-                {
-                    if (this.listSource[0] == '_') this.eat();
-                    if (this.listSource[0] == '.' && dot == false)
-                    {
-                        dot = true;
-                        number += this.eat();
-                        cur++;
-
-                        if (this.listSource.length == 0)
-                            {
-                                new LexerErr(
-                                    `Unexpected end of input. Expected a number token, but the input ended.`,
-                                    makePosition(this.filename, line, cur, cur+1),
-                                    this.source
-                                );
-                            };
-                            
-                            if (this.listSource.length > 0 && !(DIGITS.includes(this.listSource[0])))
-                            {
-                                new LexerErr(
-                                    `Expected a digit but found '${this.listSource[0]}'. The lexer expected a number token here.`,
-                                    makePosition(this.filename, line, cur, cur+1),
-                                    this.source
-                                );
-                            };
-                    }      
-
-                    else if (this.listSource[0] == '.' && dot == true)
-                    {
-                        start = cur;
-                        cur++;
-                    
-                        new LexerErr(   
-                            `Make sure to remove the unexpected '.' (dot) as only one dot is allowed in a float.`,
-                            makePosition(this.filename, line, start, cur),
-                            this.source
-                        );
-                    }
-
-                    else
-                    {
-                        number += this.eat();
-                        cur++;
-                    };
-                };
-                if (dot == true)
-                {
-                    tokens.push(this.makeToken(TokenType.float, number, makePosition(this.filename, line, start, cur)));
-                }
-                else
-                {
-                    tokens.push(this.makeToken(TokenType.integer, number, makePosition(this.filename, line, start, cur)));
-                };
-            }
-
-            else if (LETTERS.includes(this.listSource[0]) || this.listSource[0] == '_')
-            {
-                start = cur;
-                let identifier = ''
-
-                while (this.listSource.length > 0 && (LETTERS.includes(this.listSource[0]) || this.listSource[0] == '_' || DIGITS.includes(this.listSource[0])))
-                {
-                    identifier += this.eat();
-                    cur++;
-                };
-
-                if (identifier in this.keywords)
-                {
-                    tokens.push(this.makeToken(this.keywords[identifier], identifier, makePosition(this.filename, line, start, cur)));
-                }
-                else
-                {
-                    tokens.push(this.makeToken(TokenType.identifier, identifier, makePosition(this.filename, line, start, cur)));
-                };
-            }
-
-            else if (this.listSource[0] == '"')
-            {
-                start = cur;
-                this.eat();
-                cur++;
-                let string = '';
-                while (this.listSource.length > 0 && this.listSource[0] != '"')
-                {
-                    string += this.eat()
-                    cur++;
-                };
-                if (this.listSource[0] != '"')
-                {
-                    new LexerErr('Undetermined string literal. Make sure to add a \'"\' (closing quotes) token as Expected', makePosition(this.filename, line, cur, cur+1), this.source, ErrorColors.Green_DARK_GREEN+'+'+ErrorColors.reset);
-                };
-                this.eat();
-                cur++;
-                tokens.push(this.makeToken(TokenType.string, string, makePosition(this.filename, line, start, cur)));
-            }
-
-            else if (this.listSource[0] == '\'')
-            {
-                start = cur;
-                this.eat();
-                cur++;
-                let string = '';
-                while (this.listSource.length > 0 && this.listSource[0] != '\'')
-                {
-                    string += this.eat()
-                    cur++;
-                };
-                if (this.listSource[0] != '\'')
-                {
-                    new LexerErr('Undetermined string literal', makePosition(this.filename, line, start, cur), this.source);
-                };
-                this.eat();
-                cur++;
-                tokens.push(this.makeToken(TokenType.string, string, makePosition(this.filename, line, start, cur)));
-            }
-
-            else if (this.listSource[0] == ' ')
-            {
-                this.eat();
-                cur++;
-            }
-
-            else if (this.listSource[0] == '\n')
-            {
-                start = cur;
-                this.eat();
-                tokens.push(this.makeToken(TokenType.eol, '\\n', makePosition(this.filename, line, start, cur+1)));
-                line++;
-
-                cur = 0;
-            }
-
-            else if (this.listSource[0] == '\t')
-            {
-                this.eat();
-                cur++;
-            }
-
-            else if (this.listSource[0] == '\r')
-            {
-                this.eat();
-            }
-
-            else if (this.listSource[0] == ';')
-            {
-                start = cur
-                this.eat();
-                cur++;
-                tokens.push(this.makeToken(TokenType.semicolon, ';', makePosition(this.filename, line, start, cur)))
-            }
-
             else
             {
-                start = cur
-                cur++;
-                new LexerErr(`Unknown charecter token: ${this.listSource[0]}`, makePosition(this.filename, line, start, cur), this.source);
+                new LexerErr(
+                    `Unknown character token: ${char}`,
+                    makePosition(this.filename, this.line, start, this.cur),
+                    this.source
+                );
             };
         };
 
-        tokens.push(this.makeToken(TokenType.eof, TokenType.eof, makePosition(this.filename, line, cur, cur + 1)))
-
+        tokens.push(this.makeToken(TokenType.eof, TokenType.eof, this.cur, this.cur + 1));
         return tokens;
     };
-}
 
+    handleSpecialChars(tokens: Token[], char: string, start: number): void
+    {
+        let sequence = char;
 
+        while (
+            this.listSource.length > 0 &&
+            (
+                this.listSource[0] === '=' ||
+                this.listSource[0] === '>' ||
+                this.listSource[0] === '<' ||
+                this.listSource[0] === '&' ||
+                this.listSource[0] === '|' ||
+                this.listSource[0] === '+' ||
+                this.listSource[0] === '-' ||
+                this.listSource[0] === '*' 
+            )
+        )
+        {
+            sequence += this.eat();
+            this.cur++;
+        };
 
-// // TESTING PURPOSES
+        if (sequence in this.specialChars)
+        {
+            tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+        }
+        else
+        {
+            new LexerErr(
+                `Unknown special character sequence: ${sequence}`,
+                makePosition(this.filename, this.line, start, this.cur),
+                this.source
+            );
+        };
+    };
 
-// const test = new Lexer({warnings: false, strictWarnings: false} as Flags, 'in', 'tst');
-// console.log(test.tokens);
+    handleNumber(tokens: Token[], char: string, start: number): void
+    {
+        let number = char;
+        let dot = false;
+
+        while (
+            this.listSource.length > 0 &&
+            (
+                DIGITS.includes(this.listSource[0]) ||
+                this.listSource[0] === '.' ||
+                this.listSource[0] === '_'
+            )
+        )
+        {
+            if (this.listSource[0] === '_')
+            {
+                this.eat();
+                this.cur++;
+            }
+            else if (this.listSource[0] === '.' && !dot)
+            {
+                dot = true;
+                number += this.eat();
+                this.cur++;
+
+                if (this.listSource.length === 0 || !DIGITS.includes(this.listSource[0]))
+                {
+                    new LexerErr(
+                        `Unexpected end of input or non-digit after dot`,
+                        makePosition(this.filename, this.line, start, this.cur),
+                        this.source
+                    );
+                };
+            }
+            else if (this.listSource[0] === '.' && dot)
+            {
+                new LexerErr(
+                    `Multiple dots in number`,
+                    makePosition(this.filename, this.line, start, this.cur),
+                    this.source
+                );
+            }
+            else
+            {
+                number += this.eat();
+                this.cur++;
+            };
+        };
+
+        const tokenType = dot ? TokenType.float : TokenType.integer;
+        tokens.push(this.makeToken(tokenType, number, start, this.cur));
+    };
+
+    handleIdentifier(tokens: Token[], char: string, start: number): void
+    {
+        let identifier = char;
+
+        while (
+            this.listSource.length > 0 &&
+            (
+                LETTERS.includes(this.listSource[0]) ||
+                this.listSource[0] === '_' ||
+                DIGITS.includes(this.listSource[0])
+            )
+        )
+        {
+            identifier += this.eat();
+            this.cur++;
+        };
+
+        const tokenType = identifier in this.keywords ? this.keywords[identifier] : TokenType.identifier;
+        tokens.push(this.makeToken(tokenType, identifier, start, this.cur));
+    };
+
+    handleString(tokens: Token[], quote: string, start: number): void
+    {
+        let string = '';
+
+        while (this.listSource.length > 0 && this.listSource[0] !== quote)
+        {
+            string += this.eat();
+            this.cur++;
+        };
+
+        if (this.listSource.length === 0 || this.listSource[0] !== quote)
+        {
+            new LexerErr(
+                `Undetermined string literal`,
+                makePosition(this.filename, this.line, start, this.cur),
+                this.source
+            );
+        };
+
+        this.eat();
+        this.cur++;
+        tokens.push(this.makeToken(TokenType.string, string, start, this.cur));
+    };
+};

@@ -49,13 +49,10 @@ import
     UnaryUpdateExpression,
     Identifier,
     Literal,
-    unaryUpdaters,
     LiteralValue,
     ValueTypes,
-    unaryBinOps,
     UnaryExpression,
 } from '../shared.ts';
-
 
 export class Parser
 {
@@ -186,14 +183,23 @@ export class Parser
             {
                 if (this.at().type == TokenType.cparen)
                 {
-                    new SyntaxErr(`Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a \`${this.at().value}\` (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+                    new SyntaxErr (
+                    `Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a \`${this.at().value}\` (${this.at().type}) token`,
+                    makePosition(this.filename, this.at().loc.line,
+                    this.at().loc.start, this.at().loc.end),
+                    this.source
+                    );
                 };
 
                 let value = this.parseAdditiveExpr(TokenType.oparen);
 
                 if (this.at().type != TokenType.cparen)
                 {
-                    new SyntaxErr(`Expected a ${ErrorColors.Green_DARK_GREEN}')'${ErrorColors.reset} (${TokenType.cparen}) before getting a \`${this.at().value}\` (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+                    new SyntaxErr (
+                    `Expected a ${ErrorColors.Green_DARK_GREEN}')'${ErrorColors.reset} (${TokenType.cparen}) before getting a \`${this.at().value}\` (${this.at().type}) token`,
+                    makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end),
+                    this.source
+                    );
                 };
                 this.eat();
                 return value;
@@ -210,7 +216,12 @@ export class Parser
 
             default:
             {   
-                new SyntaxErr(`Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a \`${token.value}\` (${token.type}) token`, makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end), this.source);
+                new SyntaxErr(
+                `Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a \`${token.value}\` (${token.type}) token`,
+                makePosition(this.filename, token.loc.line, token.loc.start, token.loc.end),
+                this.source
+                );
+
                 return {} as Literal; //Lie to compiler since it's asking for me to return Expression but i do, otherwise exit
             };
         };
@@ -220,7 +231,7 @@ export class Parser
     {
         let token = this.at();
 
-        if (token.value in unaryUpdaters)
+        if (['++', '--'].includes(token.value))
         {
             let operator = this.eat();
             let lhs = this.parseLiteralNode(prev != undefined ? prev : operator.type);
@@ -238,7 +249,7 @@ export class Parser
         else if (ValueTypes.includes(token.type) || token.type == TokenType.oparen)
         {
             let lhs = this.parseLiteralNode(prev != undefined ? prev : token.type);
-            if (this.at().value in unaryUpdaters)
+            if (['++', '--'].includes(this.at().value))
             {
                 let operator = this.eat();
 
@@ -252,7 +263,7 @@ export class Parser
             };
 
             return lhs;
-        }
+        };
 
         let lhs = this.parseLiteralNode(prev);
         return lhs;
@@ -262,7 +273,7 @@ export class Parser
     {
         let token = this.at();
 
-        while (token.value in unaryBinOps)
+        while (['+', '-', '!'].includes(token.value))
         {
             let operator = this.eat();
             let lhs = this.parseLogicalBitwiseExpr(prev != undefined ? prev : operator.type);
@@ -454,7 +465,11 @@ export class Parser
         }
         else
         {
-            new SyntaxErr(`Expected a ${ErrorColors.Green_DARK_GREEN}';'${ErrorColors.reset} (${TokenType.semicolon}) before getting a \`${this.at().value}\` (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
+            new SyntaxErr (
+            `Expected a ${ErrorColors.Green_DARK_GREEN}';'${ErrorColors.reset} (${TokenType.semicolon}) before getting a \`${this.at().value}\` (${this.at().type}) token`,
+            makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end),
+            this.source
+            );
         };
 
         return Expr; // Lie to compiler since it's asking for me to return Expression but i do, otherwise exit

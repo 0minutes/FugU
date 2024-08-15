@@ -93,13 +93,15 @@ export const ValueTypes: Array < string > = [
     TokenType.bool,
 ];
 
-export const specialChars: Record < string, TokenType > = {
+export const specialChars: Record<string, TokenType> = {
+
     '+': TokenType.binaryOp,
     '-': TokenType.binaryOp,
     '*': TokenType.binaryOp,
     '/': TokenType.binaryOp,
     '%': TokenType.binaryOp,
     '**': TokenType.binaryOp,
+
     '(': TokenType.oparen,
     ')': TokenType.cparen,
 
@@ -119,67 +121,28 @@ export const specialChars: Record < string, TokenType > = {
     '<>': TokenType.notEquals,
 
     '!': TokenType.not,
+
     '~': TokenType.bitNot,
     '^': TokenType.xor,
     '&': TokenType.bitAnd,
     '&&': TokenType.and,
     '|': TokenType.bitOr,
     '||': TokenType.or,
-
     '>>': TokenType.rightRight,
     '<<': TokenType.leftLeft,
 
-
     '<': TokenType.less,
     '>': TokenType.greater,
     '>=': TokenType.lessEquals,
     '<=': TokenType.greaterEquals,
-
     '=': TokenType.equals,
+
     '++': TokenType.plusPlus,
     '+=': TokenType.plusEquals,
     '--': TokenType.minusMinus,
     '-=': TokenType.minusEquals,
 };
 
-export const unaryBuilders: Record < string, TokenType > = {
-    '*': TokenType.binaryOp,
-    '<': TokenType.less,
-    '>': TokenType.greater,
-    '=': TokenType.equals,
-    '+': TokenType.binaryOp,
-    '-': TokenType.binaryOp,
-};
-
-export const unaryChars: Record < string, TokenType > = {
-    '&&': TokenType.and,
-    '||': TokenType.or,
-
-    '<>': TokenType.notEquals,
-
-    '>=': TokenType.lessEquals,
-    '<=': TokenType.greaterEquals,
-
-    '=': TokenType.equals,
-    '==': TokenType.equalsEquals,
-    '!=': TokenType.notEquals,
-    '++': TokenType.plusPlus,
-    '+=': TokenType.plusEquals,
-    '--': TokenType.minusMinus,
-    '-=': TokenType.minusEquals,
-    '**': TokenType.binaryOp,
-};
-
-export const unaryUpdaters: Record < string, TokenType > = {
-    '++': TokenType.plusPlus,
-    '--': TokenType.minusMinus,
-};
-
-export const unaryBinOps: Record < string, TokenType > = {
-    '+': TokenType.binaryOp,
-    '-': TokenType.binaryOp,
-    '!': TokenType.not,
-};
 
 export const keywords: Record < string, TokenType > = {
     'let': TokenType.let,
