@@ -18,15 +18,23 @@ The source code for various components of the language can be found in the `./ba
 ## Progress
 
 - [x] **Lexer** - Completed ([source](./backend/Parser/Lexer.ts))
-- [x] **AST (Abstract Syntax Tree)** - Completed and can be found in ([source](./backend/shared.ts))
 - [x] **Parser** - Completed and is able to parse Expressions and Numbers etc... ([source](./backend/Parser/Parser.ts))
-- [x] **Some sort of optimization** - Very early version with only removal/replacement of `EmptyStatement` and simple Expressions ([source](./backend/Parser/ConstantFolding.ts))
+- [x] **Some sort of optimization** - Very early version of a Constant Folding mechanism with only removal/replacement of `EmptyStatement` and simple Expressions being simplified ([source](./backend/Parser/ConstantFolding.ts))
 - [x] **Bytecode Generator** - Started, but only added support for `Literals` and `BinaryExpressions`. ([source](./backend/Bytecode/ByteEncoder.ts))
 - [ ] **Interpreter** - Started writing in C++, havent added anything much yet, just setting up ([source](./VM/main.cpp))
 
+## VM Progress
+
+- [x] **ConstPool** - Added the const pool as well as its parsing. Can only parse strings so far, later ill add floats bigints and others
+
 ## How to Run
 
-To run the project, execute the following command in your terminal (*No arguments automatically runs the shell*):
+To run the project, execute the following command in your terminal (*No arguments automatically runs the shell*)
+Also, by default nothing will be returned, to view the bytecode or the ast or the tokens use these:
+
+*.tokens <...>* - for the tokens
+*.parse <...>* - for the parsing
+*.bytecode <...>* - for the bytecode
 
 ```bash
 deno run main.ts [-h | --help];
@@ -35,7 +43,19 @@ deno run main.ts [-h | --help];
 To *read from file* use the following command
 
 ```bash
-deno run --allow-read --allow-write main.ts -r [path/to/file];
+deno run --allow-read --allow-write main.ts -r [path/to/file] -o [/path/to/output];
+```
+
+To run the VM you must first compile it:
+
+```bash
+g++ VM/main.cpp -o main;
+```
+
+then run:
+
+```bash
+./main.exe [path/to/file];
 ```
 
 **Stay tuned for updates as I continue to build and refine this programming language!**

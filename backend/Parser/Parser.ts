@@ -446,12 +446,12 @@ export class Parser
             };
         };
 
+
         if (this.at().type == TokenType.semicolon)
         {
             this.eat();
             return Expr;
         }
-
         else
         {
             new SyntaxErr(`Expected a ${ErrorColors.Green_DARK_GREEN}';'${ErrorColors.reset} (${TokenType.semicolon}) before getting a \`${this.at().value}\` (${this.at().type}) token`, makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end), this.source);
@@ -511,7 +511,7 @@ export class Parser
             type: NodeType.Program,
             body: [],
             range: [0, 0],
-        } as Program;
+        } as Program;   
 
         while (!this.eof())
         {

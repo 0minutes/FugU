@@ -565,6 +565,7 @@ export interface Literal extends Expression
 
 export const enum ConstPoolType
 {
+    Utf8Info,
     StringInfo,
     BigIntInfo,
     SignedInto,
@@ -587,8 +588,6 @@ export const enum ExpressionType
 
 export const enum InstructionType
 {
-
-    ldc,
 
     const0,
     const1,
@@ -643,6 +642,8 @@ export const enum InstructionType
 
     shl,
     shr,
+
+    ldc,
 
     ret = 0xFE,
     halt = 0xFF,

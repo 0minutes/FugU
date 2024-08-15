@@ -68,13 +68,18 @@ export class LiteralGenerator
                 LiteralBytecode.push(InstructionType.cosntnull);
                 break;
             };
+
             case LiteralValue.StringLiteral:
             {
                 this.parent.ConstPoolCounter++;
-                this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.StringInfo, ast.value as string]);
+                const string: string = ast.value as string;
+                const length: number = string.length;
+                
+                this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.StringInfo, ...this.generateInteger(length), ...this.generateString(string)]);
                 LiteralBytecode.push(InstructionType.ldc, ...this.generateInteger(this.parent.ConstPoolCounter));
                 break;
             };
+
             case LiteralValue.FloatLiteral:
             {
                 this.parent.ConstPoolCounter++;
@@ -274,9 +279,9 @@ export class LiteralGenerator
     {
         const stringBytecode: number[] = [];
         
-        for (let i = 0; i < value.length; i++)
+        for (const char of value)
         {
-            stringBytecode.push()
+            stringBytecode.push(...this.generateInteger(char.charCodeAt(0)));
         };
 
         return stringBytecode;

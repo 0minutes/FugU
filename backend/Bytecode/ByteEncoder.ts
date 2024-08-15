@@ -47,13 +47,12 @@ export class ByteEncoder
 
         this.bytecode = this.generateProgram(this.ast);
 
-        for (let i = 0; i < this.bytecode.length; i++)
+        for (const byte of this.bytecode)
         {
-            const byte = this.bytecode[i];
             if (byte > 255)
             {
                 console.log(this.bytecode);
-                console.log(`FATAL ERROR: Byte size overflow -> byte $${byte.toString(16)} at position ${i}`);
+                console.log(`FATAL ERROR: Byte size overflow -> byte $${byte.toString(16)}`);
                 Deno.exit(1);
             };
         };
@@ -98,7 +97,14 @@ export class ByteEncoder
     generateConstPool = (): number[] => 
     {
         const constPoolByteCode: number[] = [];
-// TODO
+
+        for (const [counter, value] of this.ConstPool)
+        {
+            constPoolByteCode.push(...this.LiteralGen.generateInteger(counter), ...value);
+        };
+
+        constPoolByteCode.unshift(...this.LiteralGen.generateInteger(this.ConstPoolCounter));
+
         return constPoolByteCode;
     };
 
