@@ -26,7 +26,7 @@ export class ByteEncoder
     ast: Program;
 
     bytecode: number[];
-    ConstPool: Map<number, any[]>;
+    ConstPool: Map<number, number[]>;
     ConstPoolCounter: number;
 
 

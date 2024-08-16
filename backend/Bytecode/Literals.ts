@@ -50,12 +50,28 @@ export class LiteralGenerator
     constructor (parent: ByteEncoder)
     {
         this.parent = parent;
-    }
+    };
+
+    availablePointer = (target: number[]): number =>
+    {
+        let pointTo = 0;
+
+        for (let [key, value] of this.parent.ConstPool.entries())
+        {
+            if (value.every((v, i) => v === target[i]))
+            {
+                pointTo = key;
+                break;
+            };
+        };
+
+        return pointTo;
+    };
 
     generateLiteral = (ast: Literal): number[] =>
     {
         const LiteralBytecode: number[] = [];
-        
+
         switch (ast.runtimeValue)
         {
             case (LiteralValue.NumberLiteral):
@@ -65,7 +81,7 @@ export class LiteralGenerator
             };
             case LiteralValue.NullLiteral:
             {
-                LiteralBytecode.push(InstructionType.cosntnull);
+                LiteralBytecode.push(InstructionType.constnull);
                 break;
             };
 
@@ -75,8 +91,21 @@ export class LiteralGenerator
                 const string: string = ast.value as string;
                 const length: number = string.length;
                 
-                this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.StringInfo, ...this.generateInteger(length), ...this.generateString(string)]);
-                LiteralBytecode.push(InstructionType.ldc, ...this.generateInteger(this.parent.ConstPoolCounter));
+                const value = [ConstPoolType.StringInfo, ...this.generateInteger(length), ...this.generateString(string)];
+
+                const ptr = this.availablePointer(value);
+
+                if (ptr != 0)
+                {
+                    this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.PtrInfo, ConstPoolType.StringInfo, ...this.generateInteger(ptr)]);
+                    LiteralBytecode.push(InstructionType.ldcp, ...this.generateInteger(this.parent.ConstPoolCounter));
+                }
+                else
+                {
+                    this.parent.ConstPool.set(this.parent.ConstPoolCounter, value);
+                    LiteralBytecode.push(InstructionType.ldc, ...this.generateInteger(this.parent.ConstPoolCounter));
+                };
+
                 break;
             };
 
@@ -220,7 +249,7 @@ export class LiteralGenerator
     {
         const IEEE754: number[] = [];
 
-        const buffer = new ArrayBuffer(8);
+            const buffer = new ArrayBuffer(8);
         const view = new DataView(buffer);
         view.setFloat64(0, value, true);
     

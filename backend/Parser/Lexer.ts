@@ -113,22 +113,25 @@ export class Lexer
     {
         let sequence = char;
 
-        while (
-            this.listSource.length > 0 &&
-            (
-                this.listSource[0] === '=' ||
-                this.listSource[0] === '>' ||
-                this.listSource[0] === '<' ||
-                this.listSource[0] === '&' ||
-                this.listSource[0] === '|' ||
-                this.listSource[0] === '+' ||
-                this.listSource[0] === '-' ||
-                this.listSource[0] === '*' 
-            )
-        )
+        if (char != ')')
         {
-            sequence += this.eat();
-            this.cur++;
+            while (
+                this.listSource.length > 0 &&
+                (
+                    this.listSource[0] === '=' ||
+                    this.listSource[0] === '>' ||
+                    this.listSource[0] === '<' ||
+                    this.listSource[0] === '&' ||
+                    this.listSource[0] === '|' ||
+                    this.listSource[0] === '+' ||
+                    this.listSource[0] === '-' ||
+                    this.listSource[0] === '*' 
+                )
+            )
+            {
+                sequence += this.eat();
+                this.cur++;
+            };
         };
 
         if (sequence in this.specialChars)
@@ -173,7 +176,7 @@ export class Lexer
                 if (this.listSource.length === 0 || !DIGITS.includes(this.listSource[0]))
                 {
                     new LexerErr(
-                        `Unexpected end of input or non-digit after dot`,
+                        `Unexpectedly got ${this.listSource[0]} while lexing a number. Expected a digit (0...9)`,
                         makePosition(this.filename, this.line, start, this.cur),
                         this.source
                     );
@@ -182,7 +185,7 @@ export class Lexer
             else if (this.listSource[0] === '.' && dot)
             {
                 new LexerErr(
-                    `Multiple dots in number`,
+                    `Multiple dots in a number`,
                     makePosition(this.filename, this.line, start, this.cur),
                     this.source
                 );

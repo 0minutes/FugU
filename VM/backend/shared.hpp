@@ -1,44 +1,37 @@
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <sstream>
 #include <iomanip>
 #include <variant>
 #include <stdexcept>
 
-using std::cout;
-using std::cin;
-using std::vector;
-
-enum InstructionTypes
+enum ConstPoolType
 {
-    Const0,
-    Const1,
-    Const2,
-    Const3,
-    Const4,
-    Const5,
-    Const6,
+    PtrInfo,
+    StringInfo,
+    BigIntInfo,
+    SignedInto,
+    DoubleInfo,
+};
 
-    Constm1,
-    Constm2,
-    Constm3,
-    Constm4,
-    Constm5,
-    Constm6,
+enum MethodType
+{
+    Program,
+    ExpressionStmt,
+};
 
-    ConstNull,
+enum ExpressionType
+{
+    Literal,
+    BinaryExpression,
+    UnaryExpression,
+    UnaryUpdateExpression,
+};
 
-    U8, 
-    U16,
-    U32,
-    U64,
-
-    S8,
-    S16,
-    S32,
-    S64,
-
+enum BinaryOps
+{
     Add,
     Sadd,
 
@@ -64,104 +57,156 @@ enum InstructionTypes
 
     Shl,
     Shr,
+};
+
+enum InstructionType
+{
+
+    Const0,
+    Const1,
+    Const2,
+    Const3,
+    Const4,
+    Const5,
+    Const6,
+
+    Constm1,
+    Constm2,
+    Constm3,
+    Constm4,
+    Constm5,
+    Constm6,
+
+    Constnull,
+
+    U8,
+    U16,
+    U32,
+    U64,
+
+    S8,
+    S16,
+    S32,
+    S64,
 
     Ldc,
+    Ldcp,
 
     Ret = 0xFE,
     Halt = 0xFF,
 };
 
-enum ConstPoolType
+uint64_t uint64(std::vector<uint8_t> &bytes)
 {
-    Utf8Info,
-    StringInfo,
-    BigIntInfo,
-    SignedInto,
-    DoubleInfo,
-};
-
-enum MethodType
-{
-    Program,
-    ExpressionStmt,
-};
-
-enum ExpressionType
-{
-    Literal,
-    BinaryExpression,
-    UnaryExpression,
-    UnaryUpdateExpression,
-};
-
-unsigned char u8int(std::vector<unsigned char> &bytes)
-{
-    if (bytes.size() < 2)
+    if (bytes.empty())
     {
-        throw std::runtime_error("Corrupted Bytecode: Insufficient amount of bytes to create an u8 int");
+        throw std::invalid_argument("bytes array is empty");
+    }
+
+    int chunks = bytes[0];
+    uint64_t value = 0;
+
+    for (int i = 1; i <= chunks; ++i)
+    {
+        value |= (static_cast<uint64_t>(bytes[i]) << ((i - 1) * 8));
     };
 
-    uint8_t temp = bytes[1]; 
-
-    bytes.erase(bytes.begin());
-    bytes.erase(bytes.begin());
-
-    return temp;
-};
-
-unsigned short u16int(std::vector<unsigned char> &bytes)
-{
-    if (bytes.size() < 3)
+    for (uint8_t i = 0; i < chunks+1; i++)
     {
-        throw std::runtime_error("Corrupted Bytecode: Insufficient amount of bytes to create a u16 int");
-    };
-
-    bytes.erase(bytes.begin());
-
-    unsigned short result = 0;
-
-    for (size_t i = 0; i < 2; i++)
-    {
-        result |= static_cast<unsigned short>(bytes[i]) << (8 * (i - 1));
         bytes.erase(bytes.begin());
     };
 
-    return result;
-};
+    return value;
+}
 
-unsigned u32int(std::vector<unsigned char> &bytes)
+uint32_t uint32(std::vector<uint8_t> &bytes)
 {
-    if (bytes.size() < 5)
+    if (bytes.empty())
     {
-        throw std::runtime_error("Corrupted Bytecode: Insufficient amount of bytes to create a u32 int");
+        throw std::invalid_argument("bytes array is empty");
+    }
+
+    int chunks = bytes[0];
+    uint32_t value = 0;
+
+    for (int i = 1; i <= chunks; ++i)
+    {
+        value |= (static_cast<uint32_t>(bytes[i]) << ((i - 1) * 8));
     };
 
-    bytes.erase(bytes.begin());
-
-    unsigned result = 0;
-
-    for (size_t i = 0; i < 4; i++)
+    for (uint8_t i = 0; i < chunks+1; i++)
     {
-        result |= static_cast<unsigned>(bytes[i]) << (8 * (i - 1));
         bytes.erase(bytes.begin());
     };
 
-    return result;
-};
+    return value;
+}
 
-unsigned long long u64int(std::vector<unsigned char> &bytes)
+uint16_t uint16(std::vector<uint8_t> &bytes)
 {
-    if (bytes.size() < 9)
+    if (bytes.empty())
     {
-        throw std::runtime_error("Corrupted Bytecode: Insufficient amount of bytes to create a u64 int");
+        throw std::invalid_argument("bytes array is empty");
     };
 
-    bytes.erase(bytes.begin());
-    unsigned long long result = 0;
+    int chunks = bytes[0];
+    uint16_t value = 0;
+
+    for (int i = 1; i <= chunks; ++i)
+    {
+        value |= (static_cast<uint16_t>(bytes[i]) << ((i - 1) * 8));
+    };
+
+    for (uint8_t i = 0; i < chunks+1; i++)
+    {
+        bytes.erase(bytes.begin());
+    };
+
+    return value;
+};
+
+uint8_t uint8(std::vector<uint8_t> &bytes)
+{
+    if (bytes.empty())
+    {
+        throw std::invalid_argument("bytes array is empty");
+    }
+
+    int chunks = bytes[0];
+    uint8_t value = 0;
+
+    for (int i = 1; i <= chunks; ++i)
+    {
+        value |= (static_cast<uint8_t>(bytes[i]) << ((i - 1) * 8));
+    };
+
+    for (uint8_t i = 0; i < chunks+1; i++)
+    {
+        bytes.erase(bytes.begin());
+    };
+
+    return value;
+}
+
+double f64float(std::vector<unsigned char> &bytes)
+{
+    if (bytes.size() < 8)
+    {
+        throw std::runtime_error("Corrupted Bytecode: Insufficient amount of bytes to create a f64 double");
+    };
+
+    uint64_t bits = 0;
 
     for (size_t i = 0; i < 8; i++)
     {
-        result |= static_cast<unsigned long long>(bytes[i]) << (8 * (i - 1));
+        bits |= static_cast<uint64_t>(bytes[i]) << (8 * i);
+    };
+
+    double result;
+    std::memcpy(&result, &bits, sizeof(result));
+
+    for (uint8_t i = 0; i < 8; i++)
+    {
         bytes.erase(bytes.begin());
     };
 
@@ -183,22 +228,22 @@ uint64_t mapInteger(std::vector<uint8_t> &bytes)
     {
         case 1:
         {
-            return u8int(bytes);
+            return uint8(bytes);
         };
 
         case 2:
         {
-            return u16int(bytes);
+            return uint16(bytes);
         };
 
         case 4:
         {
-            return u32int(bytes);
+            return uint32(bytes);
         };
 
         case 8:
         {
-            return u64int(bytes);
+            return uint64(bytes);
         };
 
         default:
@@ -218,9 +263,10 @@ class Stack
     public:
     
 
-    void push(const StackElement& element)
+    StackElement push(const StackElement& element)
     {
         elements.push_back(element);
+        return element;
     };
 
     StackElement pop()

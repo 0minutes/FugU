@@ -11,6 +11,7 @@ import
 
     Expression,
     Literal,
+    BinaryOps,
     InstructionType,
     BinaryExpression,
     UnaryExpression,
@@ -45,7 +46,7 @@ export class ExpressionStatementGenerator
                 {
                     ast = ast as BinaryExpression;
                     ExpressionBytecode.push(ExpressionType.BinaryExpression);
-                    ExpressionBytecode.push(...this.generateBinaryExpression(ast.left, ast.operator, ast.right))
+                    ExpressionBytecode.push(...this.generateBinaryExpression(ast.left, ast.operator, ast.right));
                     traverse(ast.left);
                     traverse(ast.right);
                     break;
@@ -81,7 +82,7 @@ export class ExpressionStatementGenerator
             {
                 case '++':
                 {
-                    UnaryUpdateBytecode.push(InstructionType.add);
+                    UnaryUpdateBytecode.push(BinaryOps.add);
                     UnaryUpdateBytecode.push(InstructionType.const1);
                     UnaryUpdateBytecode.push(...this.generateExpression(argument));
                     break;
@@ -89,7 +90,7 @@ export class ExpressionStatementGenerator
 
                 case '--':
                 {
-                    UnaryUpdateBytecode.push(InstructionType.sub);
+                    UnaryUpdateBytecode.push(BinaryOps.sub);
                     UnaryUpdateBytecode.push(...this.generateExpression(argument));
                     UnaryUpdateBytecode.push(InstructionType.const1);
                     break;
@@ -103,14 +104,14 @@ export class ExpressionStatementGenerator
             {
                 case '++':
                 {
-                    UnaryUpdateBytecode.push(InstructionType.add);
+                    UnaryUpdateBytecode.push(BinaryOps.add);
                     UnaryUpdateBytecode.push(...this.generateExpression(argument));
                     UnaryUpdateBytecode.push(InstructionType.const1);
                     break;
                 }
                 case '--':
                 {
-                    UnaryUpdateBytecode.push(InstructionType.sub);
+                    UnaryUpdateBytecode.push(BinaryOps.sub);
                     UnaryUpdateBytecode.push(...this.generateExpression(argument));
                     UnaryUpdateBytecode.push(InstructionType.const1);
                     break;
@@ -128,7 +129,7 @@ export class ExpressionStatementGenerator
         {
             case '!':
             {
-                UnaryBytecode.push(InstructionType.not);
+                UnaryBytecode.push(BinaryOps.not);
                 UnaryBytecode.push(...this.generateExpression(argument));
                 break;
             }
@@ -139,7 +140,7 @@ export class ExpressionStatementGenerator
             };
             case '-':
             {
-                UnaryBytecode.push(InstructionType.sub);
+                UnaryBytecode.push(BinaryOps.sub);
                 UnaryBytecode.push(InstructionType.const0);
                 UnaryBytecode.push(...this.generateExpression(argument));
                 break;
@@ -159,7 +160,7 @@ export class ExpressionStatementGenerator
             {
                 if (left.runtimeValue == LiteralValue.StringLiteral || right.runtimeValue == LiteralValue.StringLiteral)
                 {
-                    ExpressionBytecode.push(InstructionType.sadd);
+                    ExpressionBytecode.push(BinaryOps.sadd);
                     break;
                 };
 
@@ -184,7 +185,7 @@ export class ExpressionStatementGenerator
                     break;
                 };
 
-                ExpressionBytecode.push(InstructionType.sub);
+                ExpressionBytecode.push(BinaryOps.sub);
                 break;
             };
 
@@ -193,7 +194,7 @@ export class ExpressionStatementGenerator
 
                 if (left.runtimeValue == LiteralValue.StringLiteral || right.runtimeValue == LiteralValue.StringLiteral)
                 {
-                    ExpressionBytecode.push(InstructionType.smul);
+                    ExpressionBytecode.push(BinaryOps.smul);
                     break;
                 };
 
@@ -202,7 +203,7 @@ export class ExpressionStatementGenerator
                     new SyntaxErr(`Unsupported '${operator}' operand for the Null type`, makePosition(this.parent.filename, left.range[0], left.range[1], right.range[2]), this.parent.source);
                 };
 
-                ExpressionBytecode.push(InstructionType.mul);
+                ExpressionBytecode.push(BinaryOps.mul);
                 break;
             };
 
@@ -219,7 +220,7 @@ export class ExpressionStatementGenerator
                     break;
                 };
 
-                ExpressionBytecode.push(InstructionType.div);
+                ExpressionBytecode.push(BinaryOps.div);
                 break;
             };
 
@@ -236,7 +237,7 @@ export class ExpressionStatementGenerator
                     break;
                 };
 
-                ExpressionBytecode.push(InstructionType.pow);
+                ExpressionBytecode.push(BinaryOps.pow);
                 break;
             };
 
@@ -253,46 +254,46 @@ export class ExpressionStatementGenerator
                     break;
                 };
     
-                ExpressionBytecode.push(InstructionType.mod);
+                ExpressionBytecode.push(BinaryOps.mod);
                 break;
             };
 
             case '!':
             {
-                ExpressionBytecode.push(InstructionType.not);
+                ExpressionBytecode.push(BinaryOps.not);
                 break;
             };
 
             case '==':
             {
-                ExpressionBytecode.push(InstructionType.eqls);
+                ExpressionBytecode.push(BinaryOps.eqls);
                 break;
             };
             case '!=':
             {
-                ExpressionBytecode.push(InstructionType.neqls);
+                ExpressionBytecode.push(BinaryOps.neqls);
                 break;
             };
 
             case '>':
             {
-                ExpressionBytecode.push(InstructionType.gt);
+                ExpressionBytecode.push(BinaryOps.gt);
                 break;
             };
             case '<':
             {
-                ExpressionBytecode.push(InstructionType.lt);
+                ExpressionBytecode.push(BinaryOps.lt);
                 break;
             };
 
             case '>=':
             {
-                ExpressionBytecode.push(InstructionType.gteqls);
+                ExpressionBytecode.push(BinaryOps.gteqls);
                 break;
             };
             case '<=':
             {
-                ExpressionBytecode.push(InstructionType.lteqls);
+                ExpressionBytecode.push(BinaryOps.lteqls);
                 break;
             };
 
@@ -310,7 +311,7 @@ export class ExpressionStatementGenerator
                 };
     
                     
-                ExpressionBytecode.push(InstructionType.shl);
+                ExpressionBytecode.push(BinaryOps.shl);
                 break;
             };
             case '>>':
@@ -326,7 +327,7 @@ export class ExpressionStatementGenerator
                     break;
                 };
                     
-                ExpressionBytecode.push(InstructionType.shr);
+                ExpressionBytecode.push(BinaryOps.shr);
                 break
             };
         };

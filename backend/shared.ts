@@ -528,7 +528,7 @@ export interface Literal extends Expression
 
 export const enum ConstPoolType
 {
-    Utf8Info,
+    PtrInfo,
     StringInfo,
     BigIntInfo,
     SignedInto,
@@ -549,37 +549,8 @@ export const enum ExpressionType
     UnaryUpdateExpression,
 }
 
-export const enum InstructionType
+export const enum BinaryOps
 {
-
-    const0,
-    const1,
-    const2,
-    const3,
-    const4,
-    const5,
-    const6,
-
-    constm1,
-    constm2,
-    constm3,
-    constm4,
-    constm5,
-    constm6,
-
-    cosntnull,
-
-    u8,
-    u16,
-    u32,
-    u64,
-
-    s8,
-    s16,
-    s32,
-    s64,
-
-
     add,
     sadd,
 
@@ -606,7 +577,40 @@ export const enum InstructionType
     shl,
     shr,
 
+}
+
+export const enum InstructionType
+{
+
+    const0,
+    const1,
+    const2,
+    const3,
+    const4,
+    const5,
+    const6,
+
+    constm1,
+    constm2,
+    constm3,
+    constm4,
+    constm5,
+    constm6,
+
+    constnull,
+
+    u8,
+    u16,
+    u32,
+    u64,
+
+    s8,
+    s16,
+    s32,
+    s64,
+
     ldc,
+    ldcp,
 
     ret = 0xFE,
     halt = 0xFF,
@@ -621,32 +625,32 @@ SCHAR_MAX             =   127,
 UCHAR_MAX             =   0xff,
 
 MB_LEN_MAX            =   5,
-SHRT_MIN              = (-32768),
+SHRT_MIN              =  -32768,
 SHRT_MAX              =   32767,
 USHRT_MAX             =   0xffff,
-INT_MIN               = (-2147483647 - 1),
+INT_MIN               =  -2147483648,
 INT_MAX               =   2147483647,
 UINT_MAX              =   0xffffffff,
-LONG_MIN              = (-2147483647 - 1),
+LONG_MIN              =  -2147483648,
 LONG_MAX              =   2147483647,
 ULONG_MAX             =   0xffffffff,
-LLONG_MAX             =   9223372036854775807,
-LLONG_MIN             = BigInt(-9223372036854775807 - 1),
+LLONG_MAX             =   9223372036854775807n,
+LLONG_MIN             =  -9223372036854775808n,
 ULLONG_MAX            =   0xffffffffffffffff,
 
-_I8_MIN               = (-127 - 1),
+_I8_MIN               =  -128,
 _I8_MAX               =   127,
 _UI8_MAX              =   0xff,
 
-_I16_MIN              = (-32767 - 1),
+_I16_MIN              =  -32768,
 _I16_MAX              =   32767,
 _UI16_MAX             =   0xffff,
 
-_I32_MIN              = (-2147483647 - 1),
+_I32_MIN              = -2147483648n,
 _I32_MAX              =   2147483647,
 _UI32_MAX             =   0xffffffff,
 
-_I64_MIN              = BigInt(-9223372036854775807 - 1),
+_I64_MIN              =  -9223372036854775808n,
 _I64_MAX              =   9223372036854775807n,
 _UI64_MAX             =   18446744073709551615n
 

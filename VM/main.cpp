@@ -5,10 +5,6 @@
 #include <fstream>
 #include <cstdint>
 
-using std::cout;
-using std::cin;
-using std::vector;
-
 #include "backend/interpreter.hpp"
 
 
@@ -17,7 +13,7 @@ int main(int argc, char* argv[])
     
     if (argc < 2)
     {
-        cout << "Fatal Error: No filepath was provided";
+        std::cout << "Fatal Error: No filepath was provided";
         getchar();
         exit(1);
     };
@@ -25,6 +21,8 @@ int main(int argc, char* argv[])
     VM vm(argv[1]);
 
     vm.run();
+
+    vm.accessConstPool();
     
     return 0;
-}
+};

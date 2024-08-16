@@ -27,18 +27,12 @@ export class ConstantFolding
         this.flags = flags;
     };
 
-    evaluateSimpleIntExpressions(ast: any, integer: boolean = true)
+    evaluateSimpleIntExpressions(ast: any)
     {
-        if (integer)
-        {
-            ast.left.value = BigInt(ast.left.value);
-            ast.right.value = BigInt(ast.right.value);
-        }
-        else
-        {
-            ast.left.value = Number(ast.left.value);
-            ast.right.value = Number(ast.right.value);
-        }
+   
+        ast.left.value = BigInt(ast.left.value);
+        ast.right.value = BigInt(ast.right.value);
+
 
         switch (ast.operator)
         {
@@ -46,7 +40,7 @@ export class ConstantFolding
             {
                 return {
                     type: NodeType.Literal,
-                    runtimeValue: integer ? LiteralValue.NumberLiteral : LiteralValue.FloatLiteral,
+                    runtimeValue: LiteralValue.NumberLiteral,
                     value: ast.left.value + ast.right.value,
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal;
@@ -55,7 +49,7 @@ export class ConstantFolding
             {
                 return {
                     type: NodeType.Literal,
-                    runtimeValue: integer ? LiteralValue.NumberLiteral : LiteralValue.FloatLiteral,
+                    runtimeValue: LiteralValue.NumberLiteral,
                     value: ast.left.value - ast.right.value,
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal;
@@ -63,9 +57,10 @@ export class ConstantFolding
             
             case '**':
             {
+
                 return {
                     type: NodeType.Literal,
-                    runtimeValue: integer ? LiteralValue.NumberLiteral : LiteralValue.FloatLiteral,
+                    runtimeValue: LiteralValue.NumberLiteral,
                     value: ast.left.value ** ast.right.value,
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal;
@@ -75,29 +70,11 @@ export class ConstantFolding
             {
                 return {
                     type: NodeType.Literal,
-                    runtimeValue: integer ? LiteralValue.NumberLiteral : LiteralValue.FloatLiteral,
+                    runtimeValue: LiteralValue.NumberLiteral,
                     value: ast.left.value * ast.right.value,
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal;
             };
-            case '/':
-            {
-                if (ast.right.value == 0)
-                {
-                    new LogicalErr (
-                    `Unable to '/' (<Division>) by 0`,
-                    makePosition(this.filename, ast.right.range[0], ast.right.range[1], ast.right.range[2]),
-                    this.source
-                    );
-                };
-                return {
-                    type: NodeType.Literal,
-                    runtimeValue: LiteralValue.FloatLiteral,
-                    value: ast.left.value / ast.right.value,
-                    range: [ast.range[0], ast.range[1], ast.range[2]],
-                } as Literal;
-            };
-
             case '%':
             {
                 if (ast.right.value == 0)
@@ -108,10 +85,10 @@ export class ConstantFolding
                     this.source
                     );
                 };
-
+                
                 return {
                     type: NodeType.Literal,
-                    runtimeValue: LiteralValue.FloatLiteral,
+                    runtimeValue: LiteralValue.NumberLiteral,
                     value: ast.left.value % ast.right.value,
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal;
@@ -122,7 +99,7 @@ export class ConstantFolding
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: ast.left.value == ast.right.value,
+                    value: Number(ast.left.value == ast.right.value),
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal;
             };
@@ -133,7 +110,7 @@ export class ConstantFolding
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: ast.left.value != ast.right.value,
+                    value: Number(ast.left.value != ast.right.value),
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal;
             };
@@ -143,7 +120,7 @@ export class ConstantFolding
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: ast.left.value < ast.right.value,
+                    value: Number(ast.left.value < ast.right.value),
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal;
             };
@@ -153,7 +130,7 @@ export class ConstantFolding
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: ast.left.value > ast.right.value,
+                    value: Number(ast.left.value > ast.right.value),
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal;
             };
@@ -162,7 +139,7 @@ export class ConstantFolding
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: ast.left.value <= ast.right.value,
+                    value: Number(ast.left.value <= ast.right.value),
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal;
             };
@@ -172,25 +149,21 @@ export class ConstantFolding
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: ast.left.value >= ast.right.value,
+                    value: Number(ast.left.value >= ast.right.value),
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal;
             };
         };
-
-
-        console.log(ast)
         return ast;
     };
 
     evaluateUnaryExpr = (ast: any) =>
     {
-        switch (ast.operator)
+        if (ast.operator == '!') 
         {
-            case '!':
-            {
-                ast.argument = this.foldExpressionStatement(ast.argument);
-
+            ast.argument = this.foldExpressionStatement(ast.argument);
+            if (ast.argument.type == NodeType.Literal)
+            {                
                 if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
                     new TypeConversionWarning (
@@ -204,15 +177,19 @@ export class ConstantFolding
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: !(ast.argument.value),
+                    value: Number(!(ast.argument.value)),
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal; 
             };
 
-            case '+':
-            {
-                ast.argument = this.foldExpressionStatement(ast.argument);
+            return ast;
+        }
 
+        else if (ast.operator == '+')
+        {
+            ast.argument = this.foldExpressionStatement(ast.argument);
+            if (ast.argument.type == NodeType.Literal)
+            {  
                 if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
                     new LogicalErr (
@@ -222,17 +199,32 @@ export class ConstantFolding
                     );
                 };
 
+                if (ast.argument.runtimeValue == LiteralValue.NumberLiteral)
+                {
+                    return {
+                        type: NodeType.Literal,
+                        runtimeValue: LiteralValue.NumberLiteral,
+                        value: 0n+BigInt(ast.argument.value),
+                        range: [ast.range[0], ast.range[1], ast.range[2]],
+                    } as Literal; 
+                };
+
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: 0n+BigInt(ast.argument.value),
+                    value: 0+(ast.argument.value),
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal; 
             };
-            case '-':
-            {
-                ast.argument = this.foldExpressionStatement(ast.argument);
 
+            return ast;
+        }
+
+        else if (ast.operator == '-')
+        {
+            ast.argument = this.foldExpressionStatement(ast.argument);
+            if (ast.argument.type == NodeType.Literal)
+            {
                 if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
                     new error (
@@ -242,13 +234,25 @@ export class ConstantFolding
                     );
                 };
 
+                if (ast.argument.runtimeValue == LiteralValue.NumberLiteral)
+                {
+                    return {
+                        type: NodeType.Literal,
+                        runtimeValue: LiteralValue.NumberLiteral,
+                        value: 0n-BigInt(ast.argument.value),
+                        range: [ast.range[0], ast.range[1], ast.range[2]],
+                    } as Literal; 
+                };
+
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: 0n-BigInt(ast.argument.value),
+                    value: 0-(ast.argument.value),
                     range: [ast.range[0], ast.range[1], ast.range[2]],
                 } as Literal; 
             };
+
+            return ast;
         };
     };
 
@@ -267,17 +271,10 @@ export class ConstantFolding
 
             if (ast.left.runtimeValue == LiteralValue.NumberLiteral && ast.right.runtimeValue == LiteralValue.NumberLiteral)
             {
-                return this.evaluateSimpleIntExpressions(ast, true);
-            };
-            
-            if (
-                (ast.left.runtimeValue == LiteralValue.FloatLiteral && ast.right.runtimeValue == LiteralValue.NumberLiteral) ||
-                (ast.right.runtimeValue == LiteralValue.FloatLiteral && ast.left.runtimeValue == LiteralValue.NumberLiteral)
-            )
-            {
-                return this.evaluateSimpleIntExpressions(ast, false);
+                return this.evaluateSimpleIntExpressions(ast);
             };
         }
+
         else if (ast.type == NodeType.UnaryExpression)
         {
             return this.evaluateUnaryExpr(ast);

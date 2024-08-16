@@ -6,18 +6,14 @@
 #include <map>
 #include <string>
 
-using std::cout;
+using ConstPoolValue = std::variant<int, std::string, double, unsigned long long, signed long long>;
 
 class VM
 {
     private:
     std::vector<uint8_t> bytecode;
 
-    std::map<int, int> stringPointerPool;
-    std::map<int, std::string> stringPool;
-    std::map<int, double> doublePool;
-    std::map<int, unsigned long long int> bigIntPool;
-    std::map<int, signed long long int> signedPool;
+    std::map<int, ConstPoolValue> constPool;
 
     Stack stack;
     size_t sp;
@@ -98,7 +94,24 @@ class VM
                         str += static_cast<char>(mapInteger(this->bytecode));
                     };
 
-                    this->stringPool[label] = str;
+                    this->constPool[label] = str;
+                    break;
+                };
+
+                case ConstPoolType::BigIntInfo:
+                {
+                    const uint64_t BigInt = uint64(this->bytecode);
+
+                    this->constPool[label] = BigInt;
+                    break;
+                };
+
+                case ConstPoolType::DoubleInfo:
+                {
+                    const double dflt = f64float(this->bytecode);
+                    
+                    this->constPool[label] = dflt;
+                    break;
                 };
             };
         };
@@ -107,6 +120,18 @@ class VM
     };
 
     public:
+    int accessConstPool()
+    {
+        for (const auto &entry : this->constPool)
+        {
+            std::cout << "Key: " << entry.first << ", Value: ";
+            std::visit([](const auto &value) { std::cout << value; }, entry.second);
+            std::cout << std::endl;
+        };
+
+        return 0;
+    };
+    
     int run()
     {
         this->validateBytecode();

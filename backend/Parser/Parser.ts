@@ -164,7 +164,7 @@ export class Parser
                 return {
                     type: NodeType.Literal,
                     runtimeValue: LiteralValue.NumberLiteral,
-                    value: 'true' == token.value ? true : false,
+                    value: Number('true' == token.value ? true : false),
                     range: [token.loc.line, token.loc.start, token.loc.end]
                 } as Literal;
             };
@@ -191,7 +191,7 @@ export class Parser
                     );
                 };
 
-                let value = this.parseAdditiveExpr(TokenType.oparen);
+                let value = this.parseLogicalBitwiseExpr(TokenType.oparen);
 
                 if (this.at().type != TokenType.cparen)
                 {
