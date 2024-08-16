@@ -25,7 +25,7 @@ The source code for various components of the language can be found in the `./ba
 
 ## VM Progress
 
-- [x] **ConstPool** - Added the const pool as well as its parsing. Can only parse strings so far, later ill add floats bigints and others
+- [x] **ConstPool** - Added the const pool as well as its parsing. Can only parse strings, bigints and floats
 
 ## How to Run
 
