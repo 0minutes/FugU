@@ -79,9 +79,35 @@ export class LiteralGenerator
                 LiteralBytecode.push(...this.generateNumberLiterals(ast as Literal));
                 break;
             };
+
             case LiteralValue.NullLiteral:
             {
                 LiteralBytecode.push(InstructionType.constnull);
+                break;
+            };
+
+            case LiteralValue.CharLiteral:
+            {
+                this.parent.ConstPoolCounter++;
+                const string: string = ast.value as string;
+                const length: number = string.length;
+                
+                const value = [ConstPoolType.CharInfo, ...this.generateInteger(length), ...this.generateString(string)];
+
+                const ptr = this.availablePointer(value);
+
+                if (ptr != 0)
+                {
+                    this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.PtrInfo, ConstPoolType.CharInfo, ...this.generateInteger(ptr)]);
+                    LiteralBytecode.push(InstructionType.ldcp, ...this.generateInteger(this.parent.ConstPoolCounter));
+                }
+
+                else
+                {
+                    this.parent.ConstPool.set(this.parent.ConstPoolCounter, value);
+                    LiteralBytecode.push(InstructionType.ldc, ...this.generateInteger(this.parent.ConstPoolCounter));
+                };
+
                 break;
             };
 
@@ -203,29 +229,28 @@ export class LiteralGenerator
 
                 default:
                 {
-                    if (ast.value as number >= _I8_MIN)
+                    if (ast.value as number >= _I64_MIN)
                     {
-                        NumberBytecode.push(InstructionType.s8);
-                        ast.value = Number(ast.value)
-                        NumberBytecode.push(...this.generateInteger(ast.value, 8));
+                        this.parent.ConstPoolCounter++;
+                        
+                        const value = [ConstPoolType.SignedInfo, ...this.generateBigInteger(ast.value as bigint * -1n)];
+        
+                        const ptr = this.availablePointer(value);
+        
+                        if (ptr != 0)
+                        {
+                            this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.PtrInfo, ConstPoolType.SignedInfo, ...this.generateInteger(ptr)]);
+                            NumberBytecode.push(InstructionType.ldcp, ...this.generateInteger(this.parent.ConstPoolCounter));
+                        }
+                        else
+                        {
+                            this.parent.ConstPool.set(this.parent.ConstPoolCounter, value);
+                            NumberBytecode.push(InstructionType.ldc, ...this.generateInteger(this.parent.ConstPoolCounter));
+                        };
+        
+                        break;
                     }
-                    else if (ast.value as number >= _I16_MIN)
-                    {
-                        NumberBytecode.push(InstructionType.s16);
-                        ast.value = Number(ast.value)
-                        NumberBytecode.push(...this.generateInteger(ast.value, 16));
-                    }
-                    else if (ast.value as number >= _I32_MIN)
-                    {
-                        NumberBytecode.push(InstructionType.s32);
-                        ast.value = Number(ast.value)
-                        NumberBytecode.push(...this.generateInteger(ast.value, 32));
-                    }
-                    else if (ast.value as number >= _I64_MIN)
-                    {
-                        NumberBytecode.push(InstructionType.s64);
-                        NumberBytecode.push(...this.generateBigInteger(ast.value as bigint, 64));
-                    }
+
                     else
                     {
                         new Warning(
@@ -244,12 +269,11 @@ export class LiteralGenerator
         return NumberBytecode;
     };
 
-
     generateIEEE754(value: number): number[]
     {
         const IEEE754: number[] = [];
 
-            const buffer = new ArrayBuffer(8);
+        const buffer = new ArrayBuffer(8);
         const view = new DataView(buffer);
         view.setFloat64(0, value, true);
     

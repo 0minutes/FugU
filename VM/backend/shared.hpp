@@ -12,8 +12,9 @@ enum ConstPoolType
     PtrInfo,
     StringInfo,
     BigIntInfo,
-    SignedInto,
+    SignedInfo,
     DoubleInfo,
+    CharInfo,
 };
 
 enum MethodType
@@ -104,6 +105,12 @@ uint64_t uint64(std::vector<uint8_t> &bytes)
     }
 
     int chunks = bytes[0];
+
+    if (chunks > bytes.size() - 1)
+    {
+        throw std::invalid_argument("Corrupted Bytecode: Insufficient bytes to decode uint64");
+    }
+
     uint64_t value = 0;
 
     for (int i = 1; i <= chunks; ++i)
@@ -127,6 +134,12 @@ uint32_t uint32(std::vector<uint8_t> &bytes)
     }
 
     int chunks = bytes[0];
+
+    if (chunks > bytes.size() - 1)
+    {
+        throw std::invalid_argument("Corrupted Bytecode: Insufficient bytes to decode uint32");
+    }
+
     uint32_t value = 0;
 
     for (int i = 1; i <= chunks; ++i)
@@ -150,6 +163,12 @@ uint16_t uint16(std::vector<uint8_t> &bytes)
     };
 
     int chunks = bytes[0];
+
+    if (chunks > bytes.size() - 1)
+    {
+        throw std::invalid_argument("Corrupted Bytecode: Insufficient bytes to decode uint16");
+    }
+
     uint16_t value = 0;
 
     for (int i = 1; i <= chunks; ++i)
@@ -175,6 +194,11 @@ uint8_t uint8(std::vector<uint8_t> &bytes)
     int chunks = bytes[0];
     uint8_t value = 0;
 
+    if (chunks > bytes.size() - 1)
+    {
+        throw std::invalid_argument("Corrupted Bytecode: Insufficient bytes to decode uint8");
+    }
+
     for (int i = 1; i <= chunks; ++i)
     {
         value |= (static_cast<uint8_t>(bytes[i]) << ((i - 1) * 8));
@@ -186,7 +210,7 @@ uint8_t uint8(std::vector<uint8_t> &bytes)
     };
 
     return value;
-}
+};
 
 double f64float(std::vector<unsigned char> &bytes)
 {

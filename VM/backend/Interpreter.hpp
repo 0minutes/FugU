@@ -106,12 +106,41 @@ class VM
                     break;
                 };
 
+                case ConstPoolType::SignedInfo:
+                {
+                    const uint64_t BigInt = uint64(this->bytecode);
+
+                    int64_t SignedInt = 0-BigInt;
+
+                    this->constPool[label] = SignedInt;
+                    break;
+                };
+
                 case ConstPoolType::DoubleInfo:
                 {
                     const double dflt = f64float(this->bytecode);
                     
                     this->constPool[label] = dflt;
                     break;
+                };
+                
+                case ConstPoolType::CharInfo:
+                {
+                    const int length = mapInteger(this->bytecode);
+
+                    std::string str = "";
+
+                    for (int j = 0; j < length; j++)
+                    {
+                        str += static_cast<char>(mapInteger(this->bytecode));
+                    };
+
+                    this->constPool[label];
+                    break;
+                };
+                case ConstPoolType::PtrInfo:
+                {
+                
                 };
             };
         };

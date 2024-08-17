@@ -25,7 +25,7 @@ The source code for various components of the language can be found in the `./ba
 
 ## VM Progress
 
-- [x] **ConstPool** - Added the const pool as well as its parsing. Can only parse strings, bigints and floats
+- [x] **ConstPool** - Added support or the constpool except for the PtrInfo
 
 ## How to Run
 
@@ -33,7 +33,9 @@ To run the project, execute the following command in your terminal (*No argument
 Also, by default nothing will be returned, to view the bytecode or the ast or the tokens use these:
 
 *.tokens <...>* - for the tokens
+
 *.parse <...>* - for the parsing
+
 *.bytecode <...>* - for the bytecode
 
 ```bash

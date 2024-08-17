@@ -164,7 +164,7 @@ export class ConstantFolding
             ast.argument = this.foldExpressionStatement(ast.argument);
             if (ast.argument.type == NodeType.Literal)
             {                
-                if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
+                if (ast.argument.runtimeValue == LiteralValue.CharLiteral || ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
                     new TypeConversionWarning (
                     this.flags,
@@ -190,7 +190,7 @@ export class ConstantFolding
             ast.argument = this.foldExpressionStatement(ast.argument);
             if (ast.argument.type == NodeType.Literal)
             {  
-                if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
+                if (ast.argument.runtimeValue == LiteralValue.CharLiteral || ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
                     new LogicalErr (
                     `Unable to '+' (<unaryPlus>) operator on the type ${ast.argument.runtimeValue}`,
@@ -225,7 +225,7 @@ export class ConstantFolding
             ast.argument = this.foldExpressionStatement(ast.argument);
             if (ast.argument.type == NodeType.Literal)
             {
-                if (ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
+                if (ast.argument.runtimeValue == LiteralValue.CharLiteral || ast.argument.runtimeValue == LiteralValue.StringLiteral || ast.argument.runtimeValue == LiteralValue.NullLiteral)
                 {
                     new error (
                     `Unable to '-' (<unaryMinus>) operator on the type ${ast.argument.runtimeValue}`,

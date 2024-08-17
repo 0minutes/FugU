@@ -10,6 +10,7 @@ import
     DIGITS,
     specialChars,
     keywords,
+    unaryCharConstructors,
     Flags,
 } from '../shared.ts';
 
@@ -46,11 +47,12 @@ export class Lexer
 
     next(): string | TokenType
     {
-        return this.listSource.length > 0 ? this.listSource[0] : TokenType.eof;
+        return this.listSource.length > 0 ? this.listSource[1] : TokenType.eof;
     };
 
     eat(): string | TokenType
     {
+        this.cur++;
         return this.listSource.length > 0 ? this.listSource.shift()! : TokenType.eof;
     };
 
@@ -64,41 +66,101 @@ export class Lexer
         {
             const start = this.cur;
             const char = this.eat();
-            this.cur++;
+            // this.cur++;
 
-            if (char in this.specialChars)
+            if (char === '/' && this.listSource[0] === '*')
+            {
+                this.eat();
+                // this.cur++;
+
+                while (true)
+                {
+                    if (this.listSource.length === 0)
+                    {
+                        new LexerErr('Cannot find the end of a block comment', makePosition(this.filename, this.line, start, this.cur), this.source);
+                    };
+
+                    if (this.listSource[0] === '\n')
+                    {
+                        this.eat();
+                        this.line++;
+                        this.cur = 0;
+                        continue;
+                    };
+                    
+                    if (this.listSource[0] === '*' && this.next() === '/')
+                    {
+                        this.eat();
+                        // this.cur++;
+                        this.eat();
+                        // this.cur++;
+
+                        break;
+                    };
+
+                    this.eat();
+                    // this.cur++;
+                };
+
+
+                if (this.listSource[0] === '\n')
+                {
+                    this.eat();
+                    this.line++;
+                    this.cur = 0;
+                };
+            }
+
+            else if (char === '/' && this.listSource[0] === '/')
+            {
+                this.eat();
+                // this.cur++;
+
+                while (this.listSource.length > 0 && this.listSource[0] != '\n')
+                {
+                    this.eat();
+                    // this.cur++;
+                };
+                this.eat();
+                this.line++;
+                this.cur = 0;
+            }
+
+            else if (char in this.specialChars)
             {
                 this.handleSpecialChars(tokens, char as string, start);
             }
+
             else if (DIGITS.includes(char))
             {
                 this.handleNumber(tokens, char as string, start);
             }
+
             else if (LETTERS.includes(char) || char === '_')
             {
                 this.handleIdentifier(tokens, char as string, start);
             }
+
             else if (char === '"' || char === '\'')
             {
                 this.handleString(tokens, char as string, start);
             }
+
             else if (char === '\n')
             {
-                tokens.push(this.makeToken(TokenType.eol, '\\n', start, this.cur));
+                tokens.push(this.makeToken(TokenType.eol, '\n', start, this.cur));
                 this.line++;
                 this.cur = 0;
             }
+
             else if (char === '\t' || char === '\r' || char === ' ')
             {
             }
-            else if (char === ';')
-            {
-                tokens.push(this.makeToken(TokenType.semicolon, ';', start, this.cur));
-            }
+
             else
             {
                 new LexerErr(
-                    `Unknown character token: ${char}`,
+                    `Cannot figure out the what charecter this is: '${char}' (0x${char.charCodeAt(0).toString(16)})`,
                     makePosition(this.filename, this.line, start, this.cur),
                     this.source
                 );
@@ -113,35 +175,186 @@ export class Lexer
     {
         let sequence = char;
 
-        if (char != ')')
+        if (char == '<')
         {
-            while (
-                this.listSource.length > 0 &&
-                (
-                    this.listSource[0] === '=' ||
-                    this.listSource[0] === '>' ||
-                    this.listSource[0] === '<' ||
-                    this.listSource[0] === '&' ||
-                    this.listSource[0] === '|' ||
-                    this.listSource[0] === '+' ||
-                    this.listSource[0] === '-' ||
-                    this.listSource[0] === '*' 
-                )
-            )
+            
+            if (this.listSource[0] == '=')
             {
                 sequence += this.eat();
-                this.cur++;
-            };
-        };
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
 
-        if (sequence in this.specialChars)
-        {
-            tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            else if (this.listSource[0] == '<')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else if (this.listSource[0] == '>')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else
+            {
+                tokens.push(this.makeToken(this.specialChars[char], char, start, this.cur));
+            };
         }
+
+        else if (char == '>')
+        {
+            if (this.listSource[0] == '=')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else if (this.listSource[0] == '>')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else
+            {
+                tokens.push(this.makeToken(this.specialChars[char], char, start, this.cur));
+            };
+        }
+
+        else if (char == '=')
+        {
+            if (this.listSource[0] == '=')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else
+            {
+                tokens.push(this.makeToken(this.specialChars[char], char, start, this.cur));
+            };
+        }
+
+        else if (char == '+')
+        {
+            if (this.listSource[0] == '=')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else if (this.listSource[0] == '+')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else
+            {
+                tokens.push(this.makeToken(this.specialChars[char], char, start, this.cur));
+            };
+        }
+
+        else if (char == '-')
+        {
+            if (this.listSource[0] == '=')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else if (this.listSource[0] == '-')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else
+            {
+                tokens.push(this.makeToken(this.specialChars[char], char, start, this.cur));
+            };
+        }
+
+        else if (char == '*')
+        {
+            if (this.listSource[0] == '*')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else
+            {
+                tokens.push(this.makeToken(this.specialChars[char], char, start, this.cur));
+            };
+        }
+
+        else if (char == '&')
+        {
+            if (this.listSource[0] == '&')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else
+            {
+                tokens.push(this.makeToken(this.specialChars[char], char, start, this.cur));
+            };
+        }
+
+        else if (char == '|')
+        {
+            if (this.listSource[0] == '|')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else
+            {
+                tokens.push(this.makeToken(this.specialChars[char], char, start, this.cur));
+            };
+        }
+
+        else if (this.listSource[0] == '!')
+        {
+            if (this.listSource[0] == '=')
+            {
+                sequence += this.eat();
+                // this.cur++;
+                tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
+            }
+
+            else
+            {
+                tokens.push(this.makeToken(this.specialChars[char], char, start, this.cur));
+            };
+        }
+
+        else if (this.specialChars[char] != undefined)
+        {
+            tokens.push(this.makeToken(this.specialChars[char], char, start, this.cur));
+        }
+
         else
         {
             new LexerErr(
-                `Unknown special character sequence: ${sequence}`,
+                `Cannot figure out the special charecter sequence: ${sequence}`,
                 makePosition(this.filename, this.line, start, this.cur),
                 this.source
             );
@@ -165,18 +378,18 @@ export class Lexer
             if (this.listSource[0] === '_')
             {
                 this.eat();
-                this.cur++;
+                // this.cur++;
             }
             else if (this.listSource[0] === '.' && !dot)
             {
                 dot = true;
                 number += this.eat();
-                this.cur++;
+                // this.cur++;
 
                 if (this.listSource.length === 0 || !DIGITS.includes(this.listSource[0]))
                 {
                     new LexerErr(
-                        `Unexpectedly got ${this.listSource[0]} while lexing a number. Expected a digit (0...9)`,
+                        `Unexpectedly got \`${this.eat()}\` while trying to understand a digit literal. Expected a digit (0..9)`,
                         makePosition(this.filename, this.line, start, this.cur),
                         this.source
                     );
@@ -184,6 +397,8 @@ export class Lexer
             }
             else if (this.listSource[0] === '.' && dot)
             {
+                this.eat();
+                // this.cur++;
                 new LexerErr(
                     `Multiple dots in a number`,
                     makePosition(this.filename, this.line, start, this.cur),
@@ -193,7 +408,7 @@ export class Lexer
             else
             {
                 number += this.eat();
-                this.cur++;
+                // this.cur++;
             };
         };
 
@@ -215,7 +430,7 @@ export class Lexer
         )
         {
             identifier += this.eat();
-            this.cur++;
+            // this.cur++;
         };
 
         const tokenType = identifier in this.keywords ? this.keywords[identifier] : TokenType.identifier;
@@ -225,24 +440,41 @@ export class Lexer
     handleString(tokens: Token[], quote: string, start: number): void
     {
         let string = '';
-
-        while (this.listSource.length > 0 && this.listSource[0] !== quote)
+        if (quote === '"')
         {
-            string += this.eat();
-            this.cur++;
+            while (this.listSource.length > 0 && this.listSource[0] !== quote)
+            {
+                string += this.eat();
+                // this.cur++;
+            };
+        }
+        else
+        {
+            if (this.listSource.length > 0 && this.listSource[0] !== quote)
+            {
+                string += this.eat();
+                // this.cur++;
+            }
         };
 
         if (this.listSource.length === 0 || this.listSource[0] !== quote)
         {
             new LexerErr(
-                `Undetermined string literal`,
+                `Unexpectedly got '${this.eat()}' while tryigng to understand a ${quote === '"' ? 'string' : 'char'} literal. Expected a \`${quote}\``,
                 makePosition(this.filename, this.line, start, this.cur),
                 this.source
             );
         };
 
         this.eat();
-        this.cur++;
-        tokens.push(this.makeToken(TokenType.string, string, start, this.cur));
+        // this.cur++;
+        if (quote === '"')
+        {
+            tokens.push(this.makeToken(TokenType.string, string, start, this.cur));
+        }
+        else
+        {
+            tokens.push(this.makeToken(TokenType.char, string, start, this.cur));
+        };
     };
 };

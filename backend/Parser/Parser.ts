@@ -94,24 +94,15 @@ export class Parser
         return this.at().type == TokenType.eol || this.at().type == TokenType.semicolon;
     };
 
-    next = (): any =>
+    next(): string | Token
     {
-        if (this.tokens.length >= 1)
-        {
-            return this.tokens[1];
-        };
-        return TokenType.eof;
+        return this.tokens.length > 1 ? this.tokens[1] : TokenType.eof;
     };
 
     eat = (): Token =>
     {
-        // if (this.tokens.length > 0)
-        // {
-        return this.tokens.shift() as Token;
-        // };
-        // return TokenType.eof;
+        return this.tokens.shift()! as Token;
     };
-
 
     parseLiteralNode = (prevToken ? : TokenType): Expression =>
     {
@@ -158,6 +149,15 @@ export class Parser
                 } as Literal;
             };
 
+            case TokenType.char:
+            {
+                return {
+                    type: NodeType.Literal,
+                    runtimeValue: LiteralValue.CharLiteral,
+                    value: token.value,
+                    range: [token.loc.line, token.loc.start, token.loc.end]
+                } as Literal;
+            };
 
             case TokenType.bool:
             {

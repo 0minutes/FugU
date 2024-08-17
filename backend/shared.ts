@@ -9,6 +9,7 @@ export const enum TokenType
     integer = '<integer>',
     float = '<float>',
     string = '<string>',
+    char = '<char>',
     null = '<null>',
     bool = '<boolean>',
 
@@ -142,6 +143,20 @@ export const specialChars: Record<string, TokenType> = {
     '--': TokenType.minusMinus,
     '-=': TokenType.minusEquals,
 };
+
+export const unaryCharConstructors: string[] = [
+    '*',
+    '!',
+    '=',
+
+    '&',
+    '|',
+    '>',
+    '<',
+
+    '+',
+    '-',
+]
 
 
 export const keywords: Record < string, TokenType > = {
@@ -506,7 +521,8 @@ export const enum LiteralValue
     NullLiteral = 'NullLiteral',
     NumberLiteral = 'NumberLiteral',
     FloatLiteral = 'FloatLiteral',
-    StringLiteral = 'StringLiteral'
+    StringLiteral = 'StringLiteral',
+    CharLiteral = 'CharLiteral',
 };
 
 export interface Identifier extends Expression
@@ -531,8 +547,9 @@ export const enum ConstPoolType
     PtrInfo,
     StringInfo,
     BigIntInfo,
-    SignedInto,
+    SignedInfo,
     DoubleInfo,
+    CharInfo,
 };
 
 export const enum MethodType
