@@ -3,7 +3,7 @@ THIS IS NOT THE FUTURE SYNTAX, I JUST COPPIED AND PASTED SOME RANDOM CODE TO MAK
 */
 
 let x = 10; // Assign an integer to x
-const y = 20.5; // Assign a float to y
+let y = 20.5; // Assign a float to y
 
 const greeting = "Hello, Lexer!"; // Assign a string
 const initial = 'L'; // Assign a character
@@ -24,6 +24,7 @@ while (x <= 50 || y >= 10) {
     y /= 3;
 }
 
+
 for (let i = 0; i < 10; i++) {
     print(i);
 };
@@ -43,7 +44,7 @@ let bitwise = ~x & y | z ^ 42;
 let shifted = x << 2 >> 1;
 
 // Type checking and other operations
-let isNumber = typeof x == 'number';
+let isNumber = typeof x == "number";
 let empty = null;
 
 // Include and new keyword usage
@@ -53,7 +54,6 @@ let obj = new class {
         this.name = "Object";
     }
 };
-
 print("Finished lexer test!");
 
 // Nested control structures
@@ -66,3 +66,35 @@ for (let j = 0; j < 5; j++) {
 }
 
 const finalValue = input("Enter a value: ");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1;

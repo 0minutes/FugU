@@ -52,7 +52,6 @@ export class Lexer
 
     eat(): string | TokenType
     {
-        this.cur++;
         return this.listSource.length > 0 ? this.listSource.shift()! : TokenType.eof;
     };
 
@@ -66,12 +65,19 @@ export class Lexer
         {
             const start = this.cur;
             const char = this.eat();
-            // this.cur++;
 
+            if (char === '\t' || char === '\r' || char === ' ' || char === '\v' || char === '\t' || char === '\f')
+            {
+                this.cur++;
+                continue;
+            };
+
+            this.cur++;
+            
             if (char === '/' && this.listSource[0] === '*')
             {
                 this.eat();
-                // this.cur++;
+                this.cur++;
 
                 while (true)
                 {
@@ -91,17 +97,16 @@ export class Lexer
                     if (this.listSource[0] === '*' && this.next() === '/')
                     {
                         this.eat();
-                        // this.cur++;
+                        this.cur++;
                         this.eat();
-                        // this.cur++;
+                        this.cur++;
 
                         break;
                     };
 
                     this.eat();
-                    // this.cur++;
+                    this.cur++;
                 };
-
 
                 if (this.listSource[0] === '\n')
                 {
@@ -114,12 +119,12 @@ export class Lexer
             else if (char === '/' && this.listSource[0] === '/')
             {
                 this.eat();
-                // this.cur++;
+                this.cur++;
 
                 while (this.listSource.length > 0 && this.listSource[0] != '\n')
                 {
                     this.eat();
-                    // this.cur++;
+                    this.cur++;
                 };
                 this.eat();
                 this.line++;
@@ -148,19 +153,15 @@ export class Lexer
 
             else if (char === '\n')
             {
-                tokens.push(this.makeToken(TokenType.eol, '\n', start, this.cur));
+                tokens.push(this.makeToken(TokenType.eol, '\\n', start, this.cur));
                 this.line++;
                 this.cur = 0;
             }
 
-            else if (char === '\t' || char === '\r' || char === ' ')
-            {
-            }
-
             else
             {
-                new LexerErr(
-                    `Cannot figure out the what charecter this is: '${char}' (0x${char.charCodeAt(0).toString(16)})`,
+                new LexerErr (
+                    `Cannot figure out the what charecter this is: \`0x${char.charCodeAt(0).toString(16).toUpperCase()}\``,
                     makePosition(this.filename, this.line, start, this.cur),
                     this.source
                 );
@@ -181,21 +182,21 @@ export class Lexer
             if (this.listSource[0] == '=')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
             else if (this.listSource[0] == '<')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
             else if (this.listSource[0] == '>')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
@@ -210,14 +211,14 @@ export class Lexer
             if (this.listSource[0] == '=')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
             else if (this.listSource[0] == '>')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
@@ -232,7 +233,7 @@ export class Lexer
             if (this.listSource[0] == '=')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
@@ -247,14 +248,14 @@ export class Lexer
             if (this.listSource[0] == '=')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
             else if (this.listSource[0] == '+')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
@@ -269,14 +270,14 @@ export class Lexer
             if (this.listSource[0] == '=')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
             else if (this.listSource[0] == '-')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
@@ -291,7 +292,7 @@ export class Lexer
             if (this.listSource[0] == '*')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
@@ -306,7 +307,7 @@ export class Lexer
             if (this.listSource[0] == '&')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
@@ -321,7 +322,7 @@ export class Lexer
             if (this.listSource[0] == '|')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
@@ -336,7 +337,7 @@ export class Lexer
             if (this.listSource[0] == '=')
             {
                 sequence += this.eat();
-                // this.cur++;
+                this.cur++;
                 tokens.push(this.makeToken(this.specialChars[sequence], sequence, start, this.cur));
             }
 
@@ -378,16 +379,17 @@ export class Lexer
             if (this.listSource[0] === '_')
             {
                 this.eat();
-                // this.cur++;
+                this.cur++;
             }
             else if (this.listSource[0] === '.' && !dot)
             {
                 dot = true;
                 number += this.eat();
-                // this.cur++;
+                this.cur++;
 
                 if (this.listSource.length === 0 || !DIGITS.includes(this.listSource[0]))
                 {
+                    this.cur++;
                     new LexerErr(
                         `Unexpectedly got \`${this.eat()}\` while trying to understand a digit literal. Expected a digit (0..9)`,
                         makePosition(this.filename, this.line, start, this.cur),
@@ -398,7 +400,7 @@ export class Lexer
             else if (this.listSource[0] === '.' && dot)
             {
                 this.eat();
-                // this.cur++;
+                this.cur++;
                 new LexerErr(
                     `Multiple dots in a number`,
                     makePosition(this.filename, this.line, start, this.cur),
@@ -408,7 +410,7 @@ export class Lexer
             else
             {
                 number += this.eat();
-                // this.cur++;
+                this.cur++;
             };
         };
 
@@ -430,7 +432,7 @@ export class Lexer
         )
         {
             identifier += this.eat();
-            // this.cur++;
+            this.cur++;
         };
 
         const tokenType = identifier in this.keywords ? this.keywords[identifier] : TokenType.identifier;
@@ -440,34 +442,38 @@ export class Lexer
     handleString(tokens: Token[], quote: string, start: number): void
     {
         let string = '';
+
         if (quote === '"')
         {
-            while (this.listSource.length > 0 && this.listSource[0] !== quote)
+            while (this.listSource.length > 0 && this.listSource[0] !== quote && this.listSource[0] != '\n' && this.listSource[0] != '\r')
             {
                 string += this.eat();
-                // this.cur++;
+                this.cur++;
             };
         }
         else
         {
-            if (this.listSource.length > 0 && this.listSource[0] !== quote)
+            if (this.listSource.length > 0 && this.listSource[0] !== quote && this.listSource[0] != '\n' && this.listSource[0] != '\r')
             {
                 string += this.eat();
-                // this.cur++;
-            }
+                this.cur++;
+            };  
         };
 
         if (this.listSource.length === 0 || this.listSource[0] !== quote)
         {
+            this.eat();
+            this.cur++;
             new LexerErr(
-                `Unexpectedly got '${this.eat()}' while tryigng to understand a ${quote === '"' ? 'string' : 'char'} literal. Expected a \`${quote}\``,
+                `Undereminted ${quote === '"' ? 'string' : 'char'} literal. Expected a ${quote === '"' ? 'double' : 'single'} quote`,
                 makePosition(this.filename, this.line, start, this.cur),
                 this.source
             );
         };
 
         this.eat();
-        // this.cur++;
+        this.cur++;
+
         if (quote === '"')
         {
             tokens.push(this.makeToken(TokenType.string, string, start, this.cur));

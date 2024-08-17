@@ -135,12 +135,13 @@ class VM
                         str += static_cast<char>(mapInteger(this->bytecode));
                     };
 
-                    this->constPool[label];
+                    this->constPool[label] = str;
                     break;
                 };
                 case ConstPoolType::PtrInfo:
                 {
-                
+                    this->constPool[label] = mapInteger(this->bytecode);
+                    break;
                 };
             };
         };

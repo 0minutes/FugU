@@ -98,7 +98,7 @@ export class LiteralGenerator
 
                 if (ptr != 0)
                 {
-                    this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.PtrInfo, ConstPoolType.CharInfo, ...this.generateInteger(ptr)]);
+                    this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.PtrInfo, ...this.generateInteger(ptr)]);
                     LiteralBytecode.push(InstructionType.ldcp, ...this.generateInteger(this.parent.ConstPoolCounter));
                 }
 
@@ -123,7 +123,7 @@ export class LiteralGenerator
 
                 if (ptr != 0)
                 {
-                    this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.PtrInfo, ConstPoolType.StringInfo, ...this.generateInteger(ptr)]);
+                    this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.PtrInfo, ...this.generateInteger(ptr)]);
                     LiteralBytecode.push(InstructionType.ldcp, ...this.generateInteger(this.parent.ConstPoolCounter));
                 }
                 else
@@ -239,7 +239,7 @@ export class LiteralGenerator
         
                         if (ptr != 0)
                         {
-                            this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.PtrInfo, ConstPoolType.SignedInfo, ...this.generateInteger(ptr)]);
+                            this.parent.ConstPool.set(this.parent.ConstPoolCounter, [ConstPoolType.PtrInfo, ...this.generateInteger(ptr)]);
                             NumberBytecode.push(InstructionType.ldcp, ...this.generateInteger(this.parent.ConstPoolCounter));
                         }
                         else

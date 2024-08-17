@@ -365,29 +365,37 @@ export class error
     loc: Position;
     source: string;
 
+    lines: number;
+
     constructor(message: string, loc: Position, source: string, pointers: string = '^', public type: string = 'Uncaught Error',)
     {
+        // GOOD LUCk! :)
 
         this.message = message;
         this.loc = loc;
         this.source = source;
+
+        this.lines = this.source.split('\n').length
 
         console.log(`${ErrorColors.Red_DARK_RED}${this.type}${ErrorColors.reset} at ${this.loc.filename}:${this.loc.line}:${this.loc.end}`);
         console.log('\n');
 
         if (this.loc.line > 1) 
         {
-            console.log(`${this.loc.line-1} | ` + this.source.split('\n')[this.loc.line-2]);
-            console.log(' '.repeat(String(this.loc.line-1).length) +` |`);
+            console.log(' '.repeat(String(this.lines).length) +` |`);
+            console.log(`${this.loc.line-1}`+ ` `.repeat((String(this.lines).length - String(this.loc.line-1).length)) + ` | ` + this.source.split('\n')[this.loc.line-2]);
+            console.log(' '.repeat(String(this.lines).length) +` |`);
         };
-        console.log(`${ErrorColors.Red_DARK_RED}${this.loc.line} | ` + ErrorColors.reset + this.source.split('\n')[this.loc.line - 1]);
-        console.log(ErrorColors.Red_DARK_RED + ' '.repeat(String(this.loc.line).length) + ' | ' + ErrorColors.reset + ' '.repeat(this.loc.start) + pointers.repeat(this.loc.end - this.loc.start));
-        console.error(ErrorColors.Red_DARK_RED + ' '.repeat(String(this.loc.line).length) + ' | ' + ErrorColors.reset + ' '.repeat(this.loc.start) + `${message}`);
+        console.log(ErrorColors.Red_DARK_RED +  ' '.repeat(String(this.lines).length) +` |` + ErrorColors.reset);
+        console.log(ErrorColors.Red_DARK_RED + `${this.loc.line}`+ ` `.repeat((String(this.lines).length - String(this.loc.line).length)) + ` | `  + ErrorColors.reset + this.source.split('\n')[this.loc.line - 1]);
+        console.log(ErrorColors.Red_DARK_RED + ' '.repeat(String(this.lines).length) + ' | ' + ErrorColors.reset + ' '.repeat(this.loc.start) + pointers.repeat(this.loc.end - this.loc.start));
+        console.error(ErrorColors.Red_DARK_RED + ' '.repeat(String(this.lines).length) + ' | ' + ErrorColors.reset + ' '.repeat(this.loc.start) + `${message}`);
         
         if (this.source.split('\n')[this.loc.line] != undefined)
         {
-            console.log(`${this.loc.line+1} | ` + this.source.split('\n')[this.loc.line]);
-            console.log(' '.repeat(String(this.loc.line-1).length) +` |`);
+            console.log(' '.repeat(String(this.lines).length) +` |`);
+            console.log(`${this.loc.line+1}`+ ` `.repeat((String(this.lines).length - String(this.loc.line+1).length)) + ` | ` + this.source.split('\n')[this.loc.line]);
+            console.log(' '.repeat(String(this.lines).length) +` |`);
         };
         Deno.exit(1);
     };
