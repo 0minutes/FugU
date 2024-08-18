@@ -390,7 +390,7 @@ export class error
         console.log(ErrorColors.Red_DARK_RED + `${this.loc.line}`+ ` `.repeat((String(this.lines).length - String(this.loc.line).length)) + ` | `  + ErrorColors.reset + this.source.split('\n')[this.loc.line - 1]);
         console.log(ErrorColors.Red_DARK_RED + ' '.repeat(String(this.lines).length) + ' | ' + ErrorColors.reset + ' '.repeat(this.loc.start) + pointers.repeat(this.loc.end - this.loc.start));
         console.error(ErrorColors.Red_DARK_RED + ' '.repeat(String(this.lines).length) + ' | ' + ErrorColors.reset + ' '.repeat(this.loc.start) + `${message}`);
-        
+
         if (this.source.split('\n')[this.loc.line] != undefined)
         {
             console.log(' '.repeat(String(this.lines).length) +` |`);
@@ -437,7 +437,7 @@ export class LexerErr extends error
 
 export const enum NodeType
 {
-    Program = 'Program',
+    Global = 'Global',
     ExpressionStatement = 'ExpressionStatement',
     EmptyStatement = 'EmptyStatement',
     BinaryExpression = 'BinaryExpression',
@@ -447,7 +447,7 @@ export const enum NodeType
     Literal = 'Literal',
 };
 
-export interface Program
+export interface Global
 {
     type: NodeType;
     body: Statement[];
@@ -629,11 +629,6 @@ export const enum InstructionType
     u32,
     u64,
 
-    s8,
-    s16,
-    s32,
-    s64,
-
     ldc,
     ldcp,
 
@@ -678,118 +673,3 @@ _UI32_MAX             =   0xffffffff,
 _I64_MIN              =  -9223372036854775808n,
 _I64_MAX              =   9223372036854775807n,
 _UI64_MAX             =   18446744073709551615n
-
-
-
-export class CustomIntXArray
-{
-    buffer: number | undefined;
-    Bitsize: number;
-    IntXArr: number[];
-    maxUnsignedValue: number;
-
-    maxSignedValue: number;
-    minSignedValue: number;
-
-    constructor(buffer: number | undefined, bitsize: number = 8)
-    {
-        this.buffer = buffer;
-        this.Bitsize = bitsize;
-        this.IntXArr = new Array(buffer).fill(0);
-
-        this.maxUnsignedValue = (2**bitsize - 1);
-
-        this.maxSignedValue = (2**bitsize)/2 - 1;
-        this.minSignedValue = -((2**bitsize)/2);
-
-        return new Proxy // Basically machine code, least obfuscated code ever made
-        (this, 
-            {
-                // deno-lint-ignore no-explicit-any
-                get: function (target: any, idx: any) 
-                {
-                    if (typeof idx == "string" && !isNaN(Number(idx)))
-                    {
-                        return target.IntXArr[idx];
-                    }
-                    
-                    else
-                    {
-                        return target[idx];
-                    };
-                },
-                // deno-lint-ignore no-explicit-any
-                set: function (target: any, idx: any, value: any) 
-                {
-                    if (typeof idx == "string" && !isNaN(Number(idx)))
-                    {
-                        target.pushSignedIntX(value, Number(idx));
-                        return true;
-                    }
-                    else
-                    {
-                        target[idx] = value;
-                        return true;
-                    };
-                }
-            }
-        );
-    };
-
-    pushUnsignedIntX(value: number, idx: number) {   
-    
-        if (idx >= this.IntXArr.length)
-        {
-            throw new Error("Index is out of buffer bounds");
-        };
-    
-        while (value > this.maxUnsignedValue) {
-            this.IntXArr[idx++] = this.maxUnsignedValue;
-            value -= this.maxUnsignedValue;
-    
-            if (idx >= this.IntXArr.length)
-            {
-                throw new Error("Buffer overflow, cannot store all values");
-            };
-        };
-    
-        this.IntXArr[idx] = value;
-    };
-
-    pushSignedIntX(value: number, idx: number) {   
-
-    
-        if (idx >= this.IntXArr.length)
-        {
-            throw new Error("Index is out of buffer bounds");
-        };
-    
-        while (value > this.maxSignedValue || value < this.minSignedValue) {
-            this.IntXArr[idx++] = value > 0 ? this.maxSignedValue : this.minSignedValue;
-            value = value > 0 ? value - this.maxSignedValue : value - this.minSignedValue;
-    
-            if (idx >= this.IntXArr.length)
-            {
-                throw new Error("Buffer overflow, cannot store all values");
-            };
-        };
-    
-        this.IntXArr[idx] = value;
-    };
-
-    toString() 
-    {
-        return this.IntXArr.toString();
-    };
-
-    [Symbol.iterator] = () => {
-        let idx = 0;
-        return {
-            next: () => 
-            {
-                if (idx >= this.IntXArr.length) return {value: this.IntXArr[idx++], done: false};
-                else return {done: true};
-            }
-        };
-    }
-};

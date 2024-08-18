@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -6,6 +8,13 @@
 #include <iomanip>
 #include <variant>
 #include <stdexcept>
+
+void error(std::string message)
+{
+    std::cout << message << std::endl;
+    getchar();
+    exit(0);
+};
 
 enum ConstPoolType
 {
@@ -85,11 +94,6 @@ enum InstructionType
     U32,
     U64,
 
-    S8,
-    S16,
-    S32,
-    S64,
-
     Ldc,
     Ldcp,
 
@@ -101,14 +105,14 @@ uint64_t uint64(std::vector<uint8_t> &bytes)
 {
     if (bytes.empty())
     {
-        throw std::invalid_argument("bytes array is empty");
+        error("bytes array is empty");
     }
 
     int chunks = bytes[0];
 
     if (chunks > bytes.size() - 1)
     {
-        throw std::invalid_argument("Corrupted Bytecode: Insufficient bytes to decode uint64");
+        error("Corrupted Bytecode: Insufficient bytes to decode uint64");
     }
 
     uint64_t value = 0;
@@ -130,14 +134,14 @@ uint32_t uint32(std::vector<uint8_t> &bytes)
 {
     if (bytes.empty())
     {
-        throw std::invalid_argument("bytes array is empty");
+        error("bytes array is empty");
     }
 
     int chunks = bytes[0];
 
     if (chunks > bytes.size() - 1)
     {
-        throw std::invalid_argument("Corrupted Bytecode: Insufficient bytes to decode uint32");
+        error("Corrupted Bytecode: Insufficient bytes to decode uint32");
     }
 
     uint32_t value = 0;
@@ -159,14 +163,14 @@ uint16_t uint16(std::vector<uint8_t> &bytes)
 {
     if (bytes.empty())
     {
-        throw std::invalid_argument("bytes array is empty");
+        error("bytes array is empty");
     };
 
     int chunks = bytes[0];
 
     if (chunks > bytes.size() - 1)
     {
-        throw std::invalid_argument("Corrupted Bytecode: Insufficient bytes to decode uint16");
+        error("Corrupted Bytecode: Insufficient bytes to decode uint16");
     }
 
     uint16_t value = 0;
@@ -188,7 +192,7 @@ uint8_t uint8(std::vector<uint8_t> &bytes)
 {
     if (bytes.empty())
     {
-        throw std::invalid_argument("bytes array is empty");
+        error("bytes array is empty");
     }
 
     int chunks = bytes[0];
@@ -196,7 +200,7 @@ uint8_t uint8(std::vector<uint8_t> &bytes)
 
     if (chunks > bytes.size() - 1)
     {
-        throw std::invalid_argument("Corrupted Bytecode: Insufficient bytes to decode uint8");
+        error("Corrupted Bytecode: Insufficient bytes to decode uint8");
     }
 
     for (int i = 1; i <= chunks; ++i)
@@ -212,11 +216,11 @@ uint8_t uint8(std::vector<uint8_t> &bytes)
     return value;
 };
 
-double f64float(std::vector<unsigned char> &bytes)
+double f64float(std::vector<uint8_t> &bytes)
 {
     if (bytes.size() < 8)
     {
-        throw std::runtime_error("Corrupted Bytecode: Insufficient amount of bytes to create a f64 double");
+        error("Corrupted Bytecode: Insufficient amount of bytes to create a f64 double");
     };
 
     uint64_t bits = 0;
@@ -272,7 +276,7 @@ uint64_t mapInteger(std::vector<uint8_t> &bytes)
 
         default:
         {
-            throw std::runtime_error("Corrupted Bytecode: Invalid amount of chunks for Integer Constructor provided 0x" + itoh(bytes[0]));
+            error("Corrupted Bytecode: Invalid amount of chunks for Integer Constructor provided 0x" + itoh(bytes[0]));
             return 1;
         };
     };
@@ -287,7 +291,7 @@ class Stack
     public:
     
 
-    StackElement push(const StackElement& element)
+    StackElement push(const StackElement &element)
     {
         elements.push_back(element);
         return element;

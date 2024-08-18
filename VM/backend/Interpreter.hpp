@@ -1,19 +1,18 @@
 #pragma once
 
 #include "shared.hpp"
+#include "ConstPoolManager.hpp"
 #include <vector>
 #include <fstream>
 #include <map>
 #include <string>
-
-using ConstPoolValue = std::variant<int, std::string, double, unsigned long long, signed long long>;
 
 class VM
 {
     private:
     std::vector<uint8_t> bytecode;
 
-    std::map<int, ConstPoolValue> constPool;
+    ConstPoolManager constPool;
 
     Stack stack;
     size_t sp;
@@ -35,7 +34,7 @@ class VM
         }
         else
         {
-            throw std::runtime_error("Unable to open the file location");
+            error("Unable to open the file location");
         };
         return bytecode;
     };
@@ -44,17 +43,17 @@ class VM
     {
         if (this->bytecode.empty())
         {
-            throw std::runtime_error("Invalid Bytecode: Empty Bytecode");
+            error("Invalid Bytecode: Empty Bytecode");
         };
 
         if (this->bytecode[0] != 0x00)
         {
-            throw std::runtime_error("Invalid Bytecode: First byte must always equal to 0x00 but instead got " + itoh(this->bytecode[0]));
+            error("Invalid Bytecode: First byte must always equal to 0x00 but instead got " + itoh(this->bytecode[0]));
         };
 
         if (this->bytecode[this->bytecode.size()-1] != 0xFF)
         {
-            throw std::runtime_error("Invalid Bytecode: Last byte must always equal to 0xFF but instead got "  + itoh(this->bytecode[this->bytecode.size()-1]));
+            error("Invalid Bytecode: Last byte must always equal to 0xFF but instead got "  + itoh(this->bytecode[this->bytecode.size()-1]));
         };
 
         return 0;
@@ -94,7 +93,7 @@ class VM
                         str += static_cast<char>(mapInteger(this->bytecode));
                     };
 
-                    this->constPool[label] = str;
+                    this->constPool.addEntry(label, {ConstPoolType::StringInfo, str});
                     break;
                 };
 
@@ -102,7 +101,7 @@ class VM
                 {
                     const uint64_t BigInt = uint64(this->bytecode);
 
-                    this->constPool[label] = BigInt;
+                    this->constPool.addEntry(label, {ConstPoolType::BigIntInfo, BigInt});
                     break;
                 };
 
@@ -112,7 +111,7 @@ class VM
 
                     int64_t SignedInt = 0-BigInt;
 
-                    this->constPool[label] = SignedInt;
+                    this->constPool.addEntry(label, {ConstPoolType::SignedInfo, SignedInt});
                     break;
                 };
 
@@ -120,7 +119,7 @@ class VM
                 {
                     const double dflt = f64float(this->bytecode);
                     
-                    this->constPool[label] = dflt;
+                    this->constPool.addEntry(label, {ConstPoolType::DoubleInfo, dflt});
                     break;
                 };
                 
@@ -128,20 +127,26 @@ class VM
                 {
                     const int length = mapInteger(this->bytecode);
 
-                    std::string str = "";
+                    char32_t chr = 0;
 
                     for (int j = 0; j < length; j++)
                     {
-                        str += static_cast<char>(mapInteger(this->bytecode));
-                    };
+                        chr = (chr << 8) | static_cast<char32_t>(mapInteger(this->bytecode));
+                    }
 
-                    this->constPool[label] = str;
+                    this->constPool.addEntry(label, {ConstPoolType::CharInfo, chr});
                     break;
                 };
+
                 case ConstPoolType::PtrInfo:
                 {
-                    this->constPool[label] = mapInteger(this->bytecode);
+                    this->constPool.addEntry(label, {ConstPoolType::PtrInfo, mapInteger(this->bytecode)});
                     break;
+                };
+
+                default:
+                {
+                    error("Currupted Bytecode: Unreachable ConstPoolType: " + InfoType);
                 };
             };
         };
@@ -152,14 +157,7 @@ class VM
     public:
     int accessConstPool()
     {
-        for (const auto &entry : this->constPool)
-        {
-            std::cout << "Key: " << entry.first << ", Value: ";
-            std::visit([](const auto &value) { std::cout << value; }, entry.second);
-            std::cout << std::endl;
-        };
-
-        return 0;
+        return constPool.accessPool();
     };
     
     int run()

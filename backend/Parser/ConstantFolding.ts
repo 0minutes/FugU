@@ -1,5 +1,4 @@
 // deno-lint-ignore-file
-import { Expression } from '../shared.ts';
 import
 {
     TokenType,
@@ -57,6 +56,11 @@ export class ConstantFolding
             
             case '**':
             {
+
+                if (ast.left.value < 0 || ast.right.value < 0)
+                {
+                    break;  
+                }
 
                 return {
                     type: NodeType.Literal,
@@ -291,7 +295,7 @@ export class ConstantFolding
             return ast;
         }
         
-        else if (ast.type == NodeType.Program)
+        else if (ast.type == NodeType.Global)
         {
             const newBody: Statement[] = [];
 

@@ -6,7 +6,7 @@
 ORDER OF PRECEDENCE
 
 Literal Node (parseLiteralNode): 1, 2, 3...
-Parentheses (parseLiteralNode): (Literal Node)
+Parentheses (parseBrackets): (1, 2, 3...)
 Unary Updaters (parseUnaryUpdateExpression): ++, --
 Unary Operators (parseUnaryExpr): +, -, !, ~ 
 Exponential Operator (parseExponentiationExpr): **
@@ -33,7 +33,7 @@ import
 import
 {
     Flags,
-    Program,
+    Global,
     Statement,
     Expression,
     Token,
@@ -62,7 +62,7 @@ export class Parser
     lexer: Lexer;
     tokens: Token[];
 
-    ast: Program;
+    ast: Global;
 
     flags: Flags; 
 
@@ -179,32 +179,6 @@ export class Parser
                 } as Literal;
             };
 
-            case TokenType.oparen:
-            {
-                if (this.at().type == TokenType.cparen)
-                {
-                    new SyntaxErr (
-                    `Expected ${expected(prevToken != undefined? prevToken : token.type)} before getting a \`${this.at().value}\` (${this.at().type}) token`,
-                    makePosition(this.filename, this.at().loc.line,
-                    this.at().loc.start, this.at().loc.end),
-                    this.source
-                    );
-                };
-
-                let value = this.parseLogicalBitwiseExpr(TokenType.oparen);
-
-                if (this.at().type != TokenType.cparen)
-                {
-                    new SyntaxErr (
-                    `Expected a ${ErrorColors.Green_DARK_GREEN}')'${ErrorColors.reset} (${TokenType.cparen}) before getting a \`${this.at().value}\` (${this.at().type}) token`,
-                    makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end),
-                    this.source
-                    );
-                };
-                this.eat();
-                return value;
-            };
-
             case TokenType.identifier:
             {
                 return {
@@ -227,6 +201,41 @@ export class Parser
         };
     };
 
+    parseBrackets = (prev ? : TokenType): Expression =>
+    {
+        let token = this.at();
+
+        if (token.type == TokenType.oparen)
+        {
+            this.eat(); 
+            
+            if (this.at().type == TokenType.cparen)
+            {
+                new SyntaxErr (
+                `Expected ${expected(prev != undefined? prev : token.type)} before getting a \`${this.at().value}\` (${this.at().type}) token`,
+                makePosition(this.filename, this.at().loc.line,
+                this.at().loc.start, this.at().loc.end),
+                this.source
+                );
+            };
+
+            let value = this.parseLogicalBitwiseExpr(TokenType.oparen);
+
+            if (this.at().type != TokenType.cparen)
+            {
+                new SyntaxErr (
+                `Expected a ${ErrorColors.Green_DARK_GREEN}')'${ErrorColors.reset} (${TokenType.cparen}) before getting a \`${this.at().value}\` (${this.at().type}) token`,
+                makePosition(this.filename, this.at().loc.line, this.at().loc.start, this.at().loc.end),
+                this.source
+                );
+            };
+            this.eat();
+            return value;
+        };
+
+        return this.parseLiteralNode(prev);
+    };
+
     parseUnaryUpdateExpression = (prev ? : TokenType): Expression =>
     {
         let token = this.at();
@@ -234,7 +243,7 @@ export class Parser
         if (['++', '--'].includes(token.value))
         {
             let operator = this.eat();
-            let lhs = this.parseLiteralNode(prev != undefined ? prev : operator.type);
+            let lhs = this.parseBrackets(prev != undefined ? prev : operator.type);
             lhs = {
                 type: NodeType.UnaryUpdateExpression,
                 operator: operator.value,
@@ -248,7 +257,7 @@ export class Parser
 
         else if (ValueTypes.includes(token.type) || token.type == TokenType.oparen)
         {
-            let lhs = this.parseLiteralNode(prev != undefined ? prev : token.type);
+            let lhs = this.parseBrackets(prev != undefined ? prev : token.type);
             if (['++', '--'].includes(this.at().value))
             {
                 let operator = this.eat();
@@ -265,7 +274,7 @@ export class Parser
             return lhs;
         };
 
-        let lhs = this.parseLiteralNode(prev);
+        let lhs = this.parseBrackets(prev);
         return lhs;
     };
 
@@ -520,13 +529,13 @@ export class Parser
         return Stmt;
     };
 
-    parseProgram = (): Program =>
+    parseProgram = (): Global =>
     {
-        let program: Program = {
-            type: NodeType.Program,
+        let program: Global = {
+            type: NodeType.Global,
             body: [],
             range: [0, 0],
-        } as Program;   
+        } as Global;   
 
         while (!this.eof())
         {

@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
     };
 
     VM vm(argv[1]);
-
+    
     vm.run();
 
     vm.accessConstPool();

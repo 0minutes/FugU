@@ -25,7 +25,7 @@ The source code for various components of the language can be found in the `./ba
 
 ## VM Progress
 
-- [x] **ConstPool** - Added support for the ConstPool with all ConstPoolInfo types
+- [x] **ConstPool** - Added support for the ConstPool with all ConstPoolInfo types and a ConstPoolManager
 
 ## How to Run
 

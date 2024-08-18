@@ -6,7 +6,7 @@ let x = 10; // Assign an integer to x
 let y = 20.5; // Assign a float to y
 
 const greeting = "Hello, Lexer!"; // Assign a string
-const initial = 'L'; // Assign a character
+const initial = 'La'; // Assign a character
 
 // Control structures
 if (x < y && y > 0) {
@@ -66,35 +66,3 @@ for (let j = 0; j < 5; j++) {
 }
 
 const finalValue = input("Enter a value: ");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1;
