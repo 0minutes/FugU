@@ -112,7 +112,12 @@ export class Lexer
                     {
                         if (this.splitSource.length == 0)
                         {
-                            new error('Lexer Error', 'Cannot find the end of a block comment', this.source, makePosition(this.filename, this.line, start, this.cur));
+                            new error(
+                                'Lexer Error',
+                                'Cannot find the end of a block comment',
+                                this.source,
+                                makePosition(this.filename, this.line, start, this.cur)
+                            );
                         };
 
                         if (this.splitSource[0] == '\n')
@@ -189,13 +194,16 @@ export class Lexer
             else
             {
                 new error (
-                'Lexer Error',
-                `Unknown character '${char}' (Unicode 0x${char.charCodeAt(0).toString(16)})`,
-                this.source,
-                makePosition(this.filename, this.line, start, this.cur)
+                    'Lexer Error',
+                    `Unknown character '${char}' (Unicode 0x${char.charCodeAt(0).toString(16)})`,
+                    this.source,
+                    makePosition(this.filename, this.line, start, this.cur)
                 )
             };
         };
+
+        this.cur++
+        tokens.push(this.makeToken('EOF', TokenType.eof, this.cur-1));
 
         return tokens;
     };
@@ -307,10 +315,10 @@ export class Lexer
                     this.cur++;
 
                     new error(
-                    'Lexer Error',
-                    `Unexpectedly got \`${this.eat()}\` while trying to understand a digit literal. Expected a digit (0..9)`,
-                    this.source,
-                    makePosition(this.filename, this.line, start, this.cur)
+                        'Lexer Error',
+                        `Unexpectedly got \`${this.eat()}\` while trying to understand a digit literal. Expected a digit (0..9)`,
+                        this.source,
+                        makePosition(this.filename, this.line, start, this.cur)
                     );
                 };
             }

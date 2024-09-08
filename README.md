@@ -7,10 +7,12 @@ The source code for various components of the language can be found in the `./sr
 ## Project Structure
 
 - [`./src/Lexer/Lexer.ts`](./src/Lexer/Lexer.ts) - Contains the lexer implementation.
+- [`./src/Parser/Parser.ts`](./src/Parser/Parser.ts) - Contains the Parser implementation.
 - [`./main.ts`](./main.ts) - Contains the shell code which allows the language to be run in the console (when interpreter somewhat working ill add support).
 
 ## Progress
 
 - [x] **Lexer** - Completed ([source](./src/Lexer/Lexer.ts))
+- [x] **Parser** - Completed Expression Statements ([source](./src/Parser/Parser.ts))
 
 **Stay tuned for updates as I continue to build and refine this programming language!**

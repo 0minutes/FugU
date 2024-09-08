@@ -38,11 +38,7 @@ export const enum TokenType {
     while = '<while>',
     for = '<for>',
 
-    chr = '<char>',
-    string = '<str>',
-    integer = '<integer>',
     null = '<null>',
-    boolean = '<boolean>',
 
     mut = '<AssignmentMut>',
     const = '<AssignmentConst>',

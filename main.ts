@@ -1,7 +1,7 @@
 import 
 {
-    Lexer
-} from './src/Lexer/Lexer.ts'
+    Parser
+} from './src/Parser/Parser.ts';
 
 
 const main = (): number =>
@@ -9,13 +9,9 @@ const main = (): number =>
     while (true)
     {
         const input = prompt('>> ', '') as string;
-        const lexer = new Lexer('stdin', input)
+        const parser = new Parser('<stdin>', input)
 
-
-        for (const token of lexer.tokens)
-        {
-            console.log(token);
-        };
+        console.log(parser.ast);
     };
 };
 
