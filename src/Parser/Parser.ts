@@ -1,15 +1,3 @@
-// Literal Node (parseLiteralNode): 1, 2, 3...
-// Parentheses (parseBrackets): (1, 2, 3...)
-// Unary Updaters (parseUnaryUpdateExpression): ++, --
-// Unary Operators (parseUnaryExpr): +, -, !, ~ 
-// Exponential Operator (parseExponentiationExpr): **
-// Multiplication etc (parseMultiplicationExpr): *, /, %
-// Addition and Subtraction (parseAdditiveExpr): +, -
-// Bitwise Shift (parseBitwiseExpr): <<, >>
-// Relational (parseRationalExpr): <, <=, >, >=
-// in expression (parseInExpr): in
-// Equality (parseEqualityExpr): ==, !=
-// Bitwise and Logical Operators (parseLogicalBitwiseExpr): &, ^, |, &&, ||
 
 import
 {
