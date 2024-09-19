@@ -23,6 +23,7 @@ export const enum TokenType {
     bitwiseAndAssignment = '<bitwiseAndAssignment>',
     bitwiseOrAssignment = '<bitwiseOrAssignment>',
     bitwiseXorAssignment = '<bitwiseXorAssignment>',
+    
     colon = '<colon>',
     semicolon = '<semicolon>',
     comma = '<comma>',

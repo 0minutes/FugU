@@ -40,17 +40,17 @@ export interface Expression
 
 export interface BinaryExpression extends Expression
 {
-    type: 'BinaryExpression'
+    type: 'BinaryExpression';
     left: Expression;
     right: Expression;
-    operand: string;
+    operator: string;
     where: number[];
 };
 
 export interface UnaryExpression extends Expression
 {
     type: 'UnaryExpression';
-    operand: string;
+    operator: string;
     right: Expression;
     where: number[];
 };
@@ -58,7 +58,7 @@ export interface UnaryExpression extends Expression
 export interface UnaryUpdateExpression extends Expression
 {
     type: 'UnaryUpdateExpression';
-    operand: string;
+    operator: string;
     prefix: boolean;
     right: Expression;
     where: number[];

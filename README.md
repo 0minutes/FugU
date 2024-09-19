@@ -14,5 +14,6 @@ The source code for various components of the language can be found in the `./sr
 
 - [x] **Lexer** - Completed ([source](./src/Lexer/Lexer.ts))
 - [x] **Parser** - Completed Expression Statements ([source](./src/Parser/Parser.ts))
+- [x] **Env** - Completed for simple interactions ([source](./src/Environment/Environment.ts))
 
 **Stay tuned for updates as I continue to build and refine this programming language!**
