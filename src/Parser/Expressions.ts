@@ -117,7 +117,6 @@ const BindingPower = (operator: string): number => {
     };
 };
 
-
 export const parseExpression = (parser: Parser, precedence: number): Expression =>
 {
     let lhs = nud(parser);
@@ -217,7 +216,7 @@ const nud = (parser: Parser): Expression =>
     {
         const op = token;
         
-        const expr = parseExpression(parser, 0);
+        const expr = parseExpression(parser, BindingPower(op.value));
 
         lhs = {
             type: 'UnaryExpression',
@@ -341,7 +340,7 @@ const nud = (parser: Parser): Expression =>
             `Unexpectedly got the '${token.value}' (${token.type}) token. Expected a Literal such as a string number or an Expression such as 1 + 1 etc`,
             parser.source,
             token.where,
-            'Literal'
+            'Expression'
         );
 
         lhs = {} as Expression;
