@@ -16,6 +16,7 @@ export interface Global
 export interface Statement
 {
     type: StatementType;
+    foldable: boolean;
     where: number[];
 };
 
@@ -35,12 +36,14 @@ export interface ExpressionStatement extends Statement
 export interface Expression
 {
     type: ExpressionType;
+    foldable: boolean;
     where: number[];
 };
 
 export interface BinaryExpression extends Expression
 {
     type: 'BinaryExpression';
+    foldable: boolean;
     left: Expression;
     right: Expression;
     operator: string;
@@ -50,6 +53,7 @@ export interface BinaryExpression extends Expression
 export interface UnaryExpression extends Expression
 {
     type: 'UnaryExpression';
+    foldable: boolean;
     operator: string;
     right: Expression;
     where: number[];
@@ -58,6 +62,7 @@ export interface UnaryExpression extends Expression
 export interface UnaryUpdateExpression extends Expression
 {
     type: 'UnaryUpdateExpression';
+    foldable: boolean;
     operator: string;
     prefix: boolean;
     right: Expression;
@@ -67,6 +72,7 @@ export interface UnaryUpdateExpression extends Expression
 export interface Literal extends Expression
 {
     type: 'Literal';
+    foldable: boolean;
     realType: LiteralType;
     value: bigint | number | string;
     where: number[];
@@ -75,6 +81,7 @@ export interface Literal extends Expression
 export interface Identifier extends Expression
 {
     type: 'Identifier';
+    foldable: boolean;
     value: string;
     where: number[];
 };

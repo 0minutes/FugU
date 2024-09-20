@@ -75,7 +75,9 @@ export const specialCharacters: Record<string, TokenType> = {
     '*': TokenType.oparand,
     '/': TokenType.oparand,
     '**': TokenType.oparand,
+    
     '=': TokenType.oparand,
+
     '==': TokenType.oparand,
     '!=': TokenType.oparand,
     '>': TokenType.oparand,
@@ -92,6 +94,7 @@ export const specialCharacters: Record<string, TokenType> = {
     '~': TokenType.oparand,
     '++': TokenType.oparand,
     '--': TokenType.oparand,
+
     '+=': TokenType.additionAssignment,
     '-=': TokenType.subtractionAssignment,
     '*=': TokenType.multiplicationAssignment,
@@ -105,6 +108,7 @@ export const specialCharacters: Record<string, TokenType> = {
     '&=': TokenType.bitwiseAndAssignment,
     '|=': TokenType.bitwiseOrAssignment,
     '^=': TokenType.bitwiseXorAssignment,
+
     '?': TokenType.oparand,
     ':': TokenType.colon,
     ';': TokenType.semicolon,

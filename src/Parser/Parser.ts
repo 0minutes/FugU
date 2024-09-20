@@ -128,6 +128,7 @@ export class Parser
                 const ExprStatement: ExpressionStatement = 
                 {
                     type: 'ExpressionStatement',
+                    foldable: true,
                     body: [],
                     where: [],
                 };
@@ -139,9 +140,14 @@ export class Parser
                 this.expect(
                     TokenType.semicolon,
                     true,
-                    `Unexpectedly got the '${this.at().value}' (${this.at().type}) token. Expected a semicolon at the end of a statement`,
+                    `Unexpectedly got the '${this.at().value}' (${this.at().type}) token. Expected a semicolon at the end of an Expression`,
                     ';'
                 );
+
+                if (ExprStatement.body.length != 0)
+                {
+                    ExprStatement.foldable = ExprStatement.body[0].foldable;
+                };
 
                 return ExprStatement;
             };
@@ -155,7 +161,7 @@ export class Parser
             type: 'Global',
             file: this.filename,
             body: [],
-            where: [this.tokens.at(-1)!.where.line, this.tokens[0].where.start, this.tokens.at(-1)!.where.end] //line, first char pos, last char pos
+            where: [this.tokens.at(-1)!.where.line, this.tokens[0].where.start, this.tokens.at(-1)!.where.end],
         };
 
         while (this.at().type != TokenType.eof)
@@ -167,7 +173,6 @@ export class Parser
                 GlobalProgram.body.push(statement);
             };
         };
-
         return GlobalProgram;
     };
 };

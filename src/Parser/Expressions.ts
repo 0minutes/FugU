@@ -1,27 +1,49 @@
 import
 {
-    error
+    makePosition,
+    error,
 } from "../Errors/Errors.ts";
 
 import
 {
-    TokenType
+    TokenType,
 } from "../Lexer/TokenTypes.ts";
 
 import
 {
     BinaryExpression,
     Expression,
-    Literal,
     UnaryExpression,
     UnaryUpdateExpression,
-
 } from "./NodeTypes.ts";
-import { Parser } from "./Parser.ts";
+
+import
+{
+    Parser,
+} from "./Parser.ts";
 
 const BindingPower = (operator: string): number => {
+
     switch (operator) {
-        case '||': return 1;
+        case '=':
+        case '+=':
+        case '-=':
+        case '*=':
+        case '/=':
+        case '%=':
+        case '<<=':
+        case '>>=':
+        case '&=':
+        case '|=':
+        case '^=':
+        {
+            return 0;
+        };
+
+        case '||': 
+        {
+            return 1;
+        };
 
         case '&&': 
         case '|':
@@ -114,25 +136,41 @@ const led = (parser: Parser, lhs: Expression): Expression =>
     {
         const operator = parser.eat();
 
+        if (lhs.type != 'Identifier')
+        {
+            new error(
+                'Syntax Error',
+                `Expected an identifier instead of a ${lhs.type} before a UnaryExpression`,
+                parser.source,
+                makePosition(parser.filename, lhs.where[0], lhs.where[1], lhs.where[2]),
+                'Identifier'
+            );
+        };
+
         return {
             type: 'UnaryUpdateExpression',
+            foldable: false,
             operator: operator.value,
             prefix: false,
             right: lhs,
             where: [lhs.where[0], lhs.where[1], operator.where.end]
         } as UnaryUpdateExpression;
-    };
+    }
 
-    const operator = parser.eat();
-    const rhs = parseExpression(parser, BindingPower(operator.value));
-    
-    return {
-        type: "BinaryExpression",
-        left: lhs,
-        operator: operator.value,
-        right: rhs,
-        where: [lhs.where[0], lhs.where[1], rhs.where[2]]
-    } as BinaryExpression;
+    else
+    {
+        const operator = parser.eat();
+        const rhs = parseExpression(parser, BindingPower(operator.value));
+        
+        return {
+            type: "BinaryExpression",
+            foldable: lhs.foldable && rhs.foldable,
+            left: lhs,
+            operator: operator.value,
+            right: rhs,
+            where: [lhs.where[0], lhs.where[1], rhs.where[2]]
+        } as BinaryExpression;
+    };
 };
 
 const nud = (parser: Parser): Expression =>
@@ -148,21 +186,32 @@ const nud = (parser: Parser): Expression =>
         parser.expectMultiple(
             [TokenType.identifier, TokenType.leftParenthesis],
             false,
-            'Expected an identifier after a unary expression',
+            'Expected an identifier after a UnaryExpression',
             'Identifier'
         );
 
         const ident = nud(parser);
 
+        if (ident.type != 'Identifier')
+        {
+            new error(
+                'Syntax Error',
+                `Expected an identifier instead of a ${ident.type} after a UnaryExpression`,
+                parser.source,
+                makePosition(parser.filename, ident.where[0], ident.where[1], ident.where[2]),
+                'Identifier'
+            );
+        };
+
         lhs = {
             type: 'UnaryUpdateExpression',
+            foldable: false,
             operator: op.value,
             prefix: true,
             right: ident,
             where: [op.where.line, op.where.start, ident.where[2]]
         } as UnaryUpdateExpression;
     }
-
 
     else if (['~', '!', '-', '+'].includes(token.value))
     {
@@ -172,6 +221,7 @@ const nud = (parser: Parser): Expression =>
 
         lhs = {
             type: 'UnaryExpression',
+            foldable: expr.foldable,
             operator: op.value,
             right: expr,
             where: [op.where.line, op.where.start, expr.where[2]]
@@ -182,6 +232,7 @@ const nud = (parser: Parser): Expression =>
     {
         lhs = {
             type: 'Literal',
+            foldable: true,
             //@ts-ignore <Literal is an expression>
             realType: 'IntegerLiteral',
             value: BigInt(token.value),
@@ -193,6 +244,7 @@ const nud = (parser: Parser): Expression =>
     {
         lhs = {
             type: 'Literal',
+            foldable: true,
             //@ts-ignore <Literal is an expression>
             realType: 'IntegerLiteral',
             value: token.value == 'true' ? 1n : 0n,
@@ -204,6 +256,7 @@ const nud = (parser: Parser): Expression =>
     {
         lhs = {
             type: 'Literal',
+            foldable: true,
             //@ts-ignore <Literal is an expression>
             realType: 'FloatLiteral',
             value: parseFloat(token.value),
@@ -215,6 +268,7 @@ const nud = (parser: Parser): Expression =>
     {
         lhs = {
             type: 'Literal',
+            foldable: true,
             //@ts-ignore <Literal is an expression>
             realType: 'CharLiteral',
             value: token.value,
@@ -226,6 +280,7 @@ const nud = (parser: Parser): Expression =>
     {
         lhs = {
             type: 'Literal',
+            foldable: true,
             //@ts-ignore <Literal is an expression>
             realType: 'StringLiteral',
             value: token.value,
@@ -237,6 +292,7 @@ const nud = (parser: Parser): Expression =>
     {
         lhs = {
             type: 'Literal',
+            foldable: false,
             //@ts-ignore <Literal is an expression>
             realType: 'NullLiteral',
             value: token.value,
@@ -248,6 +304,7 @@ const nud = (parser: Parser): Expression =>
     {
         lhs = {
             type: 'Identifier',
+            foldable: false,
             //@ts-ignore <Literal is an expression>
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
@@ -266,6 +323,7 @@ const nud = (parser: Parser): Expression =>
                 'Expression'
             );
         };
+
         lhs = parseExpression(parser, 0);
 
         parser.expect(
@@ -275,6 +333,7 @@ const nud = (parser: Parser): Expression =>
             ')'
         );
     }
+
     else
     {
         new error(
@@ -285,7 +344,7 @@ const nud = (parser: Parser): Expression =>
             'Literal'
         );
 
-        lhs = {} as Literal;
+        lhs = {} as Expression;
     };
 
     return lhs;
