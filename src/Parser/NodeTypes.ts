@@ -1,6 +1,8 @@
 export type GlobalType = 'Global' | 'Subprocess';
-export type StatementType = 'ExpressionStatement' | 'EmptyStatement';
-export type ExpressionType = 'BinaryExpression' | 'UnaryExpression' | 'UnaryUpdateExpression' | 'Literal' | 'Identifier';
+
+export type StatementType = 'ExpressionStatement' | 'EmptyStatement' | 'DeclerationStatement';
+
+export type ExpressionType = 'SequenceExpression' | 'AssignmentExpression' | 'BinaryExpression' | 'UnaryExpression' | 'UnaryUpdateExpression' | 'Literal' | 'Identifier';
 export type LiteralType = 'IntegerLiteral' | 'FloatLiteral' | 'StringLiteral' | 'CharLiteral' | 'NullLiteral';
 
 export interface Global
@@ -25,13 +27,26 @@ export interface EmptyStatement extends Statement
     type: 'EmptyStatement';
 };
 
+// Declerations
+
+export interface DeclerationStatement extends Statement
+{
+    type: 'DeclerationStatement';
+    foldable: boolean;
+    mut: boolean;
+    valType: string;
+    variables: Identifier[];
+    init: Expression;
+    where: number[];
+};
+
+// Expressions
+
 export interface ExpressionStatement extends Statement
 {
     type: 'ExpressionStatement';
     body: Expression[];
 };
-
-// Expressions
 
 export interface Expression
 {
@@ -45,6 +60,17 @@ export interface BinaryExpression extends Expression
     type: 'BinaryExpression';
     foldable: boolean;
     left: Expression;
+    right: Expression;
+    operator: string;
+    where: number[];
+};
+
+
+export interface AssignmentExpression extends Expression
+{
+    type: 'AssignmentExpression';
+    foldable: boolean;
+    left: Identifier;
     right: Expression;
     operator: string;
     where: number[];

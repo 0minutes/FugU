@@ -6,6 +6,7 @@ import
 
 import
 {
+Token,
     TokenType,
 } from "../Lexer/TokenTypes.ts";
 
@@ -13,6 +14,7 @@ import
 {
     BinaryExpression,
     Expression,
+    AssignmentExpression,
     UnaryExpression,
     UnaryUpdateExpression,
 } from "./NodeTypes.ts";
@@ -22,9 +24,16 @@ import
     Parser,
 } from "./Parser.ts";
 
-const BindingPower = (operator: string): number => {
+const BindingPower = (operator: string): number =>
+{
 
-    switch (operator) {
+    switch (operator)
+    {
+        case ',':
+        {
+            return 0;
+        };
+
         case '=':
         case '+=':
         case '-=':
@@ -37,29 +46,29 @@ const BindingPower = (operator: string): number => {
         case '|=':
         case '^=':
         {
-            return 0;
+            return 1;
         };
 
         case '||': 
         {
-            return 1;
+            return 2;
         };
 
         case '&&': 
         case '|':
         {
         
-            return 2;
+            return 3;
         };
 
         case '^': 
         {
-            return 3;
+            return 4;
         };
 
         case '&': 
         {
-            return 4;
+            return 5;
         };
 
         case '==':
@@ -67,7 +76,7 @@ const BindingPower = (operator: string): number => {
         case '<>':
         case 'in': 
         {
-            return 5;
+            return 6;
         };
 
         case '>':
@@ -75,31 +84,31 @@ const BindingPower = (operator: string): number => {
         case '>=':
         case '<=':
         {
-            return 6;
+            return 7;
         };
 
         case '<<':
         case '>>':
         {
-            return 7;
+            return 8;
         };
 
         case '+':
         case '-':
         {
-            return 8;
+            return 9;
         };
 
         case '*':
         case '/':
         case '%':
         {
-            return 9;
+            return 10;
         };
 
         case '**':
         {
-            return 10;
+            return 11;
         };
 
         case '!':
@@ -107,7 +116,7 @@ const BindingPower = (operator: string): number => {
         case '++':
         case '--':
         {
-            return 11;
+            return 12;
         };
 
         default:
@@ -154,6 +163,32 @@ const led = (parser: Parser, lhs: Expression): Expression =>
             right: lhs,
             where: [lhs.where[0], lhs.where[1], operator.where.end]
         } as UnaryUpdateExpression;
+    }
+
+    else if (BindingPower(parser.at().value) == 1)
+    {
+        if (lhs.type != 'Identifier')
+        {
+            new error(
+                'Syntax Error',
+                `Expected an identifier instead of ${lhs.type}. Cannot assign a ${lhs.type} to an Expression`,
+                parser.source,
+                makePosition(parser.filename, lhs.where[0], lhs.where[1], lhs.where[2]),
+                'Identifier'
+            );
+        };
+
+        const operator = parser.eat();
+        const rhs = parseExpression(parser, BindingPower(operator.value));
+        
+        return {
+            type: "AssignmentExpression",
+            foldable: lhs.foldable && rhs.foldable,
+            left: lhs,
+            operator: operator.value,
+            right: rhs,
+            where: [lhs.where[0], lhs.where[1], rhs.where[2]]
+        } as AssignmentExpression;
     }
 
     else
@@ -227,7 +262,42 @@ const nud = (parser: Parser): Expression =>
         } as UnaryExpression;
     }
 
-    else if (token.type == TokenType.int)
+    else if (token.type == TokenType.leftParenthesis)
+    {
+        if (parser.at().type == TokenType.rightParenthesis)
+        {
+            new error(
+                'Syntax Error',
+                'Expected an expression inside the Parenthesis',
+                parser.source,
+                parser.at().where,
+                'Expression'
+            );
+        };
+
+        lhs = parseExpression(parser, 0);
+
+        parser.expect(
+            TokenType.rightParenthesis,
+            true,
+            `Expected a closing parenthesis inside after the expression but instead got '${parser.at().value}' (${parser.at().type})`,
+            ')'
+        );
+    }
+
+    else
+    {
+        lhs = parseLiteral(parser, token);
+    };
+
+    return lhs;
+};
+
+export const parseLiteral = (parser: Parser, token: Token): Expression =>
+{
+    let lhs: Expression;
+
+    if (token.type == TokenType.int)
     {
         lhs = {
             type: 'Literal',
@@ -308,29 +378,6 @@ const nud = (parser: Parser): Expression =>
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
         };
-    }
-
-    else if (token.type == TokenType.leftParenthesis)
-    {
-        if (parser.at().type == TokenType.rightParenthesis)
-        {
-            new error(
-                'Syntax Error',
-                'Expected an expression inside the Parenthesis',
-                parser.source,
-                parser.at().where,
-                'Expression'
-            );
-        };
-
-        lhs = parseExpression(parser, 0);
-
-        parser.expect(
-            TokenType.rightParenthesis,
-            true,
-            `Expected a closing parenthesis inside after the expression but instead got '${parser.at().value}' (${parser.at().type})`,
-            ')'
-        );
     }
 
     else

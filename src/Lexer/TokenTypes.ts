@@ -13,16 +13,8 @@ export const enum TokenType {
 
     oparand = '<operand>',
 
-    additionAssignment = '<additionAssignment>',
-    subtractionAssignment = '<subtractionAssignment>',
-    multiplicationAssignment = '<multiplicationAssignment>',
-    divisionAssignment = '<divisionAssignment>',
-    moduloAssignment = '<moduloAssignment>',
-    leftShiftAssignment = '<leftShiftAssignment>',
-    rightShiftAssignment = '<rightShiftAssignment>',
-    bitwiseAndAssignment = '<bitwiseAndAssignment>',
-    bitwiseOrAssignment = '<bitwiseOrAssignment>',
-    bitwiseXorAssignment = '<bitwiseXorAssignment>',
+    AssignmentOperator = '<AssignmentOperator>',
+    ReAssignmentOperator = '<ReAssignmentOperator>',
     
     colon = '<colon>',
     semicolon = '<semicolon>',
@@ -65,6 +57,12 @@ export const enum TokenType {
     input = '<input>',
     typeof = '<typeof>',
 
+    intType = 'int',
+    boolType = 'bool',
+    floatType = 'float',
+    strType = 'str',
+    charType = 'char',
+
     eof = '<eof>',
 };
 
@@ -75,8 +73,6 @@ export const specialCharacters: Record<string, TokenType> = {
     '*': TokenType.oparand,
     '/': TokenType.oparand,
     '**': TokenType.oparand,
-    
-    '=': TokenType.oparand,
 
     '==': TokenType.oparand,
     '!=': TokenType.oparand,
@@ -95,19 +91,21 @@ export const specialCharacters: Record<string, TokenType> = {
     '++': TokenType.oparand,
     '--': TokenType.oparand,
 
-    '+=': TokenType.additionAssignment,
-    '-=': TokenType.subtractionAssignment,
-    '*=': TokenType.multiplicationAssignment,
-    '/=': TokenType.divisionAssignment,
+    '=': TokenType.AssignmentOperator,
+
+    '+=': TokenType.ReAssignmentOperator,
+    '-=': TokenType.ReAssignmentOperator,
+    '*=': TokenType.ReAssignmentOperator,
+    '/=': TokenType.ReAssignmentOperator,
     '%': TokenType.oparand,
     '<<': TokenType.oparand,
     '>>': TokenType.oparand,
-    '%=': TokenType.moduloAssignment,
-    '<<=': TokenType.leftShiftAssignment,
-    '>>=': TokenType.rightShiftAssignment,
-    '&=': TokenType.bitwiseAndAssignment,
-    '|=': TokenType.bitwiseOrAssignment,
-    '^=': TokenType.bitwiseXorAssignment,
+    '%=': TokenType.ReAssignmentOperator,
+    '<<=': TokenType.ReAssignmentOperator,
+    '>>=': TokenType.ReAssignmentOperator,
+    '&=': TokenType.ReAssignmentOperator,
+    '|=': TokenType.ReAssignmentOperator,
+    '^=': TokenType.ReAssignmentOperator,
 
     '?': TokenType.oparand,
     ':': TokenType.colon,
@@ -148,6 +146,12 @@ export const keywords: Record <string, TokenType> =
     'for': TokenType.for,
     'typeof': TokenType.typeof,
     'in': TokenType.in,
+
+    'int': TokenType.intType,
+    'bool': TokenType.intType,
+    'float': TokenType.floatType,
+    'str': TokenType.strType,
+    'char': TokenType.charType,
 };
 
 export interface Token

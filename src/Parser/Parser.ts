@@ -2,15 +2,13 @@
 import
 {
     Global,
+
     Statement,
+
     EmptyStatement,
+    DeclerationStatement,
     ExpressionStatement,
 } from './NodeTypes.ts';
-
-import
-{
-    parseExpression,
-} from './Expressions.ts'
 
 import
 {
@@ -27,6 +25,12 @@ import
 {
     error,
 } from '../Errors/Errors.ts';
+
+import
+{
+    parseExpressionStatement,
+    parseDeclarationStatement,
+} from './Statements.ts';
 
 
 export class Parser
@@ -123,31 +127,18 @@ export class Parser
                 } as EmptyStatement;
             };
 
+            case TokenType.mut:
+            case TokenType.const:
+            {
+
+                const DeclStatement: DeclerationStatement = parseDeclarationStatement(this);
+
+                return DeclStatement;
+            };
+
             default:
             {
-                const ExprStatement: ExpressionStatement = 
-                {
-                    type: 'ExpressionStatement',
-                    foldable: true,
-                    body: [],
-                    where: [],
-                };
-
-                ExprStatement.body.push(parseExpression(this, 0));
-
-                ExprStatement.where = [ExprStatement.body[0].where[0], ExprStatement.body[0].where[1], ExprStatement.body[0].where[2]];
-
-                this.expect(
-                    TokenType.semicolon,
-                    true,
-                    `Unexpectedly got the '${this.at().value}' (${this.at().type}) token. Expected a semicolon at the end of an Expression`,
-                    ';'
-                );
-
-                if (ExprStatement.body.length != 0)
-                {
-                    ExprStatement.foldable = ExprStatement.body[0].foldable;
-                };
+                const ExprStatement: ExpressionStatement = parseExpressionStatement(this);
 
                 return ExprStatement;
             };
@@ -173,6 +164,7 @@ export class Parser
                 GlobalProgram.body.push(statement);
             };
         };
+
         return GlobalProgram;
     };
 };
