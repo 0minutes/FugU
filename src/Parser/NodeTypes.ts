@@ -55,6 +55,14 @@ export interface Expression
     where: number[];
 };
 
+export interface SequenceExpression extends Expression
+{
+    type: 'SequenceExpression';
+    foldable: boolean;
+    expressions: Expression[];
+    where: number[];
+}
+
 export interface BinaryExpression extends Expression
 {
     type: 'BinaryExpression';

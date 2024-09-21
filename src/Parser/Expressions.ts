@@ -17,13 +17,13 @@ import
     AssignmentExpression,
     UnaryExpression,
     UnaryUpdateExpression,
+    SequenceExpression,
 } from "./NodeTypes.ts";
 
 import
 {
     Parser,
 } from "./Parser.ts";
-
 const BindingPower = (operator: string): number =>
 {
 
@@ -31,7 +31,7 @@ const BindingPower = (operator: string): number =>
     {
         case ',':
         {
-            return 0;
+            return 1;
         };
 
         case '=':
@@ -46,29 +46,29 @@ const BindingPower = (operator: string): number =>
         case '|=':
         case '^=':
         {
-            return 1;
+            return 2;
         };
 
         case '||': 
         {
-            return 2;
+            return 3;
         };
 
         case '&&': 
         case '|':
         {
         
-            return 3;
+            return 4;
         };
 
         case '^': 
         {
-            return 4;
+            return 5;
         };
 
         case '&': 
         {
-            return 5;
+            return 6;
         };
 
         case '==':
@@ -76,7 +76,7 @@ const BindingPower = (operator: string): number =>
         case '<>':
         case 'in': 
         {
-            return 6;
+            return 7;
         };
 
         case '>':
@@ -84,31 +84,31 @@ const BindingPower = (operator: string): number =>
         case '>=':
         case '<=':
         {
-            return 7;
+            return 8;
         };
 
         case '<<':
         case '>>':
         {
-            return 8;
+            return 9;
         };
 
         case '+':
         case '-':
         {
-            return 9;
+            return 10;
         };
 
         case '*':
         case '/':
         case '%':
         {
-            return 10;
+            return 11;
         };
 
         case '**':
         {
-            return 11;
+            return 12;
         };
 
         case '!':
@@ -116,7 +116,7 @@ const BindingPower = (operator: string): number =>
         case '++':
         case '--':
         {
-            return 12;
+            return 13;
         };
 
         default:
@@ -125,6 +125,7 @@ const BindingPower = (operator: string): number =>
         };
     };
 };
+
 
 export const parseExpression = (parser: Parser, precedence: number): Expression =>
 {
@@ -163,6 +164,33 @@ const led = (parser: Parser, lhs: Expression): Expression =>
             right: lhs,
             where: [lhs.where[0], lhs.where[1], operator.where.end]
         } as UnaryUpdateExpression;
+    }
+
+    else if (parser.at().value == ',')
+    {
+        const expressions: Expression[] = [lhs];
+        let foldable = false;
+
+        while(parser.at().value == ',')
+        {
+            parser.eat();
+            expressions.push(parseExpression(parser, BindingPower(',')));  
+        };
+
+        for (const expression of expressions)
+        {
+            if (expression.foldable == true)
+            {
+                foldable = true;
+            };
+        };
+
+        return {
+            type: 'SequenceExpression',
+            foldable: foldable,
+            expressions: expressions,
+            where: [lhs.where[0], lhs.where[1], expressions[expressions.length-1].where[2]],
+        } as SequenceExpression;
     }
 
     else if (BindingPower(parser.at().value) == 1)

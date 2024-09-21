@@ -42,31 +42,46 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
         init: {} as Expression,
         where: [],
     };
-
-    parser.expect(
-        TokenType.identifier,
-        false,
-        `Expected an identifier instead of the '${parser.at().value}' (${parser.at().type})`,
-        'Identifier'
-    );
-
-    //@ts-ignore <Identifier is an expression>
-    const ident: Identifier = parseLiteral(parser, parser.at());
-
-    if (ident.type != 'Identifier')
+        
+    const variables: Identifier[] = [];
+    
+    while (true)
     {
-        new error(
-            'Syntax Error',
-            `Expected an identifier instead of a ${ident.type}`,
-            parser.source,
-            makePosition(parser.filename, parser.at().where.line, parser.at().where.start, parser.at().where.end),
+        parser.expect(
+            TokenType.identifier,
+            false,
+            `Expected an identifier instead of the '${parser.at().value}' (${parser.at().type}) token`,
             'Identifier'
         );
-    };
 
-    parser.eat();
+        //@ts-ignore <Identifier is an expression>
+        const ident: Identifier = parseLiteral(parser, parser.at());
 
-    DeclStatement.variables.push(ident as Identifier);
+        if (ident.type != 'Identifier')
+        {
+            new error(
+                'Syntax Error',
+                `Expected an identifier instead of a ${ident.type} token`,
+                parser.source,
+                makePosition(parser.filename, parser.at().where.line, parser.at().where.start, parser.at().where.end),
+                'Identifier'
+            );
+        };
+
+        parser.eat();
+        
+        variables.push(ident);
+        
+        if (parser.at().value == ',')
+        {
+            parser.eat();
+            continue;
+        }
+        else
+        {
+            break;
+        };
+    }
 
     parser.expect(
         TokenType.colon,
@@ -97,7 +112,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
             //@ts-ignore <Literal is an expression>
             realType: 'NullLiteral',
             value: 'null',
-            where: [ident.where[0], ident.where[1], ident.where[2]],
+            where: [variables[0].where[0], variables[0].where[1], variables[variables.length-1].where[2]],
         } as Expression;
 
         const where = [mut.where.line, mut.where.start, parser.at().where.end];
@@ -107,7 +122,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
             foldable: initializer.foldable,
             mut: mut.value == 'mut' ? true : false,
             valType: type.value,
-            variables: [ident],
+            variables: variables,
             init: initializer,
             where: where,
         };
@@ -121,7 +136,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
     {
         new error(
             'Syntax Error',
-            `Expected an initializer after a const decleration to specify ${ident.value}'s value`,
+            `Expected an initializer after a const decleration to specify ${variables.forEach(ident => {ident.value})}'s value`,
             parser.source,
             makePosition(parser.filename, mut.where.line, parser.at().where.start, parser.at().where.end),
             '='
@@ -131,7 +146,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
     parser.expect(
         TokenType.AssignmentOperator,
         true,
-        `Expected an = (${TokenType.AssignmentOperator}) operator to specify ${ident.value}'s value`,
+        `Expected an = (${TokenType.AssignmentOperator}) operator to specify ${variables.forEach(ident => {ident.value})}'s value`,
         '='
     );
 
@@ -142,10 +157,10 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
         foldable: initializer.foldable,
         mut: mut.value == 'mut' ? true : false,
         valType: type.value,
-        variables: [ident],
+        variables: variables,
         init: initializer,
         where: [mut.where.line, mut.where.start, initializer.where[2]],
-    };
+    } as DeclerationStatement;
 
     parser.expect(
         TokenType.semicolon,

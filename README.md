@@ -13,6 +13,6 @@ The source code for various components of the language can be found in the `./sr
 ## Progress
 
 - [x] **Lexer** - Completed ([source](./src/Lexer/Lexer.ts))
-- [x] **Parser** - Completed Expression Statements ([source](./src/Parser/Parser.ts))
+- [x] **Parser** - Started ([source](./src/Parser/Parser.ts))
 
 **Stay tuned for updates as I continue to build and refine this programming language!**
