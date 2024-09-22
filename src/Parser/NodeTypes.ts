@@ -7,7 +7,7 @@ export type GlobalType = 'Global' | 'Subprocess';
 
 export type StatementType = 'ExpressionStatement' | 'EmptyStatement' | 'DeclerationStatement';
 
-export type ExpressionType = 'SequenceExpression' | 'AssignmentExpression' | 'BinaryExpression' | 'UnaryExpression' | 'UnaryUpdateExpression' | 'Literal' | 'Identifier';
+export type ExpressionType = 'ArrayLiteralExpression' | 'SequenceExpression' | 'AssignmentExpression' | 'BinaryExpression' | 'UnaryExpression' | 'UnaryUpdateExpression' | 'Literal' | 'Identifier';
 export type LiteralType = 'IntegerLiteral' | 'FloatLiteral' | 'StringLiteral' | 'CharLiteral' | 'NullLiteral';
 
 export interface Global
@@ -108,6 +108,15 @@ export interface UnaryUpdateExpression extends Expression
     where: number[];
 };
 
+export interface ArrayExpression extends Expression
+{
+    type: 'ArrayLiteralExpression';
+    foldable: boolean;
+    length: number;
+    expressions: Expr[];
+    where: number[];
+};
+
 export interface Literal extends Expression
 {
     type: 'Literal';
@@ -128,4 +137,4 @@ export interface Identifier extends Expression
 
 
 export type Stmt = ExpressionStatement | DeclerationStatement | EmptyStatement;
-export type Expr = SequenceExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;
+export type Expr = ArrayExpression | SequenceExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;

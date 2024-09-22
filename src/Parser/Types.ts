@@ -11,6 +11,7 @@ import
 
 import
 {
+    Expr,
     Identifier,
 } from './NodeTypes.ts'
 
@@ -18,6 +19,11 @@ import
 {
     parseLiteral,
 } from './Expressions.ts'
+
+import
+{
+    parseExpression
+} from "./Expressions.ts";
 
 export type baseTypes = 'TypeReference' |'Array' | 'int' | 'str' | 'char' |'float';
 
@@ -39,6 +45,7 @@ export interface intType extends baseType
 export interface arrayType extends baseType
 {
     type: 'Array';
+    length: Expr;
     elements: baseType;
     where: number[];
 };
@@ -149,16 +156,31 @@ export const parseTypeDef = (parser: Parser): Type =>
     
     while (parser.at().type == TokenType.leftBracket)
     {
-        parser.eat();
+        const tok = parser.eat();
+
+        let len = {
+            type: 'Literal',
+            foldable: true,
+            realType: 'IntegerLiteral',
+            value: -1n,
+            where: [tok.where.line, tok.where.start, tok.where.end],
+        } as Expr;
+        
+        if (parser.at().type != TokenType.rightBracket)
+        {
+            len = parseExpression(parser, 2);
+        };
+
         const rightBracket = parser.expect(
             TokenType.rightBracket,
             true,
-            `Expected ']' after '[' instead of ${parser.at().value} to specify the array type`,
+            `Expected ']' instead of '${parser.at().value}' to specify the array type`,
             ']'
         );
 
         base = {
             type: 'Array',
+            length: len,
             elements: base,
             where: [token.where.line, token.where.start, rightBracket.where.end]
         } as arrayType;

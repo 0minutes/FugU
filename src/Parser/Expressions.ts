@@ -333,7 +333,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: true,
-            //@ts-ignore <Literal is an expression>
             realType: 'IntegerLiteral',
             value: BigInt(token.value),
             where: [token.where.line, token.where.start, token.where.end],
@@ -345,7 +344,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: true,
-            //@ts-ignore <Literal is an expression>
             realType: 'IntegerLiteral',
             value: token.value == 'true' ? 1n : 0n,
             where: [token.where.line, token.where.start, token.where.end],
@@ -357,7 +355,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: true,
-            //@ts-ignore <Literal is an expression>
+
             realType: 'FloatLiteral',
             value: parseFloat(token.value),
             where: [token.where.line, token.where.start, token.where.end],
@@ -369,7 +367,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: true,
-            //@ts-ignore <Literal is an expression>
             realType: 'CharLiteral',
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
@@ -381,7 +378,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: true,
-            //@ts-ignore <Literal is an expression>
             realType: 'StringLiteral',
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
@@ -393,7 +389,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: false,
-            //@ts-ignore <Literal is an expression>
             realType: 'NullLiteral',
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
@@ -405,9 +400,69 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Identifier',
             foldable: false,
-            //@ts-ignore <Literal is an expression>
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
+        };
+    }
+
+    else if (token.type == TokenType.leftBracket)
+    {
+
+        const expressions: Expr[] =[];
+
+        lhs = {
+            type: 'ArrayLiteralExpression',
+            foldable: false,
+            length: 0,
+            expressions: expressions,
+            where: []
+        };
+
+        if (parser.at().type == TokenType.rightBracket)
+        {
+            lhs = {
+                type: 'ArrayLiteralExpression',
+                foldable: true,
+                length: 0,
+                expressions: expressions,
+                where: [token.where.line, token.where.start, parser.eat().where.end]
+            };
+        }
+        else
+        {
+            expressions.push(parseExpression(parser, 2));
+
+            while (parser.at().type == TokenType.comma)
+            {
+                parser.eat();
+                expressions.push(parseExpression(parser, 2));
+            };
+
+            let foldable = false
+
+            for (const expr of expressions)
+            {
+                if (expr.foldable == true)
+                {
+                    foldable = true;
+                    break;
+                };
+            };
+
+            lhs = {
+                type: 'ArrayLiteralExpression',
+                foldable: foldable,
+                length: expressions.length,
+                expressions: expressions,
+                where: [token.where.line, token.where.start, expressions[expressions.length-1].where[2]]
+            };
+
+            parser.expect(
+                TokenType.rightBracket,
+                true,
+                `Expected a ']' instead of '${parser.at().value}' to end the array`,
+                ']'
+            );
         };
     }
 
