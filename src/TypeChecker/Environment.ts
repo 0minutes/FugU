@@ -1,12 +1,12 @@
 import 
 {
-    baseTypes
+    Type,
 } from '../Parser/Types.ts'
 
 export interface variable
 {   
     name: string;
-    type: baseTypes;
+    type: Type;
     assigned: boolean;
     mut: boolean;
 }
@@ -22,7 +22,7 @@ export class Environment
         this.variables = new Map();
     };
 
-    addVariable = (name: string, type: baseTypes, mut: boolean, assigned: boolean): variable | null =>
+    addVariable = (name: string, type: Type, mut: boolean, assigned: boolean): variable | null =>
     {
         const variable = {
             name: name,

@@ -15,6 +15,7 @@ import
 
 import
 {
+    checkUnionType,
     getExpressionType,
 } from './CheckExpressions.ts'
 
@@ -29,31 +30,21 @@ export const checkDeclerationStatement = (TypeChecker: TypeChecker, Statement: D
     const declaredType = Statement.Type;
     const initType = getExpressionType(TypeChecker, Statement.init);
 
-    if (declaredType.type == 'UnionType' && Statement.initialized)
+    if (Statement.initialized && declaredType.type == 'UnionType')
     {
-        let inTypes = false;
-        for (const type of declaredType.types)
+        if (!checkUnionType([initType.type], declaredType))
         {
-            if (type.type == initType)
-            {
-                inTypes = true;
-                break;
-            }
-
-            if (!inTypes)
-            {
-                new error(
-                    'Type Error',
-                    `Type mismatch, cannot assign ${strUnionType(declaredType.types)} to ${initType}`,
-                    TypeChecker.parser.source,
-                    makePosition(TypeChecker.parser.filename, Statement.init.where[0], Statement.init.where[1], Statement.init.where[2]),
-                    strUnionType(declaredType.types)
-                );
-            };
-        }
+            new error(
+                'Type Error',
+                `Type mismatch, cannot assign ${strUnionType(declaredType.types)} to ${initType.type}`,
+                TypeChecker.parser.source,
+                makePosition(TypeChecker.parser.filename, Statement.init.where[0], Statement.init.where[1], Statement.init.where[2]),
+                `${strUnionType(declaredType.types)}`
+            );
+        };
     }
 
-    else if (Statement.initialized && declaredType.type != initType)
+    else if (Statement.initialized && declaredType != initType)
     {
         new error(
             'Type Error',

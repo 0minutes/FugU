@@ -1,14 +1,13 @@
 import
 {
     Type,
-    baseTypes,
 } from "./Types.ts";
 
 export type GlobalType = 'Global' | 'Subprocess';
 
 export type StatementType = 'ExpressionStatement' | 'EmptyStatement' | 'DeclerationStatement';
-
 export type ExpressionType = 'ArrayLiteralExpression' | 'SequenceExpression' | 'AssignmentExpression' | 'BinaryExpression' | 'UnaryExpression' | 'UnaryUpdateExpression' | 'Literal' | 'Identifier';
+export type LiteralType = 'IntegerLiteral' | 'FloatLiteral' | 'StringLiteral' | 'CharLiteral' | 'NullLiteral';
 export interface Global
 {
     type: GlobalType;
@@ -121,7 +120,7 @@ export interface Literal extends Expression
 {
     type: 'Literal';
     foldable: boolean;
-    realType: baseTypes;
+    kind: LiteralType;
     value: bigint | number | string;
     where: number[];
 };

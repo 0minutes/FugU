@@ -19,7 +19,7 @@ const main = (): number =>
     {
         const input = prompt('>> ', '') as string;
         const parser = new Parser('<stdin>', input);
-        const TChecker = new TypeChecker(env, parser);
+        new TypeChecker(env, parser);
         
         console.log(parser.ast);
     };

@@ -83,7 +83,14 @@ export interface charType extends baseType
     where: number[];
 };
 
-export type Type = baseType | UnionType | typeRef | intType | arrayType | strType | charType | floatType;
+export interface nullType extends baseType
+{
+    type: 'null';
+    where: number[];
+};
+
+
+export type Type =  UnionType | typeRef | intType | arrayType | strType | charType | floatType | nullType;
 
 export const strUnionType = (items: Type[]): string =>
 {
@@ -109,8 +116,8 @@ export const parseTypeDef = (parser: Parser): Type =>
         'Valid Type'
     );
 
-    let base: Type = {
-    } as baseType; 
+    let base = {
+    } as Type; 
 
     switch (token.value)
     {
@@ -180,7 +187,7 @@ export const parseTypeDef = (parser: Parser): Type =>
         let len = {
             type: 'Literal',
             foldable: true,
-            realType: 'int',
+            kind: 'IntegerLiteral',
             value: -1n,
             where: [tok.where.line, tok.where.start, tok.where.end],
         } as Expr;
