@@ -1,3 +1,8 @@
+import
+{
+    Type
+} from "./Types.ts";
+
 export type GlobalType = 'Global' | 'Subprocess';
 
 export type StatementType = 'ExpressionStatement' | 'EmptyStatement' | 'DeclerationStatement';
@@ -34,9 +39,9 @@ export interface DeclerationStatement extends Statement
     type: 'DeclerationStatement';
     foldable: boolean;
     mut: boolean;
-    valType: string;
+    valType: Type;
     variables: Identifier[];
-    init: Expression;
+    init: Expr;
     where: number[];
 };
 
@@ -45,7 +50,7 @@ export interface DeclerationStatement extends Statement
 export interface ExpressionStatement extends Statement
 {
     type: 'ExpressionStatement';
-    body: Expression[];
+    body: Expr[];
 };
 
 export interface Expression
@@ -59,7 +64,7 @@ export interface SequenceExpression extends Expression
 {
     type: 'SequenceExpression';
     foldable: boolean;
-    expressions: Expression[];
+    expressions: Expr[];
     where: number[];
 }
 
@@ -67,8 +72,8 @@ export interface BinaryExpression extends Expression
 {
     type: 'BinaryExpression';
     foldable: boolean;
-    left: Expression;
-    right: Expression;
+    left: Expr;
+    right: Expr;
     operator: string;
     where: number[];
 };
@@ -79,7 +84,7 @@ export interface AssignmentExpression extends Expression
     type: 'AssignmentExpression';
     foldable: boolean;
     left: Identifier;
-    right: Expression;
+    right: Expr;
     operator: string;
     where: number[];
 };
@@ -89,7 +94,7 @@ export interface UnaryExpression extends Expression
     type: 'UnaryExpression';
     foldable: boolean;
     operator: string;
-    right: Expression;
+    right: Expr;
     where: number[];
 };
 
@@ -99,7 +104,7 @@ export interface UnaryUpdateExpression extends Expression
     foldable: boolean;
     operator: string;
     prefix: boolean;
-    right: Expression;
+    right: Expr;
     where: number[];
 };
 
@@ -119,3 +124,8 @@ export interface Identifier extends Expression
     value: string;
     where: number[];
 };
+
+
+
+export type Stmt = ExpressionStatement | DeclerationStatement | EmptyStatement;
+export type Expr = SequenceExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;

@@ -18,12 +18,15 @@ import
     UnaryExpression,
     UnaryUpdateExpression,
     SequenceExpression,
+    Expr,
 } from "./NodeTypes.ts";
 
 import
 {
     Parser,
 } from "./Parser.ts";
+
+
 const BindingPower = (operator: string): number =>
 {
 
@@ -127,7 +130,7 @@ const BindingPower = (operator: string): number =>
 };
 
 
-export const parseExpression = (parser: Parser, precedence: number): Expression =>
+export const parseExpression = (parser: Parser, precedence: number): Expr =>
 {
     let lhs = nud(parser);
 
@@ -139,7 +142,7 @@ export const parseExpression = (parser: Parser, precedence: number): Expression 
     return lhs;
 };
 
-const led = (parser: Parser, lhs: Expression): Expression =>
+const led = (parser: Parser, lhs: Expression): Expr =>
 {
     if (['++','--'].includes(parser.at().value))
     {
@@ -235,11 +238,11 @@ const led = (parser: Parser, lhs: Expression): Expression =>
     };
 };
 
-const nud = (parser: Parser): Expression =>
+const nud = (parser: Parser): Expr =>
 {
     const token = parser.eat();
 
-    let lhs: Expression;
+    let lhs: Expr;
 
     if (['--', '++'].includes(token.value))
     {
@@ -321,9 +324,9 @@ const nud = (parser: Parser): Expression =>
     return lhs;
 };
 
-export const parseLiteral = (parser: Parser, token: Token): Expression =>
+export const parseLiteral = (parser: Parser, token: Token): Expr =>
 {
-    let lhs: Expression;
+    let lhs: Expr;
 
     if (token.type == TokenType.int)
     {
@@ -418,7 +421,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expression =>
             'Expression'
         );
 
-        lhs = {} as Expression;
+        lhs = {} as Expr;
     };
 
     return lhs;

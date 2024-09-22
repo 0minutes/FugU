@@ -3,7 +3,7 @@ import
 {
     Global,
 
-    Statement,
+    Stmt,
 
     EmptyStatement,
     DeclerationStatement,
@@ -111,7 +111,7 @@ export class Parser
         return token;
     };
 
-    parseStatement = (): Statement =>
+    parseStatement = (): Stmt =>
     {
         const token: Token = this.at();
 
@@ -157,7 +157,7 @@ export class Parser
 
         while (this.at().type != TokenType.eof)
         {
-            const statement: Statement = this.parseStatement();
+            const statement: Stmt = this.parseStatement();
 
             if (statement.type != 'EmptyStatement')
             {

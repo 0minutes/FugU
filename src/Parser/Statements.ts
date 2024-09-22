@@ -8,8 +8,14 @@ import
     ExpressionStatement,
     DeclerationStatement,
     Identifier,
-    Expression,
+    Expr,
 } from './NodeTypes.ts';
+
+import
+{
+    parseTypeDef,
+    Type
+} from './Types.ts';
 
 import 
 {
@@ -28,6 +34,19 @@ import
     makePosition,
 } from '../Errors/Errors.ts'
 
+const formatValues = (items: Identifier[]): string =>
+{
+    const values = items.map(item => item.value);
+    
+    if (values.length == 0) return '';
+    if (values.length == 1) return values[0];
+    
+    const lastValue = values.pop();
+
+    return values.length ? `${values.join(', ')} and ${lastValue}` : lastValue || '';
+};
+
+
 export const parseDeclarationStatement = (parser: Parser): DeclerationStatement =>
 {
     const mut = parser.eat();
@@ -36,10 +55,10 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
     {
         type: 'DeclerationStatement',
         foldable: false,
-        valType: 'int',
+        valType: {} as Type,
         mut: false,
         variables: [],
-        init: {} as Expression,
+        init: {} as Expr,
         where: [],
     };
         
@@ -90,18 +109,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
         ':'
     );
 
-    const type = parser.expectMultiple(
-        [
-            TokenType.intType,
-            TokenType.boolType,
-            TokenType.floatType,
-            TokenType.strType,
-            TokenType.charType,
-        ],
-        true,
-        `Expected a valid type such as int str etc instead of '${parser.at().value}'`,
-        'int or str or bool etc'
-    );
+    const typedef = parseTypeDef(parser);
 
     
     if (parser.at().type == TokenType.semicolon && mut.value == 'mut')
@@ -113,7 +121,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
             realType: 'NullLiteral',
             value: 'null',
             where: [variables[0].where[0], variables[0].where[1], variables[variables.length-1].where[2]],
-        } as Expression;
+        } as Expr;
 
         const where = [mut.where.line, mut.where.start, parser.at().where.end];
 
@@ -121,7 +129,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
             type: 'DeclerationStatement',
             foldable: initializer.foldable,
             mut: mut.value == 'mut' ? true : false,
-            valType: type.value,
+            valType: typedef,
             variables: variables,
             init: initializer,
             where: where,
@@ -136,7 +144,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
     {
         new error(
             'Syntax Error',
-            `Expected an initializer after a const decleration to specify ${variables.forEach(ident => {ident.value})}'s value`,
+            `Expected an initializer after a const decleration to specify ${formatValues(variables)}'s value`,
             parser.source,
             makePosition(parser.filename, mut.where.line, parser.at().where.start, parser.at().where.end),
             '='
@@ -146,7 +154,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
     parser.expect(
         TokenType.AssignmentOperator,
         true,
-        `Expected an = (${TokenType.AssignmentOperator}) operator to specify ${variables.forEach(ident => {ident.value})}'s value`,
+        `Expected an = (${TokenType.AssignmentOperator}) operator to specify ${formatValues(variables)}'s value`,
         '='
     );
 
@@ -156,7 +164,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
         type: 'DeclerationStatement',
         foldable: initializer.foldable,
         mut: mut.value == 'mut' ? true : false,
-        valType: type.value,
+        valType: typedef,
         variables: variables,
         init: initializer,
         where: [mut.where.line, mut.where.start, initializer.where[2]],

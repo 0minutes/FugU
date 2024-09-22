@@ -57,11 +57,7 @@ export const enum TokenType {
     input = '<input>',
     typeof = '<typeof>',
 
-    intType = 'int',
-    boolType = 'bool',
-    floatType = 'float',
-    strType = 'str',
-    charType = 'char',
+    typeDef = '<typeDef>',
 
     eof = '<eof>',
 };
@@ -147,11 +143,19 @@ export const keywords: Record <string, TokenType> =
     'typeof': TokenType.typeof,
     'in': TokenType.in,
 
-    'int': TokenType.intType,
-    'bool': TokenType.intType,
-    'float': TokenType.floatType,
-    'str': TokenType.strType,
-    'char': TokenType.charType,
+    'u1': TokenType.typeDef,
+    'u8': TokenType.typeDef,
+    'u16': TokenType.typeDef,
+    'u32': TokenType.typeDef,
+    'u64': TokenType.typeDef,
+    'i8': TokenType.typeDef,
+    'i16': TokenType.typeDef,
+    'i32': TokenType.typeDef,
+    'i64': TokenType.typeDef,
+
+    'float': TokenType.typeDef,
+    'str': TokenType.typeDef,
+    'char': TokenType.typeDef,
 };
 
 export interface Token
