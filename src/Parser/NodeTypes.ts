@@ -1,6 +1,7 @@
 import
 {
-    Type
+    Type,
+    baseTypes,
 } from "./Types.ts";
 
 export type GlobalType = 'Global' | 'Subprocess';
@@ -8,13 +9,11 @@ export type GlobalType = 'Global' | 'Subprocess';
 export type StatementType = 'ExpressionStatement' | 'EmptyStatement' | 'DeclerationStatement';
 
 export type ExpressionType = 'ArrayLiteralExpression' | 'SequenceExpression' | 'AssignmentExpression' | 'BinaryExpression' | 'UnaryExpression' | 'UnaryUpdateExpression' | 'Literal' | 'Identifier';
-export type LiteralType = 'IntegerLiteral' | 'FloatLiteral' | 'StringLiteral' | 'CharLiteral' | 'NullLiteral';
-
 export interface Global
 {
     type: GlobalType;
     file: string;
-    body: Statement[];
+    body: Stmt[];
     where: number[];
 };
 
@@ -39,8 +38,9 @@ export interface DeclerationStatement extends Statement
     type: 'DeclerationStatement';
     foldable: boolean;
     mut: boolean;
-    valType: Type;
+    Type: Type;
     variables: Identifier[];
+    initialized: boolean;
     init: Expr;
     where: number[];
 };
@@ -104,7 +104,7 @@ export interface UnaryUpdateExpression extends Expression
     foldable: boolean;
     operator: string;
     prefix: boolean;
-    right: Expr;
+    right: Identifier;
     where: number[];
 };
 
@@ -121,7 +121,7 @@ export interface Literal extends Expression
 {
     type: 'Literal';
     foldable: boolean;
-    realType: LiteralType;
+    realType: baseTypes;
     value: bigint | number | string;
     where: number[];
 };

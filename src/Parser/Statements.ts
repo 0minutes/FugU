@@ -58,6 +58,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
         Type: {} as Type,
         mut: false,
         variables: [],
+        initialized: false,
         init: {} as Expr,
         where: [],
     };
@@ -117,8 +118,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
         const initializer = {
             type: 'Literal',
             foldable: false,
-            //@ts-ignore <Literal is an expression>
-            realType: 'NullLiteral',
+            realType: 'null',
             value: 'null',
             where: [variables[0].where[0], variables[0].where[1], variables[variables.length-1].where[2]],
         } as Expr;
@@ -131,6 +131,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
             mut: mut.value == 'mut' ? true : false,
             Type: typedef,
             variables: variables,
+            initialized: false,
             init: initializer,
             where: where,
         };
@@ -166,6 +167,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
         mut: mut.value == 'mut' ? true : false,
         Type: typedef,
         variables: variables,
+        initialized: true,
         init: initializer,
         where: [mut.where.line, mut.where.start, initializer.where[2]],
     } as DeclerationStatement;

@@ -25,7 +25,7 @@ import
     parseExpression
 } from "./Expressions.ts";
 
-export type baseTypes = 'TypeReference' |'Array' | 'int' | 'str' | 'char' |'float';
+export type baseTypes = 'UnionType' | 'TypeReference' |'Array' | 'int' | 'str' | 'char' | 'float' | 'null';
 
 export interface baseType
 {
@@ -33,7 +33,14 @@ export interface baseType
     where: number[];
 };
 
-export type intSize = 'u8' | 'u16' | 'u32' | 'u64' | 'i8' | 'i16' | 'i32' | 'i64'
+export type intSize = 'u1' | 'u8' | 'u16' | 'u32' | 'u64' | 'i8' | 'i16' | 'i32' | 'i64'
+
+export interface UnionType extends baseType
+{
+    type: 'UnionType',
+    types: Type[],
+    where: number[],
+};
 
 export interface intType extends baseType
 {
@@ -76,7 +83,19 @@ export interface charType extends baseType
     where: number[];
 };
 
-export type Type = baseType | typeRef | intType | arrayType | strType | charType | floatType;
+export type Type = baseType | UnionType | typeRef | intType | arrayType | strType | charType | floatType;
+
+export const strUnionType = (items: Type[]): string =>
+{
+    const values = items.map(item => item.type);
+    
+    if (values.length == 0) return '';
+    if (values.length == 1) return values[0];
+    
+    const lastValue = values.pop();
+
+    return values.length ? `${values.join(' | ')} | ${lastValue}` : lastValue || '';
+};
 
 export const parseTypeDef = (parser: Parser): Type =>
 {
@@ -161,7 +180,7 @@ export const parseTypeDef = (parser: Parser): Type =>
         let len = {
             type: 'Literal',
             foldable: true,
-            realType: 'IntegerLiteral',
+            realType: 'int',
             value: -1n,
             where: [tok.where.line, tok.where.start, tok.where.end],
         } as Expr;
@@ -185,6 +204,25 @@ export const parseTypeDef = (parser: Parser): Type =>
             where: [token.where.line, token.where.start, rightBracket.where.end]
         } as arrayType;
     };
+
+
+    if (parser.at().value == '|')
+    {
+        const types: Type[] = [base];
+
+        while(parser.at().value == '|')
+        {
+            parser.eat();
+            types.push(parseTypeDef(parser));  
+        };
+
+        base = {
+            type: 'UnionType',
+            types: types,
+            where: [types[0].where[0], types[0].where[1], types[types.length-1].where[2]]
+        };
+    };
+
 
     return base;
 };

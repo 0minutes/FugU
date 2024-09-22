@@ -333,7 +333,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: true,
-            realType: 'IntegerLiteral',
+            realType: 'int',
             value: BigInt(token.value),
             where: [token.where.line, token.where.start, token.where.end],
         };
@@ -344,7 +344,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: true,
-            realType: 'IntegerLiteral',
+            realType: 'int',
             value: token.value == 'true' ? 1n : 0n,
             where: [token.where.line, token.where.start, token.where.end],
         };
@@ -355,8 +355,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: true,
-
-            realType: 'FloatLiteral',
+            realType: 'float',
             value: parseFloat(token.value),
             where: [token.where.line, token.where.start, token.where.end],
         };
@@ -367,7 +366,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: true,
-            realType: 'CharLiteral',
+            realType: 'char',
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
         };
@@ -378,7 +377,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: true,
-            realType: 'StringLiteral',
+            realType: 'str',
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
         };
@@ -389,7 +388,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: false,
-            realType: 'NullLiteral',
+            realType: 'null',
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
         };
