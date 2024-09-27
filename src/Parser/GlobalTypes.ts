@@ -11,7 +11,7 @@ import
 } from "./Parser.ts";
 
 export type intSize = 'u1' | 'u8' | 'u16' | 'u64' | 'i8' | 'i16' | 'i32' | 'i64';
-export type TypeName = 'integer' | 'float' | 'string' | 'char' | 'array' | 'UnionType' | 'ParenthesizedType';
+export type TypeName = 'integer' | 'float' | 'string' | 'char' | 'null' | 'array' | 'UnionType';
 
 export interface intType
 {
@@ -38,6 +38,12 @@ export interface charType
     where: number[];
 }
 
+export interface nullType
+{
+    type: TypeName;
+    where: number[];
+}
+
 export interface arrayType
 {
     type: TypeName;
@@ -53,21 +59,13 @@ export interface UnionType
     where: number[];
 };
 
-export interface ParenthesizedType
-{
-    type: TypeName;
-    types: FugType;
-    where: number[]
-};
-
-export type FugType = intType | floatType | stringType | charType | arrayType | UnionType | ParenthesizedType;
+export type FugType = intType | floatType | stringType | charType | arrayType | UnionType;
 
 export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type*/): FugType =>
 {
     const token = parser.expectMultiple (
         [
             TokenType.leftParenthesis,
-            TokenType.leftBracket,
 
             TokenType.u1Def,
             TokenType.u8Def,
@@ -84,7 +82,7 @@ export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type
             TokenType.chrDef,
         ],
         true,
-        'Expected a type definition',
+        'Expected a valid type definition',
         'i64 str chr...'
     );
 
@@ -100,21 +98,12 @@ export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type
             break;
         };
 
-        case TokenType.u1Def:
-        case TokenType.u8Def:
-        case TokenType.u16Def:
-        case TokenType.u32Def:
-        case TokenType.u64Def:
-        case TokenType.i8Def:
-        case TokenType.i16Def:
-        case TokenType.i32Def:
-        case TokenType.i64Def:
+        case TokenType.chrDef:
         {
             baseType = {
-                type: 'integer',
-                size: token.value,
+                type: 'char',
                 where: [token.where.line, token.where.start, token.where.end]
-            } as intType;
+            } as charType;
 
             break;
         };
@@ -138,13 +127,14 @@ export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type
 
             break;
         };
-    
-        default: // TokenType.chrDef
+
+        default:
         {
             baseType = {
-                type: 'char',
+                type: 'integer',
+                size: token.value,
                 where: [token.where.line, token.where.start, token.where.end]
-            } as charType;
+            } as intType;
 
             break;
         };
