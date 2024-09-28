@@ -32,7 +32,7 @@ export interface DeclerationStatement
     type: 'DeclerationStatement';
     foldable: boolean;
     mut: boolean;
-    Type: FugType;
+    FugType: FugType;
     variables: Identifier[];
     initialized: boolean;
     init: Expr | undefined;

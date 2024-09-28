@@ -15,51 +15,95 @@ export type TypeName = 'integer' | 'float' | 'string' | 'char' | 'null' | 'array
 
 export interface intType
 {
-    type: TypeName;
+    kind: 'integer';
     size: intSize;
     where: number[];
 };
 
 export interface floatType
 {
-    type: TypeName;
+    kind: 'float';
+    size: 'f64' | 'f32'
     where: number[];
 };
 
 export interface stringType
 {
-    type: TypeName;
+    kind: 'string';
     where: number[];
 };
 
 export interface charType
 {
-    type: TypeName;
+    kind: 'char';
     where: number[];
-}
+};
 
 export interface nullType
 {
-    type: TypeName;
+    kind: 'null';
     where: number[];
-}
+};
 
 export interface arrayType
 {
-    type: TypeName;
+    kind: 'array';
     length: Expr | undefined;
-    childType: FugType;
+    childkind: FugType;
     where: number[];
 };
 
 export interface UnionType
 {
-    type: TypeName;
+    kind: 'UnionType';
     types: FugType[];
     where: number[];
 };
 
-export type FugType = intType | floatType | stringType | charType | arrayType | UnionType;
+export type FugType = nullType | intType | floatType | stringType | charType | arrayType | UnionType;
+
+export const stringifyTypes = (Types: FugType[]): string =>
+{
+    let str = '';
+
+    for (let i = 0; i < Types.length; i++)
+    {
+        if (i > 0)
+        {
+            str += ' | ';
+        }
+
+        str += Types[i].kind;
+    }
+
+    return str;
+};
+
+export const compressUnion = (Union: UnionType): UnionType =>
+{
+    const types: FugType[] = [];
+
+    const newUnion: UnionType = {
+        kind: 'UnionType',
+        types: types,
+        where: Union.where
+    };
+
+    for (const Type of Union.types)
+    {
+        if (Type.kind == 'UnionType')
+        {
+            types.push(...compressUnion(Type).types);
+            continue;
+        };
+
+        types.push(Type);
+    };  
+
+    newUnion.types = types;
+
+    return newUnion;
+};
 
 export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type*/): FugType =>
 {
@@ -77,7 +121,9 @@ export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type
             TokenType.i32Def,
             TokenType.i64Def,
         
-            TokenType.floatDef,
+            TokenType.f32Def,
+            TokenType.f64Def,
+
             TokenType.strDef,
             TokenType.chrDef,
         ],
@@ -101,17 +147,19 @@ export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type
         case TokenType.chrDef:
         {
             baseType = {
-                type: 'char',
+                kind: 'char',
                 where: [token.where.line, token.where.start, token.where.end]
             } as charType;
 
             break;
         };
     
-        case TokenType.floatDef:
+        case TokenType.f32Def:
+        case TokenType.f64Def:
         {
             baseType = {
-                type: 'float',
+                kind: 'float',
+                size: token.value,
                 where: [token.where.line, token.where.start, token.where.end]
             } as floatType;
 
@@ -121,9 +169,9 @@ export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type
         case TokenType.strDef:
         {
             baseType = {
-                type: 'string',
+                kind: 'string',
                 where: [token.where.line, token.where.start, token.where.end]
-            } as floatType;
+            } as stringType;
 
             break;
         };
@@ -131,7 +179,7 @@ export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type
         default:
         {
             baseType = {
-                type: 'integer',
+                kind: 'integer',
                 size: token.value,
                 where: [token.where.line, token.where.start, token.where.end]
             } as intType;
@@ -160,9 +208,9 @@ export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type
         );
 
         baseType = {
-            type: 'array',
+            kind: 'array',
             length: len,
-            childType: baseType,
+            childkind: baseType,
             where: [token.where.line, token.where.start, rightBracket.where.end]
         } as arrayType;
     };
@@ -178,12 +226,12 @@ export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type
             types.push(parseType(parser, true));  
         };
 
-        baseType = {
-            type: 'UnionType',
+        baseType = compressUnion({
+            kind: 'UnionType',
             types: types,
             where: [types[0].where[0], types[0].where[1], types[types.length-1].where[2]]
-        };
-    };
-    
+        });
+    };  
+
     return baseType;
 };

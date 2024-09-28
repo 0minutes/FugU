@@ -16,20 +16,19 @@ import
     FugType,
 
     UnionType,
-    arrayType,
+
     intType,
     floatType,
     stringType,
     charType,
     nullType,
+    stringifyTypes,
 } from "../Parser/GlobalTypes.ts";
 
 import
 {
     TypeChecker
 } from "./TypeChecker.ts";
-
-
 
 const MIN_I32 = BigInt(-2147483648);
 const MAX_I32 = BigInt(2147483647);
@@ -38,6 +37,22 @@ const MIN_I64 = BigInt(-9223372036854775808);
 const MAX_I64 = BigInt(9223372036854775807);
 
 const MAX_U64 = BigInt(18446744073709551615);
+
+export const getUnionTypes = (TypeChecker: TypeChecker, Union: UnionType): FugType[] =>
+{
+    const types: FugType[] = [];
+
+    for (const type of Union.types)
+    {
+        if (type.kind == 'UnionType')
+        {
+            types.push(...getUnionTypes(TypeChecker, type as UnionType));
+        };
+        types.push(type);
+    };
+
+    return types;
+};
 
 export const getIntSize = (TypeChecker: TypeChecker, Expression: Literal): string =>
 {
@@ -61,11 +76,11 @@ export const getIntSize = (TypeChecker: TypeChecker, Expression: Literal): strin
     else if (value >= 0n && value <= MAX_U64)
     {
         return 'u64';
-    }
+    };
 
     new warning(
-        'Value Error',
-        `value is too ${value > 0n ? 'big' : 'small'} for validation and will at runtime ${value > 0n ? 'overflow' : 'underflow'}`,
+        'Value Warning',
+        `value is too ${value > 0n ? 'big' : 'small'} for validation and will ${value > 0n ? 'overflow' : 'underflow'} at runtime`,
         TypeChecker.parser.source,
         makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
         `A ${value > 0n ? 'smaller' : 'bigger'} value`
@@ -73,7 +88,6 @@ export const getIntSize = (TypeChecker: TypeChecker, Expression: Literal): strin
 
     return value > 0 ? 'u64' : 'i64';
 };
-    
     
 export const checkExpression = (TypeChecker: TypeChecker, Expression: Expr): FugType | undefined =>
 {
@@ -87,7 +101,7 @@ export const checkExpression = (TypeChecker: TypeChecker, Expression: Expr): Fug
             {
                 new error(
                     'Name Error',
-                    `The variable ${Expression.value} seems to have not be defined`,
+                    `The variable ${Expression.value} seems to have not been defined`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2])
                 );
@@ -106,6 +120,132 @@ export const checkExpression = (TypeChecker: TypeChecker, Expression: Expr): Fug
         case 'UnaryUpdateExpression':
         {
             const identType = checkExpression(TypeChecker, Expression.right) as FugType;
+
+            if (identType.kind == 'integer')
+            {
+                return identType;
+            };
+
+            if (identType.kind == 'float')
+            {
+                return identType;
+            };
+
+            if (identType.kind == 'UnionType')
+            {
+                for (const type of identType.types)
+                {
+                    if (type.kind != 'integer' && type.kind != 'float')
+                    {
+                        new error(
+                            'Type Error',
+                            `Cannot perform ${Expression.operator} on the ${type.kind} type`,
+                            TypeChecker.parser.source,
+                            makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
+                            'Integer or float types'
+                        );
+                    };
+                };
+
+                return identType;
+            };
+
+            new error(
+                'Type Error',
+                `Cannot perform ${Expression.operator} on the ${identType.kind} type`,
+                TypeChecker.parser.source,
+                makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
+                'Integer or float types'
+            );
+
+            return;
+        };
+
+        case 'AssignmentExpression':
+        {
+            if (Expression.left.type != 'Identifier')
+            {
+                new error(
+                    'Syntax Error',
+                    `Cannot assign a value to a ${Expression.left.type}. Expected a variable for re-assignment`,
+                    TypeChecker.parser.source,
+                    makePosition(TypeChecker.parser.filename, Expression.left.where[0], Expression.left.where[1], Expression.left.where[2])
+                );
+                return;
+            };
+
+            const identType = checkExpression(TypeChecker, Expression.left)!;
+
+            const initType = checkExpression(TypeChecker, Expression.right)!;
+
+            if (identType.kind == 'UnionType')
+            {
+                let overlap = false;
+
+                for (const type of identType.types)
+                {
+                    if (initType.kind == type.kind)
+                    {
+                        overlap = true;
+                        break;
+                    };
+                };
+
+                if (!overlap)
+                {
+                    new error(
+                        'Type Error',
+                        `Cannot assign a ${initType.kind} to ${stringifyTypes(identType.types)}`,
+                        TypeChecker.parser.source,
+                        makePosition(TypeChecker.parser.filename, Expression.right.where[0], Expression.right.where[1], Expression.right.where[2]),
+                        stringifyTypes(identType.types)
+                    );
+
+                    return;
+                };
+            };
+
+            if (identType.kind == 'UnionType' && initType.kind == 'UnionType')
+            {
+                for (let i = 0; i < initType.types.length; i++) {
+                    let overlaps = false;
+    
+                    for (let j = 0; j < identType.types.length; j++)
+                    {
+                        if (initType.types[i] == identType.types[j])
+                        {
+                            overlaps = true;
+                            break;
+                        }
+                    };
+    
+                    if (!overlaps)
+                    {
+                        new error(
+                            'Type Error',
+                            `The types '${stringifyTypes(initType.types)}' do not sufficiently overlap the declared types of '${stringifyTypes(initType.types)}'`,
+                            TypeChecker.parser.source,
+                            makePosition(TypeChecker.parser.filename, initType.where[0], initType.where[1], initType.where[2]),
+                            stringifyTypes(identType.types)
+                        );
+
+                        return;
+                    };
+                };
+            };
+
+            if (identType.kind != initType.kind)
+            {
+                new error(
+                    'Type Error',
+                    `Cannot assign a ${initType.kind} to ${identType.kind}`,
+                    TypeChecker.parser.source,
+                    makePosition(TypeChecker.parser.filename, Expression.right.where[0], Expression.right.where[1], Expression.right.where[2]),
+                    identType.kind
+                );
+
+                return;
+            };
         };
     };
 };
@@ -117,7 +257,7 @@ const getLiteralType = (TypeChecker: TypeChecker, Expression: Literal): FugType 
         case 'StringLiteral':
         {
             return {
-                type: 'string',
+                kind: 'string',
                 where: Expression.where,
             } as stringType;
         };
@@ -125,7 +265,7 @@ const getLiteralType = (TypeChecker: TypeChecker, Expression: Literal): FugType 
         case 'CharLiteral':
         {
             return {
-                type: 'char',
+                kind: 'char',
                 where: Expression.where,
             } as charType;
         };
@@ -133,7 +273,8 @@ const getLiteralType = (TypeChecker: TypeChecker, Expression: Literal): FugType 
         case 'FloatLiteral':
         {
             return {
-                type: 'float',
+                kind: 'float',
+                size: 'f64',
                 where: Expression.where,
             } as floatType;
         };
@@ -141,7 +282,7 @@ const getLiteralType = (TypeChecker: TypeChecker, Expression: Literal): FugType 
         case 'IntegerLiteral':
         {
             return {
-                type: 'integer',
+                kind: 'integer',
                 size: getIntSize(TypeChecker, Expression),
                 where: Expression.where,
             } as intType;
@@ -150,7 +291,7 @@ const getLiteralType = (TypeChecker: TypeChecker, Expression: Literal): FugType 
         case 'NullLiteral':
         {
             return {
-                type: 'null',
+                kind: 'null',
                 where: Expression.where,
             } as nullType;
         };

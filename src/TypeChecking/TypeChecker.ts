@@ -28,6 +28,8 @@ export class TypeChecker
     {
         this.parser = parser;
         this.env = env;
+
+        this.checkGlobal();
     };
 
     checkStatement = (Statement: Stmt): void =>

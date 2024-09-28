@@ -67,7 +67,9 @@ export const enum TokenType {
     i32Def = '<i32Def>',
     i64Def = '<i64Def>',
 
-    floatDef = '<floatDef>',
+    f32Def = '<f32Def>',
+    f64Def = '<f64Def>',
+
     strDef = '<strDef>',
     chrDef = '<chrDef>',
 
@@ -165,7 +167,9 @@ export const keywords: Record <string, TokenType> =
     'i32': TokenType.i32Def,
     'i64': TokenType.i64Def,
 
-    'float': TokenType.floatDef,
+    'f32': TokenType.f32Def,
+    'f64': TokenType.f64Def,
+
     'str': TokenType.strDef,
     'chr': TokenType.chrDef,
 };

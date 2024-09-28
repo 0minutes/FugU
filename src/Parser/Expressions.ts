@@ -195,7 +195,7 @@ const led = (parser: Parser, lhs: Expr): Expr =>
         } as SequenceExpression;
     }
 
-    else if (BindingPower(parser.at().value) == 1)
+    else if (BindingPower(parser.at().value) == 2)
     {
         if (lhs.type != 'Identifier')
         {
