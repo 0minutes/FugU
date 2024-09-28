@@ -48,8 +48,7 @@ export interface nullType
 export interface arrayType
 {
     kind: 'array';
-    length: Expr | undefined;
-    childkind: FugType;
+    childkind: UnionType;
     where: number[];
 };
 
@@ -193,13 +192,6 @@ export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type
     {
         parser.eat();
 
-        let len = undefined;
-        
-        if (parser.at().type != TokenType.rightBracket)
-        {
-            len = parseExpression(parser, 2);
-        };
-
         const rightBracket = parser.expect(
             TokenType.rightBracket,
             true,
@@ -209,7 +201,6 @@ export const parseType = (parser: Parser, Union: boolean /* To only parse 1 type
 
         baseType = {
             kind: 'array',
-            length: len,
             childkind: baseType,
             where: [token.where.line, token.where.start, rightBracket.where.end]
         } as arrayType;

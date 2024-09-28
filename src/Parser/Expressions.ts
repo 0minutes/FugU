@@ -16,7 +16,7 @@ import
     AssignmentExpression,
     UnaryExpression,
     UnaryUpdateExpression,
-    SequenceExpression,
+    
     Expr,
 } from "./GlobalNodes.ts";
 
@@ -166,33 +166,6 @@ const led = (parser: Parser, lhs: Expr): Expr =>
             right: lhs,
             where: [lhs.where[0], lhs.where[1], operator.where.end]
         } as UnaryUpdateExpression;
-    }
-
-    else if (parser.at().value == ',')
-    {
-        const expressions: Expr[] = [lhs];
-        let foldable = false;
-
-        while(parser.at().value == ',')
-        {
-            parser.eat();
-            expressions.push(parseExpression(parser, BindingPower(',')));  
-        };
-
-        for (const expression of expressions)
-        {
-            if (expression.foldable == true)
-            {
-                foldable = true;
-            };
-        };
-
-        return {
-            type: 'SequenceExpression',
-            foldable: foldable,
-            expressions: expressions,
-            where: [lhs.where[0], lhs.where[1], expressions[expressions.length-1].where[2]],
-        } as SequenceExpression;
     }
 
     else if (BindingPower(parser.at().value) == 2)
@@ -412,7 +385,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
             type: 'ArrayLiteralExpression',
             foldable: false,
             length: 0,
-            expressions: expressions,
+            elements: expressions,
             where: []
         };
 
@@ -422,7 +395,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
                 type: 'ArrayLiteralExpression',
                 foldable: true,
                 length: 0,
-                expressions: expressions,
+                elements: expressions,
                 where: [token.where.line, token.where.start, parser.eat().where.end]
             };
         }
@@ -452,7 +425,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
                 type: 'ArrayLiteralExpression',
                 foldable: foldable,
                 length: expressions.length,
-                expressions: expressions,
+                elements: expressions,
                 where: [token.where.line, token.where.start, expressions[expressions.length-1].where[2]]
             };
 

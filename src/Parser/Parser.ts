@@ -152,7 +152,7 @@ export class Parser
             type: 'Global',
             file: this.filename,
             body: [],
-            where: [this.tokens.at(-1)!.where.line, this.tokens[0].where.start, this.tokens.at(-1)!.where.end],
+            where: [this.tokens[this.tokens.length -1].where.line, this.tokens[0].where.start, this.tokens[this.tokens.length -1].where.end],
         };
 
         while (this.at().type != TokenType.eof)

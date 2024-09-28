@@ -49,14 +49,6 @@ export interface ExpressionStatement
     where: number[];
 };
 
-export interface SequenceExpression
-{
-    type: 'SequenceExpression';
-    foldable: boolean;
-    expressions: Expr[];
-    where: number[];
-}
-
 export interface BinaryExpression
 {
     type: 'BinaryExpression';
@@ -101,8 +93,7 @@ export interface ArrayExpression
 {
     type: 'ArrayLiteralExpression';
     foldable: boolean;
-    length: number;
-    expressions: Expr[];
+    elements: Expr[];
     where: number[];
 };
 
@@ -126,4 +117,4 @@ export interface Identifier
 
 
 export type Stmt = ExpressionStatement | DeclerationStatement | EmptyStatement;
-export type Expr = ArrayExpression | SequenceExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;
+export type Expr = ArrayExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;

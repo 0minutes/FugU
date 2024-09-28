@@ -115,13 +115,42 @@ export const checkDeclerationStatement = (TypeChecker: TypeChecker, Statement: D
             };
         }
 
+        else if (delcaredType.kind == 'array' && initType.kind == 'array')
+        {
+            for (let i = 0; i < initType.childkind.length; i++) {
+                let overlaps = false;
+
+                for (let j = 0; j < delcaredType.types.length; j++)
+                {
+                    if (initType.types[i] == delcaredType.types[j])
+                    {
+                        overlaps = true;
+                        break;
+                    };
+                };
+
+                if (!overlaps)
+                {
+                    new error(
+                        'Type Error',
+                        `The types '${stringifyTypes(initType.types)}' do not sufficiently overlap the declared types of '${stringifyTypes(delcaredType.types)}'`,
+                        TypeChecker.parser.source,
+                        makePosition(TypeChecker.parser.filename, initType.where[0], initType.where[1], initType.where[2]),
+                        stringifyTypes(delcaredType.types)
+                    );
+
+                    return;
+                };
+            };   
+        }
+
         else if (initType.kind != delcaredType.kind)
         {
             new error(
                 'Type Error',
-                `The type '${stringifyTypes([initType])}' do not sufficiently overlap the declared type of '${stringifyTypes([delcaredType])}'`,
+                `The type '${stringifyTypes([initType])}' does not sufficiently overlap the declared type of '${stringifyTypes([delcaredType])}'`,
                 TypeChecker.parser.source,
-                makePosition(TypeChecker.parser.filename, Statement.where[0], Statement.where[1], Statement.where[2]),
+                makePosition(TypeChecker.parser.filename, initType.where[0], initType.where[1], initType.where[2]),
                 stringifyTypes([delcaredType])
             );
 

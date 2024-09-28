@@ -16,6 +16,7 @@ import
     FugType,
 
     UnionType,
+    arrayType,
 
     intType,
     floatType,
@@ -23,6 +24,7 @@ import
     charType,
     nullType,
     stringifyTypes,
+    compressUnion,
 } from "../Parser/GlobalTypes.ts";
 
 import
@@ -150,6 +152,19 @@ export const checkExpression = (TypeChecker: TypeChecker, Expression: Expr): Fug
                 return identType;
             };
 
+            if (TypeChecker.env.getVar(Expression.right.value)!.init == false)
+            {   
+                new error(
+                    'Type Error',
+                    `Cannot perform ${Expression.operator} on the uninitialized variable '${Expression.right.value}'`,
+                    TypeChecker.parser.source,
+                    makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
+                    'Uninitialized'
+                );
+
+                return;
+            };
+
             new error(
                 'Type Error',
                 `Cannot perform ${Expression.operator} on the ${identType.kind} type`,
@@ -163,46 +178,25 @@ export const checkExpression = (TypeChecker: TypeChecker, Expression: Expr): Fug
 
         case 'AssignmentExpression':
         {
-            if (Expression.left.type != 'Identifier')
-            {
-                new error(
-                    'Syntax Error',
-                    `Cannot assign a value to a ${Expression.left.type}. Expected a variable for re-assignment`,
-                    TypeChecker.parser.source,
-                    makePosition(TypeChecker.parser.filename, Expression.left.where[0], Expression.left.where[1], Expression.left.where[2])
-                );
-                return;
-            };
-
             const identType = checkExpression(TypeChecker, Expression.left)!;
 
             const initType = checkExpression(TypeChecker, Expression.right)!;
 
-            if (identType.kind == 'UnionType')
+            if (TypeChecker.env.getVar(Expression.left.value)!.mut == false)
             {
-                let overlap = false;
+                new error(
+                    'Type Error',
+                    `'${Expression.left.value}' is a constant and therefore cannot be re-assigned`,
+                    TypeChecker.parser.source,
+                    makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2])
+                );
 
-                for (const type of identType.types)
-                {
-                    if (initType.kind == type.kind)
-                    {
-                        overlap = true;
-                        break;
-                    };
-                };
+                return;
+            };
 
-                if (!overlap)
-                {
-                    new error(
-                        'Type Error',
-                        `Cannot assign a ${initType.kind} to ${stringifyTypes(identType.types)}`,
-                        TypeChecker.parser.source,
-                        makePosition(TypeChecker.parser.filename, Expression.right.where[0], Expression.right.where[1], Expression.right.where[2]),
-                        stringifyTypes(identType.types)
-                    );
-
-                    return;
-                };
+            if (identType.kind == 'array')
+            {
+                
             };
 
             if (identType.kind == 'UnionType' && initType.kind == 'UnionType')
@@ -232,6 +226,43 @@ export const checkExpression = (TypeChecker: TypeChecker, Expression: Expr): Fug
                         return;
                     };
                 };
+
+                return {
+                    kind: 'null',
+                    where: Expression.where
+                } as nullType;
+            };
+
+            if (identType.kind == 'UnionType')
+            {
+                let overlap = false;
+
+                for (const type of identType.types)
+                {
+                    if (initType.kind == type.kind)
+                    {
+                        overlap = true;
+                        break;
+                    };
+                };
+
+                if (!overlap)
+                {
+                    new error(
+                        'Type Error',
+                        `Cannot assign a ${initType.kind} to ${stringifyTypes(identType.types)}`,
+                        TypeChecker.parser.source,
+                        makePosition(TypeChecker.parser.filename, Expression.right.where[0], Expression.right.where[1], Expression.right.where[2]),
+                        stringifyTypes(identType.types)
+                    );
+
+                    return;
+                };
+
+                return {
+                    kind: 'null',
+                    where: Expression.where
+                } as nullType;
             };
 
             if (identType.kind != initType.kind)
@@ -246,6 +277,50 @@ export const checkExpression = (TypeChecker: TypeChecker, Expression: Expr): Fug
 
                 return;
             };
+
+            return {
+                kind: 'null',
+                where: Expression.where
+            } as nullType;
+        };
+
+        case 'ArrayLiteralExpression':
+        {
+            const seenTypes: FugType[] = [];
+
+            for (const element of Expression.elements)
+            {
+                const type = checkExpression(TypeChecker, element)!;
+        
+                let exists = false;
+        
+                for (let i = 0; i < seenTypes.length; i++)
+                {
+                    if (seenTypes[i].kind === type.kind)
+                    {
+                        exists = true;
+                        break;
+                    };
+                };
+
+                if (!exists)
+                {
+                    seenTypes.push(type);
+                };
+            };
+
+            let childkind = {
+                kind: 'UnionType',
+                types: seenTypes,
+                where: [seenTypes[0].where[0], seenTypes[0].where[1], seenTypes[seenTypes.length-1].where[2]]
+            } as UnionType;
+
+            return {
+                kind: 'array',
+                childkind: compressUnion(childkind),
+                where: [seenTypes[0].where[0], seenTypes[0].where[1], seenTypes[0].where[2]]
+            } as arrayType;
+
         };
     };
 };
