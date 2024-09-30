@@ -113,7 +113,5 @@ export interface Identifier
     where: number[];
 };
 
-
-
 export type Stmt = ExpressionStatement | DeclerationStatement | EmptyStatement;
 export type Expr = ArrayExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;

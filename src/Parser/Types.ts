@@ -7,7 +7,7 @@ export interface nullType
     where: number[];
 };
 
-type intSize = 'u1' | 'u8' | 'i8' | 'u16' | 'i16' | 'u32' | 'i32' | 'u64' | 'i64';
+export type intSize = 'u1' | 'u8' | 'i8' | 'u16' | 'i16' | 'u32' | 'i32' | 'u64' | 'i64';
 
 export interface intType
 {

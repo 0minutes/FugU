@@ -28,8 +28,6 @@ import
 import 
 {
     simpleType,
-
-    nullType,
     intType,
     floatType,
     strType,
@@ -430,19 +428,19 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
                 };
             };
 
-            lhs = {
-                type: 'ArrayLiteralExpression',
-                foldable: foldable,
-                elements: expressions,
-                where: [token.where.line, token.where.start, expressions[expressions.length-1].where[2]]
-            };
-
-            parser.expect(
+            const rightBrace = parser.expect(
                 TokenType.rightBrace,
                 true,
                 `Expected a '}' instead of '${parser.at().value}' to end the array`,
                 '}'
             );
+
+            lhs = {
+                type: 'ArrayLiteralExpression',
+                foldable: foldable,
+                elements: expressions,
+                where: [token.where.line, token.where.start, rightBrace.where.end]
+            };
         };
     }
 
@@ -530,20 +528,20 @@ export const parseType = (parser: Parser): simpleType =>
 
     while (parser.at().type == TokenType.leftBracket)
     {
-        parser.eat();
+        const leftBracket = parser.eat();
 
-        simpleType = {
-            kind: 'array',
-            elementKind: simpleType,
-            where: [token.where.line, token.where.start, token.where.end],
-        } as arrayType;
-
-        parser.expect(
+        const rightBracket = parser.expect(
             TokenType.rightBracket,
             true,
             `Expected a ']' (${TokenType.rightBracket}) instead of '${parser.at().value}' (${parser.at().type})`,
             ']'
         );
+
+        simpleType = {
+            kind: 'array',
+            elementKind: simpleType,
+            where: [leftBracket.where.line, leftBracket.where.start, rightBracket.where.end],
+        } as arrayType;
     };
 
     return simpleType;
