@@ -16,6 +16,7 @@ import
 
 import 
 {
+AssignmentExpression,
 BinaryExpression,
     Expr,
     Literal,
@@ -24,7 +25,7 @@ BinaryExpression,
 import 
 {
     error,
-    makePosition
+    makePosition,
 } from '../Errors/Errors.ts';
 
 export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): simpleType =>
@@ -63,7 +64,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                 );
             };
 
-            return identType;
+            return getBinaryExpressionType(TypeChecker, Expression);
         };
 
         case 'ArrayLiteralExpression':
@@ -119,7 +120,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
         case 'UnaryExpression':
         {
-            const elementKind = getExpressionType(TypeChecker, Expression);
+            const elementKind = getExpressionType(TypeChecker, Expression.right);
 
             const element = Expression.right;
 
@@ -137,7 +138,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                 };
             };
 
-            if (Expression.operator == '+' || Expression.operator == '-')
+            if (Expression.operator.kind == '+' || Expression.operator.kind == '-')
             {
                 if (elementKind.kind == 'int' || elementKind.kind == 'float')
                 {
@@ -203,13 +204,14 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
             {
                 new error(
                     'Name Error',
-                    `The variable ${Expression.value} is not defined`,
+                    `The variable '${Expression.value}' is not defined`,
                     TypeChecker.parser.source,
-                    makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2])
+                    makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
+                    'Undefined'
                 );
 
                 return {
-                    kind: 'null',
+                    kind: 'null',   
                     where: Expression.where,
                 } as nullType;
             };
@@ -270,55 +272,7 @@ export const getLiteralType = (Literal: Literal): simpleType =>
     };
 };
 
-export const allTypesCompatible = (firstType: simpleType | undefined, secondType: simpleType | undefined): boolean =>
-{
-    if (firstType == undefined && secondType == undefined)
-    {
-        return true;
-    }
-    else if (firstType == undefined || secondType == undefined)
-    {
-        return false;
-    };
-
-    if (firstType.kind != secondType.kind)
-    {
-        return false;
-    };
-
-    if (firstType.kind == 'array' && secondType.kind == 'array')
-    {
-        return allTypesCompatible(firstType.elementKind!, secondType.elementKind!);
-    };
-
-    return true;
-};
-
-export const stringifyType = (type: simpleType | undefined): string =>
-{
-    let strType = '';
-
-    if (type == undefined)
-    {
-        return 'null'
-    }
-
-    if (type.kind == 'array')
-    {
-        strType += '[]'
-
-        strType = stringifyType(type.elementKind) + strType;
-    }
-    else
-    {
-        strType = type.kind + strType;
-    };
-
-
-    return strType;
-};
-
-export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: BinaryExpression): simpleType =>
+export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: BinaryExpression | AssignmentExpression): simpleType =>
 {
     if (Expression.left.type == 'AssignmentExpression')
     {
@@ -353,15 +307,62 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
     const leftType = getExpressionType(TypeChecker, Expression.left);
     const rightType = getExpressionType(TypeChecker, Expression.right);
 
-    const op = Expression.operator;
+    const op = Expression.operator.kind;
 
     switch (op)
     {
+        case '+=':
         case '+':
         {
+            if (leftType.kind == 'array')
+            {
+                if (allTypesCompatible(leftType.elementKind, rightType))
+                {
+                    return leftType;
+                }
+                else
+                {
+                    new error(
+                        'Type Error',
+                        `Cannot push the ${stringifyType(rightType)} type to an array of ${stringifyType(leftType.elementKind)}`,
+                        TypeChecker.parser.source,
+                        makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                        stringifyType(leftType.elementKind)
+                    );
+
+                    return {
+                        kind: 'null',
+                        where: Expression.where,
+                    };
+                };
+            };
+
             if (leftType.kind == 'str')
             {
                 const compatibleTypes: simpleType['kind'][] = ['str', 'chr', 'int', 'float'];
+
+                if (rightType.kind == 'array')
+                {
+                    if (allTypesCompatible(leftType, rightType.elementKind))
+                    {
+                        return rightType;
+                    }
+                    else
+                    {
+                        new error(
+                            'Type Error',
+                            `Cannot push the ${stringifyType(leftType)} type to an array of ${stringifyType(rightType.elementKind)}`,
+                            TypeChecker.parser.source,
+                            makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                            stringifyType(rightType.elementKind)
+                        );
+    
+                        return {
+                            kind: 'null',
+                            where: Expression.where,
+                        };
+                    };
+                };
 
                 if (compatibleTypes.includes(rightType.kind))
                 {
@@ -374,6 +375,29 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
             if (leftType.kind == 'chr')
             {
+                if (rightType.kind == 'array')
+                {
+                    if (allTypesCompatible(leftType, rightType.elementKind))
+                    {
+                        return rightType;
+                    }
+                    else
+                    {
+                        new error(
+                            'Type Error',
+                            `Cannot push the ${stringifyType(leftType)} type to an array of ${stringifyType(rightType.elementKind)}`,
+                            TypeChecker.parser.source,
+                            makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                            stringifyType(rightType.elementKind)
+                        );
+    
+                        return {
+                            kind: 'null',
+                            where: Expression.where,
+                        };
+                    };
+                };
+
                 const compatibleTypes: simpleType['kind'][] = ['str', 'chr'];
                 if (compatibleTypes.includes(rightType.kind))
                 {
@@ -386,6 +410,29 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
             if (leftType.kind == 'int')
             {
+                if (rightType.kind == 'array')
+                {
+                    if (allTypesCompatible(leftType, rightType.elementKind))
+                    {
+                        return rightType;
+                    }
+                    else
+                    {
+                        new error(
+                            'Type Error',
+                            `Cannot push the ${stringifyType(leftType)} type to an array of ${stringifyType(rightType.elementKind)}`,
+                            TypeChecker.parser.source,
+                            makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                            stringifyType(rightType.elementKind)
+                        );
+    
+                        return {
+                            kind: 'null',
+                            where: Expression.where,
+                        };
+                    };
+                };
+                
                 if (rightType.kind == 'str')
                 {
                     return {
@@ -417,6 +464,28 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
             if (leftType.kind == 'float')
             {
+                if (rightType.kind == 'array')
+                {
+                    if (allTypesCompatible(leftType, rightType.elementKind))
+                    {
+                        return rightType;
+                    }
+                    else
+                    {
+                        new error(
+                            'Type Error',
+                            `Cannot push the ${stringifyType(leftType)} type to an array of ${stringifyType(rightType.elementKind)}`,
+                            TypeChecker.parser.source,
+                            makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                            stringifyType(rightType.elementKind)
+                        );
+    
+                        return {
+                            kind: 'null',
+                            where: Expression.where,
+                        };
+                    };
+                };
 
                 if (rightType.kind == 'str')
                 {
@@ -438,8 +507,18 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
             break;
         };
 
+        case '-=':
         case '-':
         {
+            if (leftType.kind == 'array' && rightType.kind == 'int')
+            {
+                return {
+                    kind: 'array',
+                    elementKind: leftType.elementKind,
+                    where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                };
+            };
+
             if (leftType.kind == 'int')
             {
                 if (rightType.kind == 'int')
@@ -473,14 +552,296 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
             break;
         };
+
+        case '*=':
+        case '*':
+        {
+            if (leftType.kind == 'int')
+            {
+                if (rightType.kind == 'int')
+                {
+                    return {
+                        kind: 'int',
+                        size: getBiggerIntSize(leftType.size, rightType.size).replace('u', 'i'),
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as intType;
+                };
+
+                if (rightType.kind == 'float')
+                {
+                    return {
+                        kind: 'float',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as floatType;
+                };
+
+                if (rightType.kind == 'str')
+                {
+                    return {
+                        kind: 'str',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as strType;
+                };
+            };
+
+            if (leftType.kind == 'float')
+            {
+                if (rightType.kind == 'int')
+                {
+                    return {
+                        kind: 'float',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as floatType;
+                };
+
+                if (rightType.kind == 'float')
+                {
+                    return {
+                        kind: 'float',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as floatType;
+                };
+            };
+
+            if (leftType.kind == 'str' && rightType.kind == 'int')
+            {
+                return {
+                    kind: 'str',
+                    where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                } as strType;
+            };
+
+            break;
+        };
+
+        case '/=':
+        case '/':
+        {
+            if (leftType.kind == 'int' || leftType.kind == 'float')
+            {
+                if (rightType.kind == 'int' || rightType.kind == 'float')
+                {
+                    return {
+                        kind: 'float',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as floatType;
+                };
+            };
+
+            break;
+        };
+
+        case '%=':
+        case '%':
+        {
+            if (leftType.kind == 'int' || leftType.kind == 'float')
+            {
+                if (rightType.kind == 'int' || rightType.kind == 'float')
+                {
+                    return {
+                        kind: 'float',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as floatType;
+                };
+            };
+            
+            new error(
+                'Type Error',
+                `You cannot perform the modulo operator on the ${stringifyType(leftType)} type and ${stringifyType(rightType)} type`,
+                TypeChecker.parser.source,
+                makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
+            );
+
+            break;
+        };
+
+        case '<<':
+        case '<<=':
+        case '>>':
+        case '>>=':
+        {
+            if (leftType.kind == 'int' && rightType.kind == 'int')
+            {
+                return {
+                    kind: 'int',
+                    size: getBiggerIntSize(leftType.size, rightType.size).replace('u', 'i'),
+                    where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                } as intType;
+            };
+
+            new error(
+                'Type Error',
+                `You cannot perform bitshift operations on the ${stringifyType(leftType)} type and ${stringifyType(rightType)} type`,
+                TypeChecker.parser.source,
+                makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
+            );
+
+            break;
+        };
+
+        case '&':
+        case '&=':
+        case '|':
+        case '|=':
+        case '^':
+        case '^=':
+        {
+            if (leftType.kind == 'int' && rightType.kind == 'int')
+            {
+                return {
+                    kind: 'int',
+                    size: getBiggerIntSize(leftType.size, rightType.size).replace('u', 'i'),
+                    where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                } as intType;
+            };
+
+            new error(
+                'Type Error',
+                `You cannot perform bitwise operations on the ${stringifyType(leftType)} type and ${stringifyType(rightType)} type`,
+                TypeChecker.parser.source,
+                makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
+            );
+
+            break;
+        };
+
+        case '==':
+        case '!=':
+        case '<>':
+        {
+            return {
+                kind: 'int',
+                size: 'u1',
+                where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+            } as intType;
+        };
+    
+        case '>':
+        case '<':
+        case '>=':
+        case '<=':
+        {
+            if (leftType.kind == 'int')
+            {
+                if (rightType.kind == 'int' || rightType.kind == 'float')
+                {
+                    return {
+                        kind: 'int',
+                        size: 'u1',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as intType;
+                }
+            };
+
+            if (leftType.kind == 'float')
+            {
+                if (rightType.kind == 'int' || rightType.kind == 'float')
+                {
+                    return {
+                        kind: 'int',
+                        size: 'u1',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as intType;
+                };
+            };
+
+            if (leftType.kind == 'str' && rightType.kind == 'str')
+            {
+                return {
+                    kind: 'int',
+                    size: 'u1',
+                    where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                } as intType;
+            }
+
+            if (leftType.kind == 'chr' && rightType.kind == 'chr')
+            {
+                return {
+                    kind: 'int',
+                    size: 'u1',
+                    where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                } as intType;
+            }
+
+            new error(
+                'Type Error',
+                `Comparing a ${stringifyType(leftType)} to a ${stringifyType(rightType)} might be a mistake since they are of different types`,
+                TypeChecker.parser.source,
+                makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
+                `Maybe you meant to compare ${stringifyType(leftType)} ${op} ${stringifyType(leftType)}`
+            );
+
+            break;
+        };
+    
+        case '||':
+        case '&&':
+        {
+            return {
+                kind: 'int',
+                size: 'u1',
+                where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+            } as intType;
+        };
+    
+        case 'in':
+        { 
+            if (leftType.kind == 'array')
+            {
+                if (allTypesCompatible(leftType.elementKind, rightType))
+                {
+                    return {
+                        kind: 'int',
+                        size: 'u1',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as intType;
+                };
+                
+                new error(
+                    'Type Error',
+                    `Cannot search for the ${stringifyType(rightType)} type in a list made of the ${stringifyType(leftType.elementKind)} type`,
+                    TypeChecker.parser.source,
+                    makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                    stringifyType(leftType.elementKind)
+                );
+            };
+
+            if (rightType.kind == 'array')
+            {
+                if (allTypesCompatible(rightType.elementKind, leftType))
+                {
+                    return {
+                        kind: 'int',
+                        size: 'u1',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as intType;
+                };
+
+                new error(
+                    'Type Error',
+                    `Cannot search for the ${stringifyType(leftType)} type in a list made of ${stringifyType(rightType.elementKind)} type`,
+                    TypeChecker.parser.source,
+                    makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
+                    stringifyType(rightType.elementKind)
+                );
+            };
+
+            break;
+        };
     };
 
     new error(
         'Type Error',
         `Operand mismatch: Cannot perform '${op}' on the ${stringifyType(leftType)} and ${stringifyType(rightType)} types`,
         TypeChecker.parser.source,
-        makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], rightType.where[2])
+        makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
+        'Valid operator'
     );
+
+    return {
+        kind: 'null',
+        where: Expression.where
+    }
 };
 
 export const getIntegerSize = (value: bigint): string =>
@@ -570,3 +931,51 @@ function getBiggerIntSize(leftSize: string, rightSize: string): string
 
     return leftBitSize > rightBitSize ? leftSize : rightSize;
 }
+
+export const allTypesCompatible = (firstType: simpleType | undefined, secondType: simpleType | undefined): boolean =>
+{
+    if (firstType == undefined && secondType == undefined)
+    {
+        return true;
+    }
+    else if (firstType == undefined || secondType == undefined)
+    {
+        return true;
+    };
+
+    if (firstType.kind != secondType.kind)
+    {
+        return false;
+    };
+
+    if (firstType.kind == 'array' && secondType.kind == 'array')
+    {
+        return allTypesCompatible(firstType.elementKind!, secondType.elementKind!);
+    };
+
+    return true;
+};
+
+export const stringifyType = (type: simpleType | undefined): string =>
+{
+    let strType = '';
+
+    if (type == undefined)
+    {
+        return ''
+    }
+
+    if (type.kind == 'array')
+    {
+        strType += '[]'
+
+        strType = stringifyType(type.elementKind) + strType;
+    }
+    else
+    {
+        strType = type.kind + strType;
+    };
+
+
+    return strType;
+};

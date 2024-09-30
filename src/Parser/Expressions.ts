@@ -68,7 +68,6 @@ const BindingPower = (operator: string): number =>
         case '&&': 
         case '|':
         {
-        
             return 4;
         };
 
@@ -154,7 +153,12 @@ const led = (parser: Parser, lhs: Expr): Expr =>
 {
     if (['++','--'].includes(parser.at().value))
     {
-        const operator = parser.eat();
+        const op = parser.eat();
+
+        const operator = {
+            kind: op.value,
+            where: [op.where.line, op.where.start, op.where.end]
+        };
 
         if (lhs.type != 'Identifier')
         {
@@ -170,10 +174,10 @@ const led = (parser: Parser, lhs: Expr): Expr =>
         return {
             type: 'UnaryUpdateExpression',
             foldable: false,
-            operator: operator.value,
+            operator: operator,
             prefix: false,
             right: lhs,
-            where: [lhs.where[0], lhs.where[1], operator.where.end]
+            where: [lhs.where[0], lhs.where[1], operator.where[2]]
         } as UnaryUpdateExpression;
     }
 
@@ -190,14 +194,20 @@ const led = (parser: Parser, lhs: Expr): Expr =>
             );
         };
 
-        const operator = parser.eat();
-        const rhs = parseExpression(parser, BindingPower(operator.value));
+        const op = parser.eat();
+
+        const operator = {
+            kind: op.value,
+            where: [op.where.line, op.where.start, op.where.end]
+        };
+        
+        const rhs = parseExpression(parser, BindingPower(operator.kind));
         
         return {
             type: "AssignmentExpression",
             foldable: lhs.foldable && rhs.foldable,
             left: lhs,
-            operator: operator.value,
+            operator: operator,
             right: rhs,
             where: [lhs.where[0], lhs.where[1], rhs.where[2]]
         } as AssignmentExpression;
@@ -205,14 +215,20 @@ const led = (parser: Parser, lhs: Expr): Expr =>
 
     else
     {
-        const operator = parser.eat();
-        const rhs = parseExpression(parser, BindingPower(operator.value));
+        const op = parser.eat();
+
+        const operator = {
+            kind: op.value,
+            where: [op.where.line, op.where.start, op.where.end]
+        };
+
+        const rhs = parseExpression(parser, BindingPower(operator.kind));
         
         return {
             type: "BinaryExpression",
             foldable: lhs.foldable && rhs.foldable,
             left: lhs,
-            operator: operator.value,
+            operator: operator,
             right: rhs,
             where: [lhs.where[0], lhs.where[1], rhs.where[2]]
         } as BinaryExpression;
@@ -227,7 +243,11 @@ const nud = (parser: Parser): Expr =>
 
     if (['--', '++'].includes(token.value))
     {
-        const op = token;
+
+        const operator = {
+            kind: token.value,
+            where: [token.where.line, token.where.start, token.where.end]
+        };
 
         parser.expectMultiple(
             [TokenType.identifier, TokenType.leftParenthesis],
@@ -252,25 +272,28 @@ const nud = (parser: Parser): Expr =>
         lhs = {
             type: 'UnaryUpdateExpression',
             foldable: false,
-            operator: op.value,
+            operator: operator,
             prefix: true,
             right: ident,
-            where: [op.where.line, op.where.start, ident.where[2]]
+            where: [token.where.line, token.where.start, ident.where[2]]
         } as UnaryUpdateExpression;
     }
 
     else if (['~', '!', '-', '+'].includes(token.value))
     {
-        const op = token;
+        const operator = {
+            kind: token.value,
+            where: [token.where.line, token.where.start, token.where.end]
+        };
         
-        const expr = parseExpression(parser, BindingPower(op.value));
+        const expr = parseExpression(parser, BindingPower(token.value));
 
         lhs = {
             type: 'UnaryExpression',
             foldable: expr.foldable,
-            operator: op.value,
+            operator: operator,
             right: expr,
-            where: [op.where.line, op.where.start, expr.where[2]]
+            where: [token.where.line, token.where.start, expr.where[2]]
         } as UnaryExpression;
     }
 

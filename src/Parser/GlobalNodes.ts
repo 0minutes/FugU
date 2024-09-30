@@ -54,7 +54,10 @@ export interface BinaryExpression
     foldable: boolean;
     left: Expr;
     right: Expr;
-    operator: string;
+    operator: {
+        kind: string;
+        where: number[]
+    };
     where: number[];
 };
 
@@ -65,7 +68,10 @@ export interface AssignmentExpression
     foldable: boolean;
     left: Identifier;
     right: Expr;
-    operator: string;
+    operator: {
+        kind: string;
+        where: number[]
+    };
     where: number[];
 };
 
@@ -73,7 +79,10 @@ export interface UnaryExpression
 {
     type: 'UnaryExpression';
     foldable: boolean;
-    operator: string;
+    operator: {
+        kind: string;
+        where: number[]
+    };
     right: Expr;
     where: number[];
 };
@@ -82,7 +91,10 @@ export interface UnaryUpdateExpression
 {
     type: 'UnaryUpdateExpression';
     foldable: boolean;
-    operator: string;
+    operator: {
+        kind: string;
+        where: number[]
+    };
     prefix: boolean;
     right: Identifier;
     where: number[];

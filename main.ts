@@ -23,7 +23,7 @@ const main = (): number =>
         const parser = new Parser('<stdin>', input);
 
         new TypeChecker(parser, Env);
-
+        
         console.log(parser.ast);
     };
 };
