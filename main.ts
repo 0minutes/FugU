@@ -3,6 +3,11 @@ import
     Parser
 } from './src/Parser/Parser.ts';
 
+import 
+{
+    Lexer
+} from './src/Lexer/Lexer.ts';
+
 import
 {
     Environment,
@@ -24,7 +29,7 @@ const main = (): number =>
 
         new TypeChecker(parser, Env);
         
-        console.log(parser.ast);
+        // console.log(parser.ast); 
     };
 };
 

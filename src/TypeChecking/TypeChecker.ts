@@ -15,6 +15,7 @@ import
 
 import
 {
+    checkDeclerationStatements,
     checkExpressionStatement,
 } from './Statements.ts'
 
@@ -38,6 +39,12 @@ export class TypeChecker
             case "ExpressionStatement":
             {
                 checkExpressionStatement(this, Statement.body);
+                break;
+            };
+
+            case "DeclerationStatement":
+            {
+                checkDeclerationStatements(this, Statement);
                 break;
             };
         };

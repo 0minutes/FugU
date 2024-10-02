@@ -103,67 +103,56 @@ export class Lexer
                 continue;
             }
 
-            if (char == '/' && this.splitSource[0] == '*')
-                {
-                    this.eat();
-                    this.cur++;
-    
-                    while (true)
+            else if (char == '/' && peek == '*')
+            {
+                this.eat();
+                this.cur++;
+                while (this.splitSource.length > 0)
+                {                    
+                    if (this.splitSource.length == 0)
                     {
-                        if (this.splitSource.length == 0)
-                        {
-                            new error(
-                                'Lexer Error',
-                                'Cannot find the end of a block comment',
-                                this.source,
-                                makePosition(this.filename, this.line, start, this.cur)
-                            );
-                        };
-
-                        if (this.splitSource[0] == '\n')
-                        {
-                            this.eat();
-                            this.line++;
-                            this.cur = 0;
-                            continue;
-                        };
-                        
-                        if (this.splitSource[0] == '*' && this.peek() == '/')
-                        {
-                            this.eat();
-                            this.cur++;
-                            this.eat();
-                            this.cur++;
-    
-                            break;
-                        };
-    
-                        this.eat();
-                        this.cur++;
+                        new error(
+                            'Lexer Error',
+                            'Un-ended block comment',
+                            this.source,
+                            makePosition(this.filename, this.line, this.cur, this.cur+1),
+                            '*/'
+                        );
                     };
-    
-                    if (this.splitSource[0] == '\n')
+
+                    if (this.at() == '\n')
                     {
                         this.eat();
                         this.line++;
                         this.cur = 0;
+                        continue;
                     };
-                }
-    
-                else if (char == '/' && this.splitSource[0] == '/')
-                {
-                    this.eat();
-                    this.cur++;
-    
-                    while (this.splitSource.length > 0 && this.splitSource[0] != '\n')
+
+                    if (this.at() == '*' && this.peek() == '/')
                     {
                         this.eat();
                         this.cur++;
+                        this.eat();
+                        this.cur++;
+
+                        break;
                     };
+
                     this.eat();
-                    this.line++;
-                    this.cur = 0;
-                }
+                    this.cur++;
+                };
+            }
+
+            else if (char == '/' && peek == '/')
+            {
+                this.eat();
+                this.cur++;
+                while (this.splitSource.length > 0 && this.at() != '\n')
+                {
+                    this.eat();
+                    this.cur++;
+                };
+            }
 
             else if (char == '\n')
             {
@@ -203,7 +192,15 @@ export class Lexer
         };
 
         this.cur++
-        tokens.push(this.makeToken('EOF', TokenType.eof, this.cur-1));
+
+        if (tokens.length >= 1)
+        {
+            tokens.push({type: TokenType.eof, value: 'EOF', where: makePosition(this.filename, this.line, tokens[tokens.length-1].where.start+1, tokens[tokens.length-1].where.end+1)});
+        }
+        else
+        {
+            tokens.push(this.makeToken('EOF', TokenType.eof, this.cur-1))
+        };
 
         return tokens;
     };

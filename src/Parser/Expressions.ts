@@ -520,7 +520,7 @@ export const parseType = (parser: Parser): simpleType =>
             
             break;
         };
-        case TokenType.str:
+        case TokenType.strDef:
         {
             simpleType = {
                 kind: 'str',

@@ -16,8 +16,8 @@ import
 
 import 
 {
-AssignmentExpression,
-BinaryExpression,
+    AssignmentExpression,
+    BinaryExpression,
     Expr,
     Literal,
 } from "../Parser/GlobalNodes.ts";
@@ -26,6 +26,7 @@ import
 {
     error,
     makePosition,
+    warning,
 } from '../Errors/Errors.ts';
 
 export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): simpleType =>
@@ -45,7 +46,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
             {
                 new error(
                     'Name Error',
-                    `The variable '${Expression.left.value}' is a constant and cannot be reassigned`,
+                    `The variable '${Expression.left.value}' is a constant and therefore cannot be re-assigned`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2])
                 );
@@ -57,7 +58,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
             {
                 new error(
                     'Type Error',
-                    `Cannot assign the ${stringifyType(initType)} to the declared type of ${stringifyType(identType)}`,
+                    `Cannot assign the ${stringifyType(initType)} type to the declared type of ${stringifyType(identType)}`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, initType.where[0], initType.where[1], initType.where[2]),
                     stringifyType(identType)
@@ -69,19 +70,19 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
         case 'ArrayLiteralExpression':
         {
-            let ElementKind = undefined;
+            let ElementKind: undefined | simpleType = undefined;
 
             for (let i = 0; i < Expression.elements.length; i++)
             {
                 const element = Expression.elements[i];
 
+                const currentElementKind = getExpressionType(TypeChecker, element);
+
                 if (i == 0)
                 {
-                    ElementKind = getExpressionType(TypeChecker, element);
+                    ElementKind = currentElementKind;
                     continue;
                 };
-
-                const currentElementKind = getExpressionType(TypeChecker, element);
 
                 if (!allTypesCompatible(currentElementKind, ElementKind!))
                 {
@@ -318,13 +319,17 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
             {
                 if (allTypesCompatible(leftType.elementKind, rightType))
                 {
-                    return leftType;
+                    return {
+                        kind: 'array',
+                        elementKind: rightType,
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    };
                 }
                 else
                 {
                     new error(
                         'Type Error',
-                        `Cannot push the ${stringifyType(rightType)} type to an array of ${stringifyType(leftType.elementKind)}`,
+                        `Cannot push the ${stringifyType(rightType)} type into an array of ${stringifyType(leftType.elementKind)}`,
                         TypeChecker.parser.source,
                         makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
                         stringifyType(leftType.elementKind)
@@ -351,9 +356,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     {
                         new error(
                             'Type Error',
-                            `Cannot push the ${stringifyType(leftType)} type to an array of ${stringifyType(rightType.elementKind)}`,
+                            `Cannot push the ${stringifyType(leftType)} type into an array of ${stringifyType(rightType.elementKind)}`,
                             TypeChecker.parser.source,
-                            makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                            makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
                             stringifyType(rightType.elementKind)
                         );
     
@@ -385,9 +390,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     {
                         new error(
                             'Type Error',
-                            `Cannot push the ${stringifyType(leftType)} type to an array of ${stringifyType(rightType.elementKind)}`,
+                            `Cannot push the ${stringifyType(leftType)} type into an array of ${stringifyType(rightType.elementKind)}`,
                             TypeChecker.parser.source,
-                            makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                            makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
                             stringifyType(rightType.elementKind)
                         );
     
@@ -420,9 +425,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     {
                         new error(
                             'Type Error',
-                            `Cannot push the ${stringifyType(leftType)} type to an array of ${stringifyType(rightType.elementKind)}`,
+                            `Cannot push the ${stringifyType(leftType)} type into an array of ${stringifyType(rightType.elementKind)}`,
                             TypeChecker.parser.source,
-                            makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                            makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
                             stringifyType(rightType.elementKind)
                         );
     
@@ -476,7 +481,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                             'Type Error',
                             `Cannot push the ${stringifyType(leftType)} type to an array of ${stringifyType(rightType.elementKind)}`,
                             TypeChecker.parser.source,
-                            makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                            makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
                             stringifyType(rightType.elementKind)
                         );
     
@@ -745,33 +750,22 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 };
             };
 
-            if (leftType.kind == 'str' && rightType.kind == 'str')
+            if (!allTypesCompatible(leftType, rightType))
             {
-                return {
-                    kind: 'int',
-                    size: 'u1',
-                    where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                } as intType;
-            }
+                new warning(
+                    'Type Error',
+                    `Comparing a ${stringifyType(leftType)} to a ${stringifyType(rightType)} might be a mistake since they are of different types`,
+                    TypeChecker.parser.source,
+                    makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
+                    `Maybe you meant to compare ${stringifyType(leftType)} ${op} ${stringifyType(leftType)}`
+                );
+            };
 
-            if (leftType.kind == 'chr' && rightType.kind == 'chr')
-            {
-                return {
-                    kind: 'int',
-                    size: 'u1',
-                    where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                } as intType;
-            }
-
-            new error(
-                'Type Error',
-                `Comparing a ${stringifyType(leftType)} to a ${stringifyType(rightType)} might be a mistake since they are of different types`,
-                TypeChecker.parser.source,
-                makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
-                `Maybe you meant to compare ${stringifyType(leftType)} ${op} ${stringifyType(leftType)}`
-            );
-
-            break;
+            return {
+                kind: 'int',
+                size: 'u1',
+                where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+            } as intType;
         };
     
         case '||':
@@ -799,7 +793,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 
                 new error(
                     'Type Error',
-                    `Cannot search for the ${stringifyType(rightType)} type in a list made of the ${stringifyType(leftType.elementKind)} type`,
+                    `Cannot search for the ${stringifyType(rightType)} type in a list of ${stringifyType(leftType.elementKind)} type`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
                     stringifyType(leftType.elementKind)
@@ -841,7 +835,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
     return {
         kind: 'null',
         where: Expression.where
-    }
+    };
 };
 
 export const getIntegerSize = (value: bigint): string =>
@@ -909,7 +903,7 @@ export const getIntegerSize = (value: bigint): string =>
     return size;
 }
 
-function getBiggerIntSize(leftSize: string, rightSize: string): string
+export const getBiggerIntSize = (leftSize: string, rightSize: string): string =>
 {
 
     const sizeMap: Record<string, number> = {
@@ -930,7 +924,7 @@ function getBiggerIntSize(leftSize: string, rightSize: string): string
     };
 
     return leftBitSize > rightBitSize ? leftSize : rightSize;
-}
+};
 
 export const allTypesCompatible = (firstType: simpleType | undefined, secondType: simpleType | undefined): boolean =>
 {
@@ -962,7 +956,7 @@ export const stringifyType = (type: simpleType | undefined): string =>
 
     if (type == undefined)
     {
-        return ''
+        return 'null'
     }
 
     if (type.kind == 'array')
@@ -975,7 +969,6 @@ export const stringifyType = (type: simpleType | undefined): string =>
     {
         strType = type.kind + strType;
     };
-
 
     return strType;
 };

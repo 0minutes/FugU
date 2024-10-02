@@ -111,7 +111,6 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
     );
 
     const typedef: simpleType = parseType(parser);
-
     
     if (parser.at().type == TokenType.semicolon && mut.value == 'mut')
     {
