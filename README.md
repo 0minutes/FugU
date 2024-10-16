@@ -35,14 +35,14 @@ String Concatenation / Addition (```+```):
 
 Subtraction (```-```):
 
-    int - int = int (same or bigger integer size, converted to signed if needed)
+    int - int = int
     float - float = float
     
     array - int = array (removes the int-th element)
 
 Multiplication (```*```):
 
-    int * int = int (same or bigger integer size)
+    int * int = int
     float * float = float
     string * int = string (repeats the string int times)
 
@@ -67,8 +67,8 @@ Comparison (```==```, ```!=```, ```>```, ```<```, ```>=```, ```<=```):
 Bitwise Operators (```<<```, ```>>```, ```&```, ```|```, ```^```):
 
     Only valid between integers:
-        int & int = int (of same or bigger integer size)
-        int | int = int (of same or bigger integer size)
+        int & int = int
+        int | int = int
         int << int = int
         int >> int = int
 
