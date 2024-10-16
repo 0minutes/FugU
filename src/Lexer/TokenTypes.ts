@@ -57,15 +57,7 @@ export const enum TokenType {
     input = '<input>',
     typeof = '<typeof>',
 
-    u1Def = '<u1Def>',
-    u8Def = '<u8Def>',
-    u16Def = '<u16Def>',
-    u32Def = '<u32Def>',
-    u64Def = '<u64Def>',
-    i8Def = '<i8Def>',
-    i16Def = '<i16Def>',
-    i32Def = '<i32Def>',
-    i64Def = '<i64Def>',
+    intDef = '<intDef>',
 
     floatDef = '<floatDef>',
 
@@ -156,15 +148,7 @@ export const keywords: Record <string, TokenType> =
     'typeof': TokenType.typeof,
     'in': TokenType.in,
 
-    'u1': TokenType.u1Def,
-    'u8': TokenType.u8Def,
-    'u16': TokenType.u16Def,
-    'u32': TokenType.u32Def,
-    'u64': TokenType.u64Def,
-    'i8': TokenType.i8Def,
-    'i16': TokenType.i16Def,
-    'i32': TokenType.i32Def,
-    'i64': TokenType.i64Def,
+    'int': TokenType.intDef,
 
     'float': TokenType.floatDef,
 

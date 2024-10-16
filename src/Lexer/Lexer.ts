@@ -95,6 +95,18 @@ export class Lexer
             const char = this.eat();
             const peek = this.at();
 
+            if (char == '/' && peek == '/')
+            {
+                this.eat();
+                
+                while (this.splitSource.length > 0 && this.at() != '\n')
+                {
+                    this.eat();
+                };
+
+                continue;
+            };
+
             this.cur++;
 
 
@@ -143,17 +155,6 @@ export class Lexer
                 };
             }
 
-            else if (char == '/' && peek == '/')
-            {
-                this.eat();
-                this.cur++;
-                while (this.splitSource.length > 0 && this.at() != '\n')
-                {
-                    this.eat();
-                    this.cur++;
-                };
-            }
-
             else if (char == '\n')
             {
                 this.line++;
@@ -163,6 +164,11 @@ export class Lexer
             else if (char in specialCharacters)
             {
                 this.handleSpecialCharacters(tokens, char as string, peek, start);
+            }
+
+            else if (char == '0')
+            {
+                this.handleHexOctBin(tokens, char as string, start);
             }
 
             else if (DIGITS.includes(char))
@@ -191,16 +197,7 @@ export class Lexer
             };
         };
 
-        this.cur++
-
-        if (tokens.length >= 1)
-        {
-            tokens.push({type: TokenType.eof, value: 'EOF', where: makePosition(this.filename, this.line, tokens[tokens.length-1].where.start+1, tokens[tokens.length-1].where.end+1)});
-        }
-        else
-        {
-            tokens.push(this.makeToken('EOF', TokenType.eof, this.cur-1))
-        };
+        tokens.push({type: TokenType.eof, value: 'EOF', where: makePosition(this.filename, this.line, this.cur, this.cur+1)});
 
         return tokens;
     };
@@ -282,6 +279,80 @@ export class Lexer
         };
     };
 
+    handleHexOctBin = (tokens: Token[], char: string, start: number): void =>
+        {
+            let number = char;
+            let base = 2;
+    
+            if (this.splitSource[0].toLocaleLowerCase() == 'x')
+            {
+                base = 16;
+                number += this.eat();
+                this.cur++;
+            }
+
+            else if (this.splitSource[0].toLocaleLowerCase() == 'o')
+            {
+                base = 8;
+                number += this.eat();
+                this.cur++;
+            }
+
+            else if (this.splitSource[0].toLocaleLowerCase() == 'b')
+            {
+                base = 2;
+                number += this.eat();
+                this.cur++;
+            }
+
+            else
+            {
+                new error(
+                    'Lexer Error',
+                    `Expected a valid prefix for the digit type`,
+                    this.source,
+                    makePosition(this.filename, this.line, this.cur++, this.cur),
+                    `'x' or 'o' or 'b'`
+                );
+            };
+
+            const validChars = {
+                16: '0123456789abcdefABCDEF',
+                8: '01234567',
+                2: '01',
+            }[base]!
+
+            if (!validChars.includes(this.splitSource[0]))
+            {
+                new error(
+                    'Lexer Error',
+                    `Expected valid digits after the '${number}' prefix`,
+                    this.source,
+                    makePosition(this.filename, this.line, this.cur, this.cur+1),
+                    validChars
+                );
+            };
+
+            while (
+                this.splitSource.length > 0 &&
+                (validChars.includes(this.splitSource[0]) || this.splitSource[0] == '_')
+            )
+            {
+                if (this.splitSource[0] == '_')
+                {
+                    this.eat();
+                    this.cur++;
+                } 
+                else
+                {
+                    number += this.eat();
+                    this.cur++;
+                }
+            };
+        
+            tokens.push(this.makeToken(number, TokenType.int, start));
+        };
+
     handleNumbers = (tokens: Token[], char: string, start: number): void =>
     {
         let number = char;
@@ -309,25 +380,24 @@ export class Lexer
 
                 if (this.splitSource.length == 0 || !'0987654321'.includes(this.splitSource[0]))
                 {
-                    this.cur++;
-
                     new error(
                         'Lexer Error',
-                        `Unexpectedly got \`${this.eat()}\` while trying to understand a digit literal. Expected a digit (0..9)`,
+                        `Unexpectedly got \`${this.eat()}\` instead of a decimal digit`,
                         this.source,
-                        makePosition(this.filename, this.line, start, this.cur)
+                        makePosition(this.filename, this.line, this.cur, this.cur+1),
+                        '0123456789'
                     );
                 };
             }
             else if (this.splitSource[0] == '.' && dot)
             {
                 this.eat();
-                this.cur++;
                 new error(
                     'Lexer Error',
                     `Multiple dots in a number`,
                     this.source,
-                    makePosition(this.filename, this.line, start, this.cur),
+                    makePosition(this.filename, this.line, this.cur, this.cur+1),
+                    '0123456789'
                 );
             }
             else

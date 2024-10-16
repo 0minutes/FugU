@@ -20,9 +20,7 @@ The source code for various components of the language can be found in the `./sr
 
 ## Type Conversions
 
-Current conversions which take place on binary operations 
-
-(*u1 is true or false*)
+Current conversions which take place on binary operations
 
 String Concatenation / Addition (```+```):
 
@@ -30,18 +28,14 @@ String Concatenation / Addition (```+```):
     char + string = string
     int + string = string
     float + string = string
-    int + float = float
-    float + int = float
-    int + int = int (of same or bigger integer size)
+    int + int = int
     float + float = float
 
-    array + value = array (pushes the value onto the array)
+    array + value = array (pushes the value onto the array if types are compatible)
 
 Subtraction (```-```):
 
     int - int = int (same or bigger integer size, converted to signed if needed)
-    int - float = float
-    float - int = float
     float - float = float
     
     array - int = array (removes the int-th element)
@@ -49,32 +43,25 @@ Subtraction (```-```):
 Multiplication (```*```):
 
     int * int = int (same or bigger integer size)
-    int * float = float
-    float * int = float
     float * float = float
     string * int = string (repeats the string int times)
 
 Division (```/```):
 
     int / int = float (integer division results in float)
-    int / float = float
-    float / int = float
     float / float = float
 
 Modulo (```%```):
 
     int % int = float
-    int % float = float
-    float % int = float
     float % float = float
 
 Comparison (```==```, ```!=```, ```>```, ```<```, ```>=```, ```<=```):
 
-    Comparisons between int, float, char return int (of size u1)
-    string == string = u1
-    char == char = u1
-    int == int = u1
-    float == float = u1
+    Comparisons between int, float, char return int
+
+    any == any = int
+
     Mixed types comparison: Promotes to the most compatible type (e.g., int == chr is compared as int == int (ASCII int)).
 
 Bitwise Operators (```<<```, ```>>```, ```&```, ```|```, ```^```):
@@ -87,10 +74,10 @@ Bitwise Operators (```<<```, ```>>```, ```&```, ```|```, ```^```):
 
 Logical Operators (```&&```, ```||```):
 
-    Logical operators return u1:
-        int && int = u1
-        int || int = u1
+    Logical operators return int:
+        int && int = int
+        int || int = int
 
 ```in``` Operator:
     Used to check if a value is present in an array:
-        value in array = u1
+        value in array = int

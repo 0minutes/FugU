@@ -3,11 +3,6 @@ import
     Parser
 } from './src/Parser/Parser.ts';
 
-import 
-{
-    Lexer
-} from './src/Lexer/Lexer.ts';
-
 import
 {
     Environment,
@@ -26,10 +21,8 @@ const main = (): number =>
     {
         const input = prompt('>> ', '') as string;
         const parser = new Parser('<stdin>', input);
-
         new TypeChecker(parser, Env);
-        
-        // console.log(parser.ast); 
+        console.log(parser.ast)
     };
 };
 

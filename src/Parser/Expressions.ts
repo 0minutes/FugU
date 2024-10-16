@@ -487,15 +487,7 @@ export const parseType = (parser: Parser): simpleType =>
 {
     const token = parser.expectMultiple(
         [
-            TokenType.u1Def,
-            TokenType.u8Def,
-            TokenType.u16Def,
-            TokenType.u32Def,
-            TokenType.u64Def,
-            TokenType.i8Def,
-            TokenType.i16Def,
-            TokenType.i32Def,
-            TokenType.i64Def,
+            TokenType.intDef,
         
             TokenType.floatDef,
 

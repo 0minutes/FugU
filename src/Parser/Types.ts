@@ -7,12 +7,9 @@ export interface nullType
     where: number[];
 };
 
-export type intSize = 'u1' | 'u8' | 'i8' | 'u16' | 'i16' | 'u32' | 'i32' | 'u64' | 'i64';
-
 export interface intType
 {
     kind: 'int';
-    size: intSize;
     where: number[];
 };
 

@@ -266,7 +266,6 @@ export const getLiteralType = (Literal: Literal): simpleType =>
         {
             return {
                 kind: 'int',
-                size: getIntegerSize(Literal.value as bigint),
                 where: Literal.where
             } as intType;
         };
@@ -446,14 +445,6 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     } as strType;
                 };
 
-                if (rightType.kind == 'float')
-                {
-                    return {
-                        kind: 'float',
-                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                    } as floatType;
-                };
-
                 if (rightType.kind == 'int')
                 {
                     Expression.left as Literal;
@@ -461,7 +452,6 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
                     return {
                         kind: 'int',
-                        size: getBiggerIntSize(leftType.size, rightType.size),
                         where: [leftType.where[0], leftType.where[1], rightType.where[2]]
                     } as intType;
                 };
@@ -500,7 +490,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     } as strType;
                 };
 
-                if (rightType.kind == 'float' || rightType.kind == 'int')
+                if (rightType.kind == 'float')
                 {
                     return {
                         kind: 'float',
@@ -530,23 +520,14 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 {
                     return {
                         kind: 'int',
-                        size: getBiggerIntSize(leftType.size, rightType.size).replace('u', 'i'),
                         where: [leftType.where[0], leftType.where[1], rightType.where[2]]
                     } as intType;
-                };
-
-                if (rightType.kind == 'float')
-                {
-                    return {
-                        kind: 'float',
-                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                    } as floatType;
                 };
             };
 
             if (leftType.kind == 'float')
             {
-                if (rightType.kind == 'int' || rightType.kind == 'float')
+                if (rightType.kind == 'float')
                 {
                     return {
                         kind: 'float',
@@ -567,17 +548,8 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 {
                     return {
                         kind: 'int',
-                        size: getBiggerIntSize(leftType.size, rightType.size).replace('u', 'i'),
                         where: [leftType.where[0], leftType.where[1], rightType.where[2]]
                     } as intType;
-                };
-
-                if (rightType.kind == 'float')
-                {
-                    return {
-                        kind: 'float',
-                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                    } as floatType;
                 };
 
                 if (rightType.kind == 'str')
@@ -589,23 +561,12 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 };
             };
 
-            if (leftType.kind == 'float')
+            if (leftType.kind == 'float' && rightType.kind == 'float')
             {
-                if (rightType.kind == 'int')
-                {
-                    return {
-                        kind: 'float',
-                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                    } as floatType;
-                };
-
-                if (rightType.kind == 'float')
-                {
-                    return {
-                        kind: 'float',
-                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                    } as floatType;
-                };
+                return {
+                    kind: 'float',
+                    where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                } as floatType;
             };
 
             if (leftType.kind == 'str' && rightType.kind == 'int')
@@ -622,9 +583,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
         case '/=':
         case '/':
         {
-            if (leftType.kind == 'int' || leftType.kind == 'float')
+            if (leftType.kind == 'int')
             {
-                if (rightType.kind == 'int' || rightType.kind == 'float')
+                if (rightType.kind == 'int')
                 {
                     return {
                         kind: 'float',
@@ -633,15 +594,36 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 };
             };
 
+            if (leftType.kind == 'float')
+            {
+                if (rightType.kind == 'float')
+                {
+                    return {
+                        kind: 'float',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as floatType;
+                };
+            };
             break;
         };
 
         case '%=':
         case '%':
         {
-            if (leftType.kind == 'int' || leftType.kind == 'float')
+            if (leftType.kind == 'int')
             {
-                if (rightType.kind == 'int' || rightType.kind == 'float')
+                if (rightType.kind == 'int')
+                {
+                    return {
+                        kind: 'float',
+                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                    } as floatType;
+                };
+            };
+
+            if (leftType.kind == 'float')
+            {
+                if (rightType.kind == 'float')
                 {
                     return {
                         kind: 'float',
@@ -669,7 +651,6 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
             {
                 return {
                     kind: 'int',
-                    size: getBiggerIntSize(leftType.size, rightType.size).replace('u', 'i'),
                     where: [leftType.where[0], leftType.where[1], rightType.where[2]]
                 } as intType;
             };
@@ -695,7 +676,6 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
             {
                 return {
                     kind: 'int',
-                    size: getBiggerIntSize(leftType.size, rightType.size).replace('u', 'i'),
                     where: [leftType.where[0], leftType.where[1], rightType.where[2]]
                 } as intType;
             };
@@ -716,7 +696,6 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
         {
             return {
                 kind: 'int',
-                size: 'u1',
                 where: [leftType.where[0], leftType.where[1], rightType.where[2]]
             } as intType;
         };
@@ -726,30 +705,6 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
         case '>=':
         case '<=':
         {
-            if (leftType.kind == 'int')
-            {
-                if (rightType.kind == 'int' || rightType.kind == 'float')
-                {
-                    return {
-                        kind: 'int',
-                        size: 'u1',
-                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                    } as intType;
-                }
-            };
-
-            if (leftType.kind == 'float')
-            {
-                if (rightType.kind == 'int' || rightType.kind == 'float')
-                {
-                    return {
-                        kind: 'int',
-                        size: 'u1',
-                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                    } as intType;
-                };
-            };
-
             if (!allTypesCompatible(leftType, rightType))
             {
                 new warning(
@@ -763,7 +718,6 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
             return {
                 kind: 'int',
-                size: 'u1',
                 where: [leftType.where[0], leftType.where[1], rightType.where[2]]
             } as intType;
         };
@@ -773,52 +727,38 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
         {
             return {
                 kind: 'int',
-                size: 'u1',
                 where: [leftType.where[0], leftType.where[1], rightType.where[2]]
             } as intType;
         };
     
         case 'in':
-        { 
-            if (leftType.kind == 'array')
-            {
-                if (allTypesCompatible(leftType.elementKind, rightType))
-                {
-                    return {
-                        kind: 'int',
-                        size: 'u1',
-                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                    } as intType;
-                };
-                
-                new error(
-                    'Type Error',
-                    `Cannot search for the ${stringifyType(rightType)} type in a list of ${stringifyType(leftType.elementKind)} type`,
-                    TypeChecker.parser.source,
-                    makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
-                    stringifyType(leftType.elementKind)
-                );
-            };
-
+        {
             if (rightType.kind == 'array')
             {
                 if (allTypesCompatible(rightType.elementKind, leftType))
                 {
                     return {
                         kind: 'int',
-                        size: 'u1',
                         where: [leftType.where[0], leftType.where[1], rightType.where[2]]
                     } as intType;
                 };
 
                 new error(
                     'Type Error',
-                    `Cannot search for the ${stringifyType(leftType)} type in a list made of ${stringifyType(rightType.elementKind)} type`,
+                    `Cannot search for the ${stringifyType(leftType)} type in a list made of the ${stringifyType(rightType.elementKind)} type`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
                     stringifyType(rightType.elementKind)
                 );
             };
+
+            new error(
+                'Type Error',
+                `Cannot search for the ${stringifyType(leftType)} type in a non array type of ${stringifyType(rightType)}`,
+                TypeChecker.parser.source,
+                makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                stringifyType(leftType) + '[]'
+            );
 
             break;
         };
@@ -838,93 +778,6 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
     };
 };
 
-export const getIntegerSize = (value: bigint): string =>
-{
-    let size;
-
-    switch (true)
-    {
-        case value === 0n || value === 1n:
-        {
-            size = 'u1';
-            break;
-        };
-
-        case value >= 0n && value <= 255n:
-        {
-            size = 'u8';
-            break;
-        };
-        
-        case value >= 0n && value <= 65535n:
-        {
-            size = 'u16';
-            break;
-        };
-
-        case value >= 0n && value <= 4294967295n:
-        {
-            size = 'u32';
-            break;
-        };
-
-        case value >= 0n:
-        {
-            size = 'u64';
-            break;
-        };
-
-        case value >= -128n && value <= 127n:
-        {
-            size = 'i8';
-            break;
-        };
-
-        case value >= -32768n && value <= 32767n:
-        {
-            
-            size = 'i16';
-            break;
-        };
-
-        case value >= -2147483648n && value <= 2147483647n:
-        {
-            size = 'i32';
-            break;
-        };
-
-        default:
-        {
-            size = 'i64';
-            break;
-        }
-    }
-
-    return size;
-}
-
-export const getBiggerIntSize = (leftSize: string, rightSize: string): string =>
-{
-
-    const sizeMap: Record<string, number> = {
-        'u1': 1,
-        'u8': 8, 'i8': 8,
-        'u16': 16, 'i16': 16,
-        'u32': 32, 'i32': 32,
-        'u64': 64, 'i64': 64
-    };
-
-    const leftBitSize = sizeMap[leftSize];
-    const rightBitSize = sizeMap[rightSize];
-
-    if (leftSize.startsWith('i') || rightSize.startsWith('i'))
-    {
-        const biggerSize = leftBitSize >= rightBitSize ? leftBitSize : rightBitSize;
-        return biggerSize == leftBitSize && leftSize.startsWith('i') ? leftSize : rightSize.startsWith('i') ? rightSize : `i${biggerSize}`;
-    };
-
-    return leftBitSize > rightBitSize ? leftSize : rightSize;
-};
 
 export const allTypesCompatible = (firstType: simpleType | undefined, secondType: simpleType | undefined): boolean =>
 {
@@ -957,7 +810,7 @@ export const stringifyType = (type: simpleType | undefined): string =>
     if (type == undefined)
     {
         return 'null'
-    }
+    };
 
     if (type.kind == 'array')
     {
@@ -965,6 +818,7 @@ export const stringifyType = (type: simpleType | undefined): string =>
 
         strType = stringifyType(type.elementKind) + strType;
     }
+
     else
     {
         strType = type.kind + strType;

@@ -58,7 +58,6 @@ export const checkDeclerationStatements = (TypeChecker: TypeChecker, Decleration
     
             return;
         };
-    
     };
 
     for (let i = 0; i < DeclerationStatement.variables.length; i++)
