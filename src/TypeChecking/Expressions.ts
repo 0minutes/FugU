@@ -610,26 +610,15 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
         case '%=':
         case '%':
         {
-            if (leftType.kind == 'int')
+            if (
+                (leftType.kind == 'int' && rightType.kind == 'int' ) ||
+                (leftType.kind == 'float' && rightType.kind == 'float')
+            )
             {
-                if (rightType.kind == 'int')
-                {
-                    return {
-                        kind: 'float',
-                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                    } as floatType;
-                };
-            };
-
-            if (leftType.kind == 'float')
-            {
-                if (rightType.kind == 'float')
-                {
-                    return {
-                        kind: 'float',
-                        where: [leftType.where[0], leftType.where[1], rightType.where[2]]
-                    } as floatType;
-                };
+                return {
+                    kind: 'float',
+                    where: [leftType.where[0], leftType.where[1], rightType.where[2]]
+                } as floatType;
             };
             
             new error(
