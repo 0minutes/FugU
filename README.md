@@ -22,6 +22,8 @@ The source code for various components of the language can be found in the `./sr
 
 Current conversions which take place on binary operations
 
+(*if an operation between types is not listed, it's probably a type error*)
+
 String Concatenation / Addition (```+```):
 
     string + string = string

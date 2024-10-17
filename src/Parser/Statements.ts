@@ -151,7 +151,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
         '='
     );
 
-    const initializer = parseExpression(parser, 0);
+    const initializer = parseExpression(parser, 2);
 
     DeclStatement = {
         type: 'DeclerationStatement',

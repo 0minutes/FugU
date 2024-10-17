@@ -13,6 +13,7 @@ import
 import
 {
     BinaryExpression,
+    ElementAccessExpression,
     AssignmentExpression,
     UnaryExpression,
     UnaryUpdateExpression,
@@ -40,11 +41,6 @@ const BindingPower = (operator: string): number =>
 
     switch (operator)
     {
-        case ',':
-        {
-            return 1;
-        };
-
         case '=':
         case '+=':
         case '-=':
@@ -480,8 +476,30 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {} as Expr;
     };
 
+    while (parser.at().type == TokenType.leftBracket)
+    {
+        parser.eat();
+
+        const argument = parseExpression(parser, 2);
+
+        parser.expect(
+            TokenType.rightBracket,
+            true,
+            `Expected a ']' (${TokenType.rightBracket}) instead of '${parser.at().value}' (${parser.at().type})`,
+            ']'
+        );
+
+        lhs = {
+            type: 'ElementAccessExpression',
+            foldable: lhs.foldable,
+            right: lhs,
+            argument: argument,
+            where: [lhs.where[0], lhs.where[1], lhs.where[2]],
+        } as ElementAccessExpression;
+    };
+    
     return lhs;
-};
+}
 
 export const parseType = (parser: Parser): simpleType => 
 {
@@ -535,7 +553,6 @@ export const parseType = (parser: Parser): simpleType =>
         {
             simpleType = {
                 kind: 'int',
-                size: token.value,
                 where: [token.where.line, token.where.start, token.where.end]
             } as intType;
         };

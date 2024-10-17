@@ -58,7 +58,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
             {
                 new error(
                     'Type Error',
-                    `Cannot assign the ${stringifyType(initType)} type to the declared type of ${stringifyType(identType)}`,
+                    `Cannot assign the '${stringifyType(initType)}' type to the declared type of '${stringifyType(identType)}'`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, initType.where[0], initType.where[1], initType.where[2]),
                     stringifyType(identType)
@@ -67,6 +67,47 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
             return getBinaryExpressionType(TypeChecker, Expression);
         };
+
+        case 'ElementAccessExpression':
+        {
+            const rightType = getExpressionType(TypeChecker, Expression.right);
+
+            if (rightType.kind == 'array')
+            {
+                const argumentType = getExpressionType(TypeChecker, Expression.argument);
+
+                if (argumentType.kind != 'int')
+                {
+                    new error(
+                        'Type Error',
+                        `The index must be of type 'int' instead of '${stringifyType(argumentType)}'`,
+                        TypeChecker.parser.source,
+                        makePosition(TypeChecker.parser.filename, Expression.argument.where[0], Expression.argument.where[1], Expression.argument.where[2]),
+                        'int'
+                    );
+
+                    return {
+                        kind: 'null',
+                        where: Expression.where
+                    } as nullType;
+                };
+
+                return rightType.elementKind!;
+            };
+
+            new error(
+                'Type Error',
+                `Cannot access element from non-array type of '${stringifyType(rightType)}'`,
+                TypeChecker.parser.source,
+                makePosition(TypeChecker.parser.filename, Expression.argument.where[0], Expression.argument.where[1]-1, Expression.argument.where[2]+1),
+                'array type'
+            );
+
+            return {
+                kind: 'null',
+                where: Expression.where
+            } as nullType;
+        }
 
         case 'ArrayLiteralExpression':
         {
@@ -88,7 +129,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                 {
                     new error(
                         'Type Error',
-                        `Expected to only have the ${stringifyType(ElementKind!)} type in the array instead of ${stringifyType(getExpressionType(TypeChecker, element))}. Cannot have different types in the same array`,
+                        `Expected to only have the '${stringifyType(ElementKind!)}' type in the array instead of '${stringifyType(getExpressionType(TypeChecker, element))}'. Cannot have different types in the same array`,
                         TypeChecker.parser.source,
                         makePosition(TypeChecker.parser.filename, element.where[0], element.where[1], element.where[2]),
                         stringifyType(ElementKind)
@@ -148,7 +189,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
                 new error(
                     'Type Error',
-                    `Cannot perform ${Expression.operator} on the ${stringifyType(elementKind)} type`,
+                    `Cannot perform '${Expression.operator}' on the '${stringifyType(elementKind)}' type`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
                     'int or float type'
@@ -185,7 +226,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
             new error(
                 'Type Error',
-                `Cannot perform ${Expression.operator} on the ${stringifyType(identType)} type`,
+                `Cannot perform '${Expression.operator}' on the '${stringifyType(identType)}' type`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
                 'int or float type'
@@ -328,7 +369,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 {
                     new error(
                         'Type Error',
-                        `Cannot push the ${stringifyType(rightType)} type into an array of ${stringifyType(leftType.elementKind)}`,
+                        `Cannot push the '${stringifyType(rightType)}' type into an array of '${stringifyType(leftType.elementKind)}'`,
                         TypeChecker.parser.source,
                         makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
                         stringifyType(leftType.elementKind)
@@ -355,7 +396,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     {
                         new error(
                             'Type Error',
-                            `Cannot push the ${stringifyType(leftType)} type into an array of ${stringifyType(rightType.elementKind)}`,
+                            `Cannot push the '${stringifyType(leftType)}' type into an array of '${stringifyType(rightType.elementKind)}'`,
                             TypeChecker.parser.source,
                             makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
                             stringifyType(rightType.elementKind)
@@ -389,7 +430,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     {
                         new error(
                             'Type Error',
-                            `Cannot push the ${stringifyType(leftType)} type into an array of ${stringifyType(rightType.elementKind)}`,
+                            `Cannot push the '${stringifyType(leftType)}' type into an array of '${stringifyType(rightType.elementKind)}'`,
                             TypeChecker.parser.source,
                             makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
                             stringifyType(rightType.elementKind)
@@ -424,7 +465,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     {
                         new error(
                             'Type Error',
-                            `Cannot push the ${stringifyType(leftType)} type into an array of ${stringifyType(rightType.elementKind)}`,
+                            `Cannot push the '${stringifyType(leftType)}' type into an array of '${stringifyType(rightType.elementKind)}'`,
                             TypeChecker.parser.source,
                             makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
                             stringifyType(rightType.elementKind)
@@ -469,7 +510,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     {
                         new error(
                             'Type Error',
-                            `Cannot push the ${stringifyType(leftType)} type to an array of ${stringifyType(rightType.elementKind)}`,
+                            `Cannot push the '${stringifyType(leftType)}' type to an array of '${stringifyType(rightType.elementKind)}'`,
                             TypeChecker.parser.source,
                             makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
                             stringifyType(rightType.elementKind)
@@ -623,7 +664,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
             
             new error(
                 'Type Error',
-                `You cannot perform the modulo operator on the ${stringifyType(leftType)} type and ${stringifyType(rightType)} type`,
+                `You cannot perform the modulo operator on the '${stringifyType(leftType)}' type and '${stringifyType(rightType)}' type`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
             );
@@ -646,7 +687,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
             new error(
                 'Type Error',
-                `You cannot perform bitshift operations on the ${stringifyType(leftType)} type and ${stringifyType(rightType)} type`,
+                `You cannot perform bitshift operations on the '${stringifyType(leftType)}' type and '${stringifyType(rightType)}' type`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
             );
@@ -671,7 +712,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
             new error(
                 'Type Error',
-                `You cannot perform bitwise operations on the ${stringifyType(leftType)} type and ${stringifyType(rightType)} type`,
+                `You cannot perform bitwise operations on the '${stringifyType(leftType)}' type and '${stringifyType(rightType)}' type`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
             );
@@ -698,10 +739,10 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
             {
                 new warning(
                     'Type Error',
-                    `Comparing a ${stringifyType(leftType)} to a ${stringifyType(rightType)} might be a mistake since they are of different types`,
+                    `Comparing a '${stringifyType(leftType)}' to a '${stringifyType(rightType)}' might be a mistake since they are of different types`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
-                    `Maybe you meant to compare ${stringifyType(leftType)} ${op} ${stringifyType(leftType)}`
+                    `Maybe you meant to compare '${stringifyType(leftType)}' ${op} '${stringifyType(leftType)}'`
                 );
             };
 
@@ -734,7 +775,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
                 new error(
                     'Type Error',
-                    `Cannot search for the ${stringifyType(leftType)} type in a list made of the ${stringifyType(rightType.elementKind)} type`,
+                    `Cannot search for the '${stringifyType(leftType)}' type in a list made of the '${stringifyType(rightType.elementKind)}' type`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
                     stringifyType(rightType.elementKind)
@@ -743,7 +784,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
             new error(
                 'Type Error',
-                `Cannot search for the ${stringifyType(leftType)} type in a non array type of ${stringifyType(rightType)}`,
+                `Cannot search for the '${stringifyType(leftType)}' type in a non array type of '${stringifyType(rightType)}'`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
                 stringifyType(leftType) + '[]'
@@ -755,7 +796,7 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
     new error(
         'Type Error',
-        `Operand mismatch: Cannot perform '${op}' on the ${stringifyType(leftType)} and ${stringifyType(rightType)} types`,
+        `Operand mismatch: Cannot perform '${op}' on the '${stringifyType(leftType)}' and '${stringifyType(rightType)}' types`,
         TypeChecker.parser.source,
         makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
         'Valid operator'

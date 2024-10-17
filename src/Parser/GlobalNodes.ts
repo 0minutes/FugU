@@ -19,13 +19,10 @@ export interface Global
 
 // Statements
 
-
 export interface EmptyStatement
 {
     type: 'EmptyStatement';
 };
-
-// Declerations
 
 export interface DeclerationStatement
 {
@@ -38,8 +35,6 @@ export interface DeclerationStatement
     where: number[];
 };
 
-// Expressions
-
 export interface ExpressionStatement
 {
     type: 'ExpressionStatement';
@@ -47,6 +42,17 @@ export interface ExpressionStatement
     body: Expr;
     where: number[];
 };
+
+// Expressions
+
+export interface ElementAccessExpression
+{
+    type: 'ElementAccessExpression';
+    foldable: boolean;
+    right: Expr;
+    argument: Expr;
+    where: number[];
+}
 
 export interface BinaryExpression
 {
@@ -126,4 +132,4 @@ export interface Identifier
 };
 
 export type Stmt = ExpressionStatement | DeclerationStatement | EmptyStatement;
-export type Expr = ArrayExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;
+export type Expr = ElementAccessExpression | ArrayExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;

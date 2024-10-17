@@ -166,7 +166,7 @@ export class Lexer
                 this.handleSpecialCharacters(tokens, char as string, peek, start);
             }
 
-            else if (char == '0')
+            else if (char == '0' && (peek == 'x' || peek == 'b' || peek == 'o'))
             {
                 this.handleHexOctBin(tokens, char as string, start);
             }
@@ -280,78 +280,67 @@ export class Lexer
     };
 
     handleHexOctBin = (tokens: Token[], char: string, start: number): void =>
+    {
+        let number = char;
+        let base = 2;
+
+        if (this.splitSource[0].toLocaleLowerCase() == 'x')
         {
-            let number = char;
-            let base = 2;
-    
-            if (this.splitSource[0].toLocaleLowerCase() == 'x')
-            {
-                base = 16;
-                number += this.eat();
-                this.cur++;
-            }
+            base = 16;
+            number += this.eat();
+            this.cur++;
+        }
 
-            else if (this.splitSource[0].toLocaleLowerCase() == 'o')
-            {
-                base = 8;
-                number += this.eat();
-                this.cur++;
-            }
+        else if (this.splitSource[0].toLocaleLowerCase() == 'o')
+        {
+            base = 8;
+            number += this.eat();
+            this.cur++;
+        }
 
-            else if (this.splitSource[0].toLocaleLowerCase() == 'b')
-            {
-                base = 2;
-                number += this.eat();
-                this.cur++;
-            }
+        else if (this.splitSource[0].toLocaleLowerCase() == 'b')
+        {
+            base = 2;
+            number += this.eat();
+            this.cur++;
+        };
 
+        const validChars = {
+            16: '0123456789abcdefABCDEF',
+            8: '01234567',
+            2: '01',
+        }[base]!
+
+        if (!validChars.includes(this.splitSource[0]))
+        {
+            new error(
+                'Lexer Error',
+                `Expected valid digits after the '${number}' prefix`,
+                this.source,
+                makePosition(this.filename, this.line, this.cur, this.cur+1),
+                validChars
+            );
+        };
+
+        while (
+            this.splitSource.length > 0 &&
+            (validChars.includes(this.splitSource[0]) || this.splitSource[0] == '_')
+        )
+        {
+            if (this.splitSource[0] == '_')
+            {
+                this.eat();
+                this.cur++;
+            } 
             else
             {
-                new error(
-                    'Lexer Error',
-                    `Expected a valid prefix for the digit type`,
-                    this.source,
-                    makePosition(this.filename, this.line, this.cur++, this.cur),
-                    `'x' or 'o' or 'b'`
-                );
-            };
-
-            const validChars = {
-                16: '0123456789abcdefABCDEF',
-                8: '01234567',
-                2: '01',
-            }[base]!
-
-            if (!validChars.includes(this.splitSource[0]))
-            {
-                new error(
-                    'Lexer Error',
-                    `Expected valid digits after the '${number}' prefix`,
-                    this.source,
-                    makePosition(this.filename, this.line, this.cur, this.cur+1),
-                    validChars
-                );
-            };
-
-            while (
-                this.splitSource.length > 0 &&
-                (validChars.includes(this.splitSource[0]) || this.splitSource[0] == '_')
-            )
-            {
-                if (this.splitSource[0] == '_')
-                {
-                    this.eat();
-                    this.cur++;
-                } 
-                else
-                {
-                    number += this.eat();
-                    this.cur++;
-                }
-            };
-        
-            tokens.push(this.makeToken(number, TokenType.int, start));
+                number += this.eat();
+                this.cur++;
+            }
         };
+    
+        tokens.push(this.makeToken(number, TokenType.int, start));
+    };
 
     handleNumbers = (tokens: Token[], char: string, start: number): void =>
     {
