@@ -348,6 +348,26 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
     const leftType = getExpressionType(TypeChecker, Expression.left);
     const rightType = getExpressionType(TypeChecker, Expression.right);
 
+    if (leftType == undefined)
+    {
+        new error(
+            'Type Error',
+            `Cannot perfrom operations on empty array`,
+            TypeChecker.parser.source,
+            makePosition(TypeChecker.parser.filename, Expression.left.where[0], Expression.left.where[1], Expression.left.where[2]),
+        );
+    };
+
+    if (rightType == undefined)
+    {
+        new error(
+            'Type Error',
+            `Cannot perfrom operations on empty array`,
+            TypeChecker.parser.source,
+            makePosition(TypeChecker.parser.filename, Expression.right.where[0], Expression.right.where[1], Expression.right.where[2]),
+        );
+    };
+
     const op = Expression.operator.kind;
 
     switch (op)

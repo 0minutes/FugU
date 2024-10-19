@@ -160,7 +160,7 @@ const led = (parser: Parser, lhs: Expr): Expr =>
         {
             new error(
                 'Syntax Error',
-                `Expected an identifier instead of a ${lhs.type} before a UnaryExpression`,
+                `Expected an identifier instead of a ${lhs.type} before a UnaryUpdateExpression`,
                 parser.source,
                 makePosition(parser.filename, lhs.where[0], lhs.where[1], lhs.where[2]),
                 'Identifier'
@@ -482,7 +482,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
 
         const argument = parseExpression(parser, 2);
 
-        parser.expect(
+        const rightBracket = parser.expect(
             TokenType.rightBracket,
             true,
             `Expected a ']' (${TokenType.rightBracket}) instead of '${parser.at().value}' (${parser.at().type})`,
@@ -494,7 +494,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
             foldable: lhs.foldable,
             right: lhs,
             argument: argument,
-            where: [lhs.where[0], lhs.where[1], lhs.where[2]],
+            where: [lhs.where[0], lhs.where[1], rightBracket.where.end],
         } as ElementAccessExpression;
     };
     
