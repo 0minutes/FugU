@@ -3,12 +3,11 @@ import
     Lexer
 } from "../src/Lexer/Lexer.ts"
 
-
 const contents = Deno.readTextFileSync('tests/LexerTest.txt');
 
-const lexerr: Lexer = new Lexer('LexerTest.txt', contents);
+const lexer: Lexer = new Lexer('LexerTest.txt', contents);
 
-for (const Token of lexerr.tokens)
+for (const Token of lexer.tokens)
 {
     console.log(Token);
 };

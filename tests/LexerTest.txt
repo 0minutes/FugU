@@ -6,7 +6,7 @@ mut x = 10; // Assign an integer to x
 mut y = 20.5; // Assign a float to y
 
 const greeting = "Hello, Lexer!"; // Assign a string
-const initial = 'La'; // Assign a character
+const initial = 'L'; // Assign a character
 // Control structures
 if (x < y && y > 0) {
     x += 1;

@@ -64,6 +64,8 @@ export const enum TokenType {
     strDef = '<strDef>',
     chrDef = '<chrDef>',
 
+    nullDef = '<nullDef>',
+
     eof = '<eof>',
 };
 
@@ -127,9 +129,9 @@ export const keywords: Record <string, TokenType> =
     'mut': TokenType.mut,
     'const': TokenType.const,
 
-    'true': TokenType.bool,
-    'false': TokenType.bool,
-    'null': TokenType.null,
+    'TRUE': TokenType.bool,
+    'FALSE': TokenType.bool,
+    'NULL': TokenType.null,
 
     'class': TokenType.class,
     'new': TokenType.new,
@@ -154,6 +156,8 @@ export const keywords: Record <string, TokenType> =
 
     'str': TokenType.strDef,
     'chr': TokenType.chrDef,
+
+    'null': TokenType.nullDef,
 };
 
 export interface Token

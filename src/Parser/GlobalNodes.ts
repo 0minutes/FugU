@@ -49,8 +49,8 @@ export interface ElementAccessExpression
 {
     type: 'ElementAccessExpression';
     foldable: boolean;
-    right: Expr;
-    argument: Expr;
+    left: Expr;
+    index: Expr;
     where: number[];
 }
 

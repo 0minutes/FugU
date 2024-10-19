@@ -6,12 +6,12 @@ import
 import
 {
     simpleType,
-    nullType,
     floatType,
     strType,
     chrType,
     intType,
     arrayType,
+    nullType,
 } from "../Parser/Types.ts";
 
 import 
@@ -58,7 +58,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
             {
                 new error(
                     'Type Error',
-                    `Cannot assign the '${stringifyType(initType)}' type to the declared type of '${stringifyType(identType)}'`,
+                    `Cannot reassign the '${stringifyType(initType)}' type to the declared type of '${stringifyType(identType)}'`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, initType.where[0], initType.where[1], initType.where[2]),
                     stringifyType(identType)
@@ -70,19 +70,35 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
         case 'ElementAccessExpression':
         {
-            const rightType = getExpressionType(TypeChecker, Expression.right);
+            const leftType = getExpressionType(TypeChecker, Expression.left);
 
-            if (rightType.kind == 'array')
+            if (Expression.left.type == 'AssignmentExpression')
             {
-                const argumentType = getExpressionType(TypeChecker, Expression.argument);
+                new error(
+                    'Type Error',
+                    `Cannot access elements from an assignment expression`,
+                    TypeChecker.parser.source,
+                    makePosition(TypeChecker.parser.filename, Expression.left.where[0], Expression.left.where[1], Expression.left.where[2]),
+                    'Array'
+                );
 
-                if (argumentType.kind != 'int')
+                return {
+                    kind: 'null',
+                    where: Expression.where
+                } as nullType;
+            }
+
+            if (leftType.kind == 'array')
+            {
+                const indexType = getExpressionType(TypeChecker, Expression.index);
+
+                if (indexType.kind != 'int')
                 {
                     new error(
                         'Type Error',
-                        `The index must be of type 'int' instead of '${stringifyType(argumentType)}'`,
+                        `The index must be of type 'int' instead of '${stringifyType(indexType)}'`,
                         TypeChecker.parser.source,
-                        makePosition(TypeChecker.parser.filename, Expression.argument.where[0], Expression.argument.where[1], Expression.argument.where[2]),
+                        makePosition(TypeChecker.parser.filename, Expression.index.where[0], Expression.index.where[1], Expression.index.where[2]),
                         'int'
                     );
 
@@ -92,15 +108,31 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                     } as nullType;
                 };
 
-                return rightType.elementKind!;
+                if (leftType.elementKind == undefined)
+                {
+                    new error(
+                        'Type Error',
+                        `Cannot access element from an uninitialized array`,
+                        TypeChecker.parser.source,
+                        makePosition(TypeChecker.parser.filename, Expression.left.where[0], Expression.left.where[1], Expression.left.where[2]),
+                        'Initialize the Array'
+                    );
+        
+                    return {
+                        kind: 'null',
+                        where: Expression.where
+                    } as nullType;
+                };
+
+                return leftType.elementKind;
             };
 
             new error(
                 'Type Error',
-                `Cannot access element from non-array type of '${stringifyType(rightType)}'`,
+                `Cannot access element from non-array type of '${stringifyType(leftType)}'`,
                 TypeChecker.parser.source,
-                makePosition(TypeChecker.parser.filename, Expression.argument.where[0], Expression.argument.where[1]-1, Expression.argument.where[2]+1),
-                'array type'
+                makePosition(TypeChecker.parser.filename, Expression.left.where[0], Expression.left.where[1], Expression.left.where[2]),
+                'Array'
             );
 
             return {
@@ -111,7 +143,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
         case 'ArrayLiteralExpression':
         {
-            let ElementKind: undefined | simpleType = undefined;
+            let ElementKind: simpleType | undefined = undefined
 
             for (let i = 0; i < Expression.elements.length; i++)
             {
@@ -372,6 +404,27 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
     switch (op)
     {
+        case '=':
+        {
+            if (allTypesCompatible(leftType, rightType))
+            {
+                return leftType;
+            };
+
+            new error(
+                'Type Error',
+                `Cannot assign the '${stringifyType(rightType)}' type to the declared type of '${stringifyType(leftType)}'`,
+                TypeChecker.parser.source,
+                makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
+                stringifyType(leftType)
+            );
+
+            return {
+                kind: 'null',
+                where: Expression.where,
+            };
+        };
+
         case '+=':
         case '+':
         {

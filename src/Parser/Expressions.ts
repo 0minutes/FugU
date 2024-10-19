@@ -34,6 +34,7 @@ import
     strType,
     chrType,
     arrayType,
+    nullType,
 } from './Types.ts'
 
 const BindingPower = (operator: string): number =>
@@ -293,29 +294,6 @@ const nud = (parser: Parser): Expr =>
         } as UnaryExpression;
     }
 
-    else if (token.type == TokenType.leftParenthesis)
-    {
-        if (parser.at().type == TokenType.rightParenthesis)
-        {
-            new error(
-                'Syntax Error',
-                'Expected an expression inside the Parenthesis',
-                parser.source,
-                parser.at().where,
-                'Expression'
-            );
-        };
-
-        lhs = parseExpression(parser, 0);
-
-        parser.expect(
-            TokenType.rightParenthesis,
-            true,
-            `Expected a closing parenthesis inside after the expression but instead got '${parser.at().value}' (${parser.at().type})`,
-            ')'
-        );
-    }
-
     else
     {
         lhs = parseLiteral(parser, token);
@@ -388,7 +366,7 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'Literal',
             foldable: false,
-            kind: 'StringLiteral',
+            kind: 'NullLiteral',
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
         };
@@ -463,6 +441,29 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         };
     }
 
+    else if (token.type == TokenType.leftParenthesis)
+    {
+        if (parser.at().type == TokenType.rightParenthesis)
+        {
+            new error(
+                'Syntax Error',
+                'Expected an expression inside the Parenthesis',
+                parser.source,
+                parser.at().where,
+                'Expression'
+            );
+        };
+
+        lhs = parseExpression(parser, 0);
+
+        parser.expect(
+            TokenType.rightParenthesis,
+            true,
+            `Expected a closing parenthesis inside after the expression but instead got '${parser.at().value}' (${parser.at().type})`,
+            ')'
+        );
+    }
+
     else
     {
         new error(
@@ -492,8 +493,8 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {
             type: 'ElementAccessExpression',
             foldable: lhs.foldable,
-            right: lhs,
-            argument: argument,
+            left: lhs,
+            index: argument,
             where: [lhs.where[0], lhs.where[1], rightBracket.where.end],
         } as ElementAccessExpression;
     };
@@ -511,6 +512,8 @@ export const parseType = (parser: Parser): simpleType =>
 
             TokenType.strDef,
             TokenType.chrDef,
+
+            TokenType.nullDef,
         ],
         true,
         'Expected a valid type definition',
@@ -539,6 +542,7 @@ export const parseType = (parser: Parser): simpleType =>
 
             break;
         };
+
         case TokenType.chrDef:
         {
             simpleType = {
@@ -549,12 +553,22 @@ export const parseType = (parser: Parser): simpleType =>
             break;
         };
 
-        default:
+        case TokenType.intDef:
         {
             simpleType = {
                 kind: 'int',
                 where: [token.where.line, token.where.start, token.where.end]
             } as intType;
+
+            break;
+        };
+
+        default:
+        {
+            simpleType = {
+                kind: 'null',
+                where: [token.where.line, token.where.start, token.where.end]
+            } as nullType;
         };
     };
 
