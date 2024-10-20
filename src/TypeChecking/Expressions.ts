@@ -12,6 +12,7 @@ import
     intType,
     arrayType,
     nullType,
+    type errorType,
 } from "../Parser/Types.ts";
 
 import 
@@ -57,7 +58,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
             if (!allTypesCompatible(identType, initType))
             {
                 new error(
-                    'Type Error',
+                    'Type Warning',
                     `Cannot reassign the '${stringifyType(initType)}' type to the declared type of '${stringifyType(identType)}'`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, initType.where[0], initType.where[1], initType.where[2]),
@@ -74,8 +75,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
             if (Expression.left.type == 'AssignmentExpression')
             {
-                new error(
-                    'Type Error',
+                TypeChecker.warnings++;
+                new warning(
+                    'Type Warning',
                     `Cannot access elements from an assignment expression`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, Expression.left.where[0], Expression.left.where[1], Expression.left.where[2]),
@@ -83,9 +85,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                 );
 
                 return {
-                    kind: 'null',
+                    kind: 'errorType',
                     where: Expression.where
-                } as nullType;
+                } as errorType;
             }
 
             if (leftType.kind == 'array')
@@ -94,8 +96,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
                 if (indexType.kind != 'int')
                 {
-                    new error(
-                        'Type Error',
+                    TypeChecker.warnings++;
+                    new warning(
+                        'Type Warning',
                         `The index must be of type 'int' instead of '${stringifyType(indexType)}'`,
                         TypeChecker.parser.source,
                         makePosition(TypeChecker.parser.filename, Expression.index.where[0], Expression.index.where[1], Expression.index.where[2]),
@@ -103,15 +106,16 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                     );
 
                     return {
-                        kind: 'null',
+                        kind: 'errorType',
                         where: Expression.where
-                    } as nullType;
+                    } as errorType;
                 };
 
                 if (leftType.elementKind == undefined)
                 {
-                    new error(
-                        'Type Error',
+                    TypeChecker.warnings++;
+                    new warning(
+                        'Type Warning',
                         `Cannot access element from an uninitialized array`,
                         TypeChecker.parser.source,
                         makePosition(TypeChecker.parser.filename, Expression.left.where[0], Expression.left.where[1], Expression.left.where[2]),
@@ -119,16 +123,17 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                     );
         
                     return {
-                        kind: 'null',
+                        kind: 'errorType',
                         where: Expression.where
-                    } as nullType;
+                    } as errorType;
                 };
 
                 return leftType.elementKind;
             };
 
-            new error(
-                'Type Error',
+            TypeChecker.warnings++;
+            new warning(
+                'Type Warning',
                 `Cannot access element from non-array type of '${stringifyType(leftType)}'`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, Expression.left.where[0], Expression.left.where[1], Expression.left.where[2]),
@@ -136,9 +141,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
             );
 
             return {
-                kind: 'null',
+                kind: 'errorType',
                 where: Expression.where
-            } as nullType;
+            } as errorType;
         }
 
         case 'ArrayLiteralExpression':
@@ -159,8 +164,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
                 if (!allTypesCompatible(currentElementKind, ElementKind!))
                 {
-                    new error(
-                        'Type Error',
+                    TypeChecker.warnings++;
+                    new warning(
+                        'Type Warning',
                         `Expected to only have the '${stringifyType(ElementKind!)}' type in the array instead of '${stringifyType(getExpressionType(TypeChecker, element))}'. Cannot have different types in the same array`,
                         TypeChecker.parser.source,
                         makePosition(TypeChecker.parser.filename, element.where[0], element.where[1], element.where[2]),
@@ -172,8 +178,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                 {
                     if (!(TypeChecker.env.getVar(element.value)!.init))
                     {
-                        new error(
-                            'Type Error',
+                        TypeChecker.warnings++;
+                        new warning(
+                            'Type Warning',
                             `The variable '${element.value}' is not initialized and therefore cannot be added to the list`,
                             TypeChecker.parser.source,
                             makePosition(TypeChecker.parser.filename, element.where[0], element.where[1], element.where[2]),
@@ -202,8 +209,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
             {
                 if (!(TypeChecker.env.getVar(element.value)!.init))
                 {
-                    new error(
-                        'Type Error',
+                    TypeChecker.warnings++;
+                    new warning(
+                        'Type Warning',
                         `The variable '${element.value}' is not initialized and can therefore not be operated on`,
                         TypeChecker.parser.source,
                         makePosition(TypeChecker.parser.filename, element.where[0], element.where[1], element.where[2]),
@@ -219,8 +227,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                     return elementKind;
                 };
 
-                new error(
-                    'Type Error',
+                TypeChecker.warnings++;
+                new warning(
+                    'Type Warning',
                     `Cannot perform '${Expression.operator}' on the '${stringifyType(elementKind)}' type`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
@@ -228,9 +237,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                 );
 
                 return {
-                    kind: 'null',
+                    kind: 'errorType',
                     where: Expression.where
-                } as nullType;
+                } as errorType;
             };
 
             return elementKind;
@@ -247,8 +256,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
             if (TypeChecker.env.getVar(Expression.right.value)!.init == false)
             {
-                new error(
-                    'Type Error',
+                TypeChecker.warnings++;
+                new warning(
+                    'Type Warning',
                     `The variable '${Expression.right.value}' is not initialized and can therefore not be operated on`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, Expression.right.where[0], Expression.right.where[1], Expression.right.where[2]),
@@ -256,8 +266,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                 );
             };
 
-            new error(
-                'Type Error',
+            TypeChecker.warnings++;
+            new warning(
+                'Type Warning',
                 `Cannot perform '${Expression.operator}' on the '${stringifyType(identType)}' type`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
@@ -265,9 +276,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
             );
 
             return {
-                kind: 'null',
+                kind: 'errorType',
                 where: Expression.where
-            } as nullType;
+            } as errorType;
         };
 
         case 'Identifier':
@@ -276,7 +287,8 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
             if (simpleType == undefined)
             {
-                new error(
+                TypeChecker.warnings++;
+                new warning(
                     'Name Error',
                     `The variable '${Expression.value}' is not defined`,
                     TypeChecker.parser.source,
@@ -285,9 +297,9 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                 );
 
                 return {
-                    kind: 'null',   
-                    where: Expression.where,
-                } as nullType;
+                    kind: 'errorType',
+                    where: Expression.where
+                } as errorType;
             };
 
             return simpleType.type;
@@ -349,32 +361,34 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 {
     if (Expression.left.type == 'AssignmentExpression')
     {
-        new error(
-            'Type Error',
+        TypeChecker.warnings++;
+        new warning(
+            'Type Warning',
             'Cannot perform operations on assignment expressions',
             TypeChecker.parser.source,
             makePosition(TypeChecker.parser.filename, Expression.left.where[0], Expression.left.where[1], Expression.left.where[2])
         );
 
         return {
-            kind: 'null',
-            where: Expression.left.where
-        } as nullType;
+            kind: 'errorType',
+            where: Expression.where
+        } as errorType;
     };
 
     if (Expression.right.type == 'AssignmentExpression')
     {
-        new error(
-            'Type Error',
+        TypeChecker.warnings++;
+        new warning(
+            'Type Warning',
             'Cannot perform operations on assignment expressions',
             TypeChecker.parser.source,
             makePosition(TypeChecker.parser.filename, Expression.right.where[0], Expression.right.where[1], Expression.right.where[2])
         );
         
         return {
-            kind: 'null',
-            where: Expression.right.where
-        } as nullType;
+            kind: 'errorType',
+            where: Expression.where
+        } as errorType;
     };
 
     const leftType = getExpressionType(TypeChecker, Expression.left);
@@ -382,8 +396,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
     if (leftType == undefined)
     {
-        new error(
-            'Type Error',
+        TypeChecker.warnings++;
+        new warning(
+            'Type Warning',
             `Cannot perfrom operations on empty array`,
             TypeChecker.parser.source,
             makePosition(TypeChecker.parser.filename, Expression.left.where[0], Expression.left.where[1], Expression.left.where[2]),
@@ -392,8 +407,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
 
     if (rightType == undefined)
     {
-        new error(
-            'Type Error',
+        TypeChecker.warnings++;
+        new warning(
+            'Type Warning',
             `Cannot perfrom operations on empty array`,
             TypeChecker.parser.source,
             makePosition(TypeChecker.parser.filename, Expression.right.where[0], Expression.right.where[1], Expression.right.where[2]),
@@ -411,8 +427,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 return leftType;
             };
 
-            new error(
-                'Type Error',
+            TypeChecker.warnings++;
+            new warning(
+                'Type Warning',
                 `Cannot assign the '${stringifyType(rightType)}' type to the declared type of '${stringifyType(leftType)}'`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
@@ -420,9 +437,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
             );
 
             return {
-                kind: 'null',
-                where: Expression.where,
-            };
+                kind: 'errorType',
+                where: Expression.where
+            } as errorType;
         };
 
         case '+=':
@@ -440,8 +457,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 }
                 else
                 {
-                    new error(
-                        'Type Error',
+                    TypeChecker.warnings++;
+                    new warning(
+                        'Type Warning',
                         `Cannot push the '${stringifyType(rightType)}' type into an array of '${stringifyType(leftType.elementKind)}'`,
                         TypeChecker.parser.source,
                         makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
@@ -449,9 +467,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     );
 
                     return {
-                        kind: 'null',
-                        where: Expression.where,
-                    };
+                        kind: 'errorType',
+                        where: Expression.where
+                    } as errorType;
                 };
             };
 
@@ -467,8 +485,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     }
                     else
                     {
-                        new error(
-                            'Type Error',
+                        TypeChecker.warnings++;
+                        new warning(
+                            'Type Warning',
                             `Cannot push the '${stringifyType(leftType)}' type into an array of '${stringifyType(rightType.elementKind)}'`,
                             TypeChecker.parser.source,
                             makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
@@ -476,9 +495,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                         );
     
                         return {
-                            kind: 'null',
-                            where: Expression.where,
-                        };
+                            kind: 'errorType',
+                            where: Expression.where
+                        } as errorType;
                     };
                 };
 
@@ -501,8 +520,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     }
                     else
                     {
-                        new error(
-                            'Type Error',
+                        TypeChecker.warnings++;
+                        new warning(
+                            'Type Warning',
                             `Cannot push the '${stringifyType(leftType)}' type into an array of '${stringifyType(rightType.elementKind)}'`,
                             TypeChecker.parser.source,
                             makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
@@ -510,9 +530,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                         );
     
                         return {
-                            kind: 'null',
-                            where: Expression.where,
-                        };
+                            kind: 'errorType',
+                            where: Expression.where
+                        } as errorType;
                     };
                 };
 
@@ -536,8 +556,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     }
                     else
                     {
-                        new error(
-                            'Type Error',
+                        TypeChecker.warnings++;
+                        new warning(
+                            'Type Warning',
                             `Cannot push the '${stringifyType(leftType)}' type into an array of '${stringifyType(rightType.elementKind)}'`,
                             TypeChecker.parser.source,
                             makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
@@ -545,9 +566,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                         );
     
                         return {
-                            kind: 'null',
-                            where: Expression.where,
-                        };
+                            kind: 'errorType',
+                            where: Expression.where
+                        } as errorType;
                     };
                 };
                 
@@ -581,8 +602,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     }
                     else
                     {
-                        new error(
-                            'Type Error',
+                        TypeChecker.warnings++;
+                        new warning(
+                            'Type Warning',
                             `Cannot push the '${stringifyType(leftType)}' type to an array of '${stringifyType(rightType.elementKind)}'`,
                             TypeChecker.parser.source,
                             makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
@@ -590,9 +612,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                         );
     
                         return {
-                            kind: 'null',
-                            where: Expression.where,
-                        };
+                            kind: 'errorType',
+                            where: Expression.where
+                        } as errorType;
                     };
                 };
 
@@ -735,8 +757,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 } as floatType;
             };
             
-            new error(
-                'Type Error',
+            TypeChecker.warnings++;
+            new warning(
+                'Type Warning',
                 `You cannot perform the modulo operator on the '${stringifyType(leftType)}' type and '${stringifyType(rightType)}' type`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
@@ -758,8 +781,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 } as intType;
             };
 
-            new error(
-                'Type Error',
+            TypeChecker.warnings++;
+            new warning(
+                'Type Warning',
                 `You cannot perform bitshift operations on the '${stringifyType(leftType)}' type and '${stringifyType(rightType)}' type`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
@@ -783,8 +807,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 } as intType;
             };
 
-            new error(
-                'Type Error',
+            TypeChecker.warnings++;
+            new warning(
+                'Type Warning',
                 `You cannot perform bitwise operations on the '${stringifyType(leftType)}' type and '${stringifyType(rightType)}' type`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
@@ -810,8 +835,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
         {
             if (!allTypesCompatible(leftType, rightType))
             {
+                TypeChecker.warnings++;
                 new warning(
-                    'Type Error',
+                    'Type Warning',
                     `Comparing a '${stringifyType(leftType)}' to a '${stringifyType(rightType)}' might be a mistake since they are of different types`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, Expression.where[0], Expression.where[1], Expression.where[2]),
@@ -846,8 +872,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                     } as intType;
                 };
 
-                new error(
-                    'Type Error',
+                TypeChecker.warnings++;
+                new warning(
+                    'Type Warning',
                     `Cannot search for the '${stringifyType(leftType)}' type in a list made of the '${stringifyType(rightType.elementKind)}' type`,
                     TypeChecker.parser.source,
                     makePosition(TypeChecker.parser.filename, leftType.where[0], leftType.where[1], leftType.where[2]),
@@ -855,8 +882,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
                 );
             };
 
-            new error(
-                'Type Error',
+            TypeChecker.warnings++;
+            new warning(
+                'Type Warning',
                 `Cannot search for the '${stringifyType(leftType)}' type in a non array type of '${stringifyType(rightType)}'`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, rightType.where[0], rightType.where[1], rightType.where[2]),
@@ -867,8 +895,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
         };
     };
 
-    new error(
-        'Type Error',
+    TypeChecker.warnings++;
+    new warning(
+        'Type Warning',
         `Operand mismatch: Cannot perform '${op}' on the '${stringifyType(leftType)}' and '${stringifyType(rightType)}' types`,
         TypeChecker.parser.source,
         makePosition(TypeChecker.parser.filename, Expression.operator.where[0], Expression.operator.where[1], Expression.operator.where[2]),
@@ -876,9 +905,9 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
     );
 
     return {
-        kind: 'null',
+        kind: 'errorType',
         where: Expression.where
-    };
+    } as errorType;
 };
 
 

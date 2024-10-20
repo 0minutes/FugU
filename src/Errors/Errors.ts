@@ -56,7 +56,7 @@ export class error
 
         const emptyLine = `${' '.repeat(lineNumWidth)} |`;
 
-        console.error(`${this.type}: ${this.message}`);
+        console.error(`${this.type}:\n${this.message}`);
         console.error(`${yellow}--> ${this.loc.filename}:${this.loc.line}:${this.loc.start}${reset}`);
 
         if (this.loc.line > 1)
@@ -121,7 +121,7 @@ export class warning
 
         const emptyLine = `${' '.repeat(lineNumWidth)} |`;
 
-        console.error(`${this.type}: ${this.message}`);
+        console.error(`${this.type}:\n${this.message}`);
         console.error(`${yellow}--> ${this.loc.filename}:${this.loc.line}:${this.loc.start}${reset}`);
 
         if (this.loc.line > 1)

@@ -1,59 +1,57 @@
-import 
-{
-    Stmt
+import {
+Stmt
 } from "../Parser/GlobalNodes.ts";
 
-import
-{
-    Parser
+import {
+Parser
 } from "../Parser/Parser.ts";
 
-import 
-{
-    Environment
+import {
+Environment
 } from './Environment.ts'
 
-import
-{
-    checkDeclerationStatements,
-    checkExpressionStatement,
+import {
+checkDeclerationStatements,
+checkExpressionStatement,
 } from './Statements.ts'
 
-export class TypeChecker
-{
+export class TypeChecker {
     parser: Parser;
     env: Environment;
 
-    constructor (parser: Parser, env: Environment)
-    {
+    warnings: number
+
+    constructor(parser: Parser, env: Environment) {
         this.parser = parser;
         this.env = env;
+        this.warnings = 0;
 
         this.checkGlobal();
-    };
-
-    checkStatement = (Statement: Stmt): void =>
-    {
-        switch (Statement.type)
+        
+        if (this.warnings > 0)
         {
-            case "ExpressionStatement":
-            {
-                checkExpressionStatement(this, Statement.body);
-                break;
-            };
-
-            case "DeclerationStatement":
-            {
-                checkDeclerationStatements(this, Statement);
-                break;
-            };
+            Deno.exit();
         };
     };
 
-    checkGlobal = (): void =>
-    {
-        for (const statement of this.parser.ast.body)
-        {
+    checkStatement = (Statement: Stmt): void => {
+        switch (Statement.type) {
+            case "ExpressionStatement":
+                {
+                    checkExpressionStatement(this, Statement.body);
+                    break;
+                };
+
+            case "DeclerationStatement":
+                {
+                    checkDeclerationStatements(this, Statement);
+                    break;
+                };
+        };
+    };
+
+    checkGlobal = (): void => {
+        for (const statement of this.parser.ast.body) {
             this.checkStatement(statement);
         };
     };

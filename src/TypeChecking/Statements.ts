@@ -50,7 +50,7 @@ export const checkDeclerationStatements = (TypeChecker: TypeChecker, Decleration
         {
             new error(
                 'Type Error',
-                `Cannot assign the ${stringifyType(initType)} type to the declared type of ${stringifyType(declType)}`,
+                `Fatal: Cannot assign the '${stringifyType(initType)}' type to the declared type of '${stringifyType(declType)}'`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, initType.where[0], initType.where[1], initType.where[2]),
                 stringifyType(declType)
@@ -68,7 +68,7 @@ export const checkDeclerationStatements = (TypeChecker: TypeChecker, Decleration
         {
             new error(
                 'Name Error',
-                `The variable '${variable.value}' has already been declared and therefore cannot be re-declared`,
+                `Fatal: The variable '${variable.value}' has already been declared and therefore cannot be re-declared`,
                 TypeChecker.parser.source,
                 makePosition(TypeChecker.parser.filename, variable.where[0], variable.where[1], variable.where[2])
             );
