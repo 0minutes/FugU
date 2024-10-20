@@ -1,11 +1,9 @@
 /*
 THIS IS NOT THE FUTURE SYNTAX, I JUST COPPIED AND PASTED SOME RANDOM CODE TO MAKE SURE THE LEXER WORKS WELL
 */
-mut x: int[] = {5};
-mut y: int = x[0] + 5;
-mut z: str[] = {"a", "b", "c"};
+
+mut z: str = 'a';
 z + 'a';
-(1/2) + 2;
+(1/2) + 2.0;
 const a: str = "this is a fun test!";
 const b: str = a * 2;
-b / a;
