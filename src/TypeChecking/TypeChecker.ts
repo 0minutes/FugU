@@ -50,8 +50,10 @@ export class TypeChecker {
         };
     };
 
-    checkGlobal = (): void => {
-        for (const statement of this.parser.ast.body) {
+    checkGlobal = (): void =>
+    {
+        for (const statement of this.parser.ast.body) 
+        {
             this.checkStatement(statement);
         };
     };
