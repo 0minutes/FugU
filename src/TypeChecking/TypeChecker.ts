@@ -27,26 +27,22 @@ export class TypeChecker {
         this.warnings = 0;
 
         this.checkGlobal();
-        
-        if (this.warnings > 0)
-        {
-            Deno.exit();
-        };
     };
 
     checkStatement = (Statement: Stmt): void => {
-        switch (Statement.type) {
+        switch (Statement.type)
+        {
             case "ExpressionStatement":
-                {
-                    checkExpressionStatement(this, Statement.body);
-                    break;
-                };
+            {
+                checkExpressionStatement(this, Statement.body);
+                break;
+            };
 
             case "DeclerationStatement":
-                {
-                    checkDeclerationStatements(this, Statement);
-                    break;
-                };
+            {
+                checkDeclerationStatements(this, Statement);
+                break;
+            };
         };
     };
 

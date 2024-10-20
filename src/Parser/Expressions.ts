@@ -32,7 +32,6 @@ import
     intType,
     floatType,
     strType,
-    chrType,
     arrayType,
     nullType,
 } from './Types.ts'
@@ -339,17 +338,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         };
     }
 
-    else if (token.type == TokenType.char)
-    {
-        lhs = {
-            type: 'Literal',
-            foldable: true,
-            kind: 'CharLiteral',
-            value: token.value,
-            where: [token.where.line, token.where.start, token.where.end],
-        };
-    }
-
     else if (token.type == TokenType.str)
     {
         lhs = {
@@ -511,7 +499,6 @@ export const parseType = (parser: Parser): simpleType =>
             TokenType.floatDef,
 
             TokenType.strDef,
-            TokenType.chrDef,
 
             TokenType.nullDef,
         ],
@@ -540,16 +527,6 @@ export const parseType = (parser: Parser): simpleType =>
                 where: [token.where.line, token.where.start, token.where.end]
             } as strType;
 
-            break;
-        };
-
-        case TokenType.chrDef:
-        {
-            simpleType = {
-                kind: 'chr',
-                where: [token.where.line, token.where.start, token.where.end]
-            } as chrType;
-            
             break;
         };
 

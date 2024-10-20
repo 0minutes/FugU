@@ -1,20 +1,28 @@
 # Learning TypeScript by Creating a Programming Language
 
-Welcome to my project, where I am learning TypeScript by creating a programming language from scratch. This hands-on approach helps me deepen my understanding of TypeScript, building on my existing JavaScript knowledge.
+A bytecode compiled programming language by me (frontend) and NoTimeDev (<https://github.com/NoTimeDev>) (Bytecode interpreter)
+Simple but easy to learn with a straight forward syntax language which compiles to bytecode for faster execution
 
-The source code for various components of the language can be found in the `./src/` directory.
+## Credits
+
+Special thanks to NoTimeDev (<https://github.com/NoTimeDev>) for helping out and being a part of the development process for the bytecode interpreter
 
 ## Project Structure
 
+The source code for various components of the language can be found in the `./src/` directory.
+
 - [`./src/Lexer/Lexer.ts`](./src/Lexer/Lexer.ts) - Contains the lexer implementation.
 - [`./src/Parser/Parser.ts`](./src/Parser/Parser.ts) - Contains the Parser implementation.
-- [`./stc/TypeChecking/TypeChecker.ts`](./src/TypeChecking/TypeChecker.ts) - Contains the TypeChecker implementation
+- [`./src/TypeChecking/TypeChecker.ts`](./src/TypeChecking/TypeChecker.ts) - Contains the TypeChecker implementation
+- [`./src/BytecodeGenerator/BytecodeGenerator.ts`](./src/BytecodeGenerator/BytecodeGenerator.ts) - Contains the Bytecode generation implementation
 - [`./main.ts`](./main.ts) - Contains the shell code which allows the language to be run in the console (when interpreter somewhat working ill add support).
 
 ## Progress
 
 - [x] **Lexer** - Completed ([source](./src/Lexer/Lexer.ts))
-- [x] **Parser** - Started ([source](./src/Parser/Parser.ts))
+- [x] **Parser** - Completed ([source](./src/Parser/Parser.ts)) Missing many features
+- [x] **Typechecker** - Complete ([source](./src/TypeChecking/TypeChecker.ts)) Up do date with the ast
+- [x] **BytecodeGenerator** - Complete ([source](./src/BytecodeGenerator/BytecodeGenerator.ts)) Up do date with the ast
 
 **Stay tuned for updates as I continue to build and refine this programming language!**
 

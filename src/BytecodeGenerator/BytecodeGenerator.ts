@@ -1,40 +1,77 @@
-import 
+import
 {
-    Parser
-} from "../Parser/Parser";
+    Stmt
+} from "../Parser/GlobalNodes.ts";
 
 import
 {
-    Global,
-    Stmt,
-} from "../Parser/GlobalNodes";
+    Parser
+} from "../Parser/Parser.ts";
+
+import
+{
+    Environment
+} from "../TypeChecking/Environment.ts";
+
+import
+{
+    TypeChecker
+} from "../TypeChecking/TypeChecker.ts";
 
 import
 {
     Bytecode
-} from "./Instructions";
+} from "./Instructions.ts";
 
-
+import 
+{
+    generateDeclerationStatement,
+    generateExpressionStatement
+} from './Statements.ts'
 
 export class BytecodeGenerator
 {
     Bytecode: Bytecode;
-
+    Stringbytecode: string;
+    TypeChecker: TypeChecker;
+    Environment: Environment;
     parser: Parser;
-    ast: Global;
 
-    filename: string;
-    source: string;
-
-    constructor(parser: Parser, filename: string, source: string)
+    constructor(parser: Parser, Environment: Environment)
     {
         this.parser = parser;
-        this.ast = parser.ast;
+        this.Environment = Environment;
+        this.TypeChecker = new TypeChecker(this.parser, Environment);
 
-        this.filename = filename;
-        this.source = source;
+        this.Bytecode = this.generateBytecode();
 
-        this.Bytecode = this.generateGlobal();
+        this.Stringbytecode = this.stringify();
+    };
+
+    stringify = (): string =>
+    {
+        let stringBytecode: string = '';
+
+        stringBytecode += 'main:\n'
+
+        for (const instruction of this.Bytecode)
+        {
+            stringBytecode += '  ' + instruction.type;
+
+            if (instruction.argument)
+            {
+                stringBytecode += ' ' + instruction.argument;
+            };
+
+            if (instruction.comment)
+            {
+                stringBytecode += ` // ${instruction.comment}`
+            };
+
+            stringBytecode += '\n';
+        };
+
+        return stringBytecode;
     };
 
     generateStatement = (Statement: Stmt): Bytecode =>
@@ -43,14 +80,23 @@ export class BytecodeGenerator
 
         switch (Statement.type)
         {
-            case "ExpressionStatement":
-            case "DeclerationStatement":
+            case 'ExpressionStatement':
+            {
+                Bytecode.push(...generateExpressionStatement(this, Statement));
+                break;
+            };
+
+            case 'DeclerationStatement':
+            {
+                Bytecode.push(...generateDeclerationStatement(this, Statement));
+                break;
+            }
         };
 
         return Bytecode;
     };
 
-    generateGlobal = (): Bytecode =>
+    generateBytecode = (): Bytecode =>
     {
         const Bytecode: Bytecode = [];
 
@@ -60,5 +106,5 @@ export class BytecodeGenerator
         };
 
         return Bytecode;
-    }
+    };
 };

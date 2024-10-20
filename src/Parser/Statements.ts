@@ -106,7 +106,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
     parser.expect(
         TokenType.colon,
         true,
-        `Expected a colon ${TokenType.colon} to specify a type after the Identifier instead of ${parser.at().type}`,
+        `Expected a ':' (${TokenType.colon}) to specify a type after the Identifier instead of ${parser.at().type}`,
         ':'
     );
 
@@ -147,7 +147,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
     parser.expect(
         TokenType.AssignmentOperator,
         true,
-        `Expected an = (${TokenType.AssignmentOperator}) operator to specify ${formatValues(variables)}'s value`,
+        `Expected an '=' (${TokenType.AssignmentOperator}) operator to specify ${formatValues(variables)}'s value`,
         '='
     );
 
@@ -159,7 +159,6 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
         mut: mut.value == 'mut' ? true : false,
         simpleType: typedef,
         variables: variables,
-        initialized: true,
         init: initializer,
         where: [mut.where.line, mut.where.start, initializer.where[2]],
     } as DeclerationStatement;

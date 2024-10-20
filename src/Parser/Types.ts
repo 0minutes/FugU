@@ -1,5 +1,5 @@
 
-export type simpleType = nullType | intType | floatType | strType | chrType | arrayType | errorType;
+export type simpleType = nullType | intType | floatType | strType | arrayType | errorType;
 
 export interface nullType
 {
@@ -23,12 +23,6 @@ export interface floatType
 export interface strType
 {
     kind: 'str';
-    where: number[];
-};
-
-export interface chrType
-{
-    kind: 'chr',
     where: number[];
 };
 

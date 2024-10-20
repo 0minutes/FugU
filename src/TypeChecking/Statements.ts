@@ -37,12 +37,7 @@ export const checkDeclerationStatements = (TypeChecker: TypeChecker, Decleration
 {
     const declType: simpleType = DeclerationStatement.simpleType;
 
-    if (DeclerationStatement.init == undefined)
-    {
-        return;
-    }
-
-    else
+    if (DeclerationStatement.init != undefined)
     {
         const initType: simpleType = getExpressionType(TypeChecker, DeclerationStatement.init);
         

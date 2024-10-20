@@ -6,7 +6,6 @@ import
 export const enum TokenType {
     identifier = '<identifier>',
     str = '<str>',
-    char = '<char>',
     bool = '<bool>',
     int = '<int>',
     float = '<float>',
@@ -62,7 +61,6 @@ export const enum TokenType {
     floatDef = '<floatDef>',
 
     strDef = '<strDef>',
-    chrDef = '<chrDef>',
 
     nullDef = '<nullDef>',
 
@@ -155,7 +153,6 @@ export const keywords: Record <string, TokenType> =
     'float': TokenType.floatDef,
 
     'str': TokenType.strDef,
-    'chr': TokenType.chrDef,
 
     'null': TokenType.nullDef,
 };

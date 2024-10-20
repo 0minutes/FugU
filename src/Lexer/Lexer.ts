@@ -226,22 +226,11 @@ export class Lexer
     handleString(tokens: Token[], quote: string, start: number): void
     {
         let string = '';
-
-        if (quote == '"')
+        
+        while (this.splitSource.length > 0 && this.splitSource[0] != quote && this.splitSource[0] != '\n' && this.splitSource[0] != '\r')
         {
-            while (this.splitSource.length > 0 && this.splitSource[0] != quote && this.splitSource[0] != '\n' && this.splitSource[0] != '\r')
-            {
-                string += this.eat();
-                this.cur++;
-            };
-        }
-        else
-        {
-            while (this.splitSource.length > 0 && this.splitSource[0] != quote && this.splitSource[0] != '\n' && this.splitSource[0] != '\r')
-            {
-                string += this.eat();
-                this.cur++;
-            };  
+            string += this.eat();
+            this.cur++;
         };
 
         if (this.splitSource.length == 0 || this.splitSource[0] != quote)
@@ -250,33 +239,16 @@ export class Lexer
             this.cur++;
             new error(
                 'Lexer Error',
-                `Undereminted ${quote == '"' ? 'string' : 'char'} literal. Expected a ${quote == '"' ? 'double' : 'single'} quote`,
+                `Undereminted string literal. Expected a ${quote == '"' ? 'double' : 'single'} quote`,
                 this.source,
                 makePosition(this.filename, this.line, start, this.cur)
-            );
-        };
-
-        if (quote == "'" && string.length > 1)
-        {
-            new error(
-                'Lexer Error',
-                `Undereminted char literal. Expected a single quote after the character '${string[0]}' but instead got '${string[1]}'. Maybe you meant to use double quotes instead?`,
-                this.source,
-                makePosition(this.filename, this.line, start, start + 3)
             );
         };
 
         this.eat();
         this.cur++;
 
-        if (quote == '"')
-        {
-            tokens.push(this.makeToken(string, TokenType.str, start));
-        }
-        else
-        {
-            tokens.push(this.makeToken(string, TokenType.char, start));
-        };
+        tokens.push(this.makeToken(string, TokenType.str, start));
     };
 
     handleHexOctBin = (tokens: Token[], char: string, start: number): void =>

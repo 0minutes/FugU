@@ -7,7 +7,7 @@ export type GlobalType = 'Global' | 'Subprocess';
 
 export type StatementType = 'ExpressionStatement' | 'EmptyStatement' | 'DeclerationStatement';
 export type ExpressionType = 'ArrayLiteralExpression' | 'SequenceExpression' | 'AssignmentExpression' | 'BinaryExpression' | 'UnaryExpression' | 'UnaryUpdateExpression' | 'Literal' | 'Identifier';
-export type LiteralType = 'IntegerLiteral' | 'FloatLiteral' | 'StringLiteral' | 'CharLiteral' | 'NullLiteral';
+export type LiteralType = 'IntegerLiteral' | 'FloatLiteral' | 'StringLiteral' | 'NullLiteral';
 
 export interface Global
 {

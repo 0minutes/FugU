@@ -1,5 +1,10 @@
 import
 {
+    BytecodeGenerator
+} from './src/BytecodeGenerator/BytecodeGenerator.ts';
+
+import
+{
     Parser
 } from './src/Parser/Parser.ts';
 
@@ -8,10 +13,6 @@ import
     Environment,
 } from './src/TypeChecking/Environment.ts';
 
-import
-{
-    TypeChecker
-} from './src/TypeChecking/TypeChecker.ts'
 
 const main = (): number =>
 {
@@ -21,8 +22,10 @@ const main = (): number =>
     {
         const input = prompt('>> ', '') as string;
         const parser = new Parser('<stdin>', input);
+        const generator = new BytecodeGenerator(parser, Env);
+
         console.log(parser.ast);
-        new TypeChecker(parser, Env);
+        console.log(generator.Stringbytecode);
     };
 };
 
