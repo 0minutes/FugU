@@ -50,7 +50,7 @@ export const generateExpression = (BytecodeGenerator: BytecodeGenerator, Express
                     type: Instructions.load,
                     argument: Expression.value,
 
-                    comment: `load the variable ${Expression.value} onto the stack`
+                    comment: `load the variable '${Expression.value}' onto the stack`
                 }
             );
             break;
