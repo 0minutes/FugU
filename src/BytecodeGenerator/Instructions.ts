@@ -23,6 +23,31 @@ export enum Instructions
     idiv = 'idiv',
     fdiv = 'fdiv',
 
+    ipow = 'ipow',
+    fpow = 'fpow',
+
+
+    eq = 'eq',
+    neq = 'neq',
+    gt = 'gt',
+    lt = 'lt',
+    gteq = 'gteq',
+    lteq = 'lteq',
+    
+    and = 'and',
+    or = 'or',
+    not = 'not',
+    
+    bitAnd = 'bitAnd',
+    bitOr = 'bitOr',
+    xOr = 'xor',
+    bitNot = 'bitNot',
+
+    fmod = 'fmod',
+    imod = 'imod',
+    rshift = 'rshift',
+    lshift = 'rshift',
+
     load = 'load',
 
     store = 'store',
@@ -30,8 +55,6 @@ export enum Instructions
 
     jmp = 'jmp',
     jz = 'jz',
-
-    halt = 'halt',
 };
 
 export interface Instruction

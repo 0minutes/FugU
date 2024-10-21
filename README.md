@@ -26,6 +26,56 @@ The source code for various components of the language can be found in the `./sr
 
 **Stay tuned for updates as I continue to build and refine this programming language!**
 
+## Bytecode Generator
+
+Up to date, here is an example of how an if statement would look like
+
+```python
+mut z: 6;
+
+if (z == 6)
+{
+    z += 1;
+}
+elif (z == 7)
+{
+    z += 1;
+}
+else
+{
+    z += 1;
+};
+```
+
+```js
+main:
+  ipush 0x6
+  store z // Assign the top of the stack to 'z'
+  load z // load the variable 'z' onto the stack
+  ipush 0x6
+  eq
+  jz 0xb // If the top of the stack is 0 jump to the next instructions
+  load z // load the variable 'z' onto the stack
+  ipush 0x1
+  iadd
+  update z // Reassign z to the top of the stack
+  jmp 0x18 // Jump through the if else blocks
+  load z // load the variable 'z' onto the stack
+  ipush 0x7
+  eq
+  jz 0x14 // If the top of the stack is 0 jump to the next instructions
+  load z // load the variable 'z' onto the stack
+  ipush 0x1
+  iadd
+  update z // Reassign z to the top of the stack
+  jmp 0x18 // Jump through the if else blocks
+  load z // load the variable 'z' onto the stack
+  ipush 0x1
+  iadd
+  update z // Reassign z to the top of the stack
+
+```
+
 ## Type Conversions
 
 Current conversions which take place on binary operations

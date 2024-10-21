@@ -2,8 +2,17 @@
 THIS IS NOT THE FUTURE SYNTAX, I JUST COPPIED AND PASTED SOME RANDOM CODE TO MAKE SURE THE LEXER WORKS WELL
 */
 
-mut z: str = 'a';
-z + 'a';
-(1/2) + 2.0;
-const a: str = "this is a fun test!";
-const b: str = a * 2;
+mut z: int = 6;
+
+if (z == 6)
+{
+    z += 1;
+}
+elif (z == 7)
+{
+    z += 1;
+}
+else
+{
+    z += 1;
+};

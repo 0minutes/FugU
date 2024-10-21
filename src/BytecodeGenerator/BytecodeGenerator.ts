@@ -21,7 +21,6 @@ import
 import
 {
     Bytecode,
-    Instructions
 } from "./Instructions.ts";
 
 import 
@@ -109,12 +108,5 @@ export class BytecodeGenerator
         {
             this.generateStatement(statement);
         };
-
-        this.Bytecode.push(
-            {
-                type: Instructions.halt,
-                comment: 'End of the program'
-            }
-        )
     };
 };
