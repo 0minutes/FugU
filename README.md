@@ -173,7 +173,7 @@ Comparison (```==```, ```!=```, ```>```, ```<```, ```>=```, ```<=```):
 
     any == any = int
 
-    Mixed types comparison: Promotes to the most compatible type (e.g., int == chr is compared as int == int (ASCII int)).
+    Mixed types comparison: Promotes to the most compatible type
 
 Bitwise Operators (```<<```, ```>>```, ```&```, ```|```, ```^```):
 
