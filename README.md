@@ -77,7 +77,7 @@ main:
 ```
 
 # How To Run
-To Run A Fugu Program Ensure You Have The Path For Fugub(The ByteCode Folder) And Deno Installed. **Note: If You Are Not On Windows You Have To Compile The ByteCode Yourself By Running Either**  
+To Run A Fugu Program Ensure You Have The Path For Fugub(The ByteCode Folder) And Deno Installed. **Note: You Must Compile The ByteCode Compiler By Running**  
 `Fugu/ByteCode> g++ Fugub.cpp -o Fugub`   
 Or  
 `Fugu/ByteCode> clang++ Fugub.cpp -o Fugub`   
