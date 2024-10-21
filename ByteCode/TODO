@@ -1,0 +1,11 @@
+bitAnd ---
+bitOr    | Add Later
+xor      |
+bitNot --- 
+
+
+rshift -- Add Later
+lshift -- Add Later
+
+jmp
+jz
