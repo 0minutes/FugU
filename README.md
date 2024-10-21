@@ -49,30 +49,30 @@ else
 
 ```llvm
 main:
-  ipush 0x6
-  store z // Assign the top of the stack to 'z'
-  load z // load the variable 'z' onto the stack
-  ipush 0x6
-  eq
-  jz 0xb // If the top of the stack is 0 jump to the next instructions
-  load z // load the variable 'z' onto the stack
-  ipush 0x1
-  iadd
-  update z // Reassign z to the top of the stack
-  jmp 0x18 // Jump through the if else blocks
-  load z // load the variable 'z' onto the stack
-  ipush 0x7
-  eq
-  jz 0x14 // If the top of the stack is 0 jump to the next instructions
-  load z // load the variable 'z' onto the stack
-  ipush 0x1
-  iadd
-  update z // Reassign z to the top of the stack
-  jmp 0x18 // Jump through the if else blocks
-  load z // load the variable 'z' onto the stack
-  ipush 0x1
-  iadd
-  update z // Reassign z to the top of the stack
+  ipush 0x6;
+  store z; // Assign the top of the stack to 'z'
+  load z; // load the variable 'z' onto the stack
+  ipush 0x6;
+  eq;
+  jz 0xb; // If the top of the stack is 0 jump to the next instructions
+  load z; // load the variable 'z' onto the stack
+  ipush 0x1;
+  iadd;
+  update z; // Reassign z to the top of the stack
+  jmp 0x18; // Jump through the if else blocks
+  load z; // load the variable 'z' onto the stack
+  ipush 0x7;
+  eq;
+  jz 0x14; // If the top of the stack is 0 jump to the next instructions
+  load z; // load the variable 'z' onto the stack
+  ipush 0x1;
+  iadd;
+  update z; // Reassign z to the top of the stack
+  jmp 0x18; // Jump through the if else blocks
+  load z; // load the variable 'z' onto the stack
+  ipush 0x1;
+  iadd;
+  update z; // Reassign z to the top of the stack
 
 ```
 
@@ -115,10 +115,10 @@ We Can Add `invoke 0x01` Into The ByteCode To Print The Rseult
 So Our `Main.fb` File Should Look Like This
 ```llvm
 main:
-    ipush 0x2
-    ipush 0x2
-    iadd
-    invoke 0x01
+    ipush 0x2;
+    ipush 0x2;
+    iadd;
+    invoke 0x01;
 ```
 If You See Some Other Stuff Dont Worry About It Just Ensure Your `Main.fb` Has Something Like This AfterWards You Can Run The Program Again
 
