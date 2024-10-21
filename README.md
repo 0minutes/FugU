@@ -30,7 +30,7 @@ The source code for various components of the language can be found in the `./sr
 
 Up to date, here is an example of how an if statement would look like
 
-```js
+```rust
 mut z: int = 6;
 
 if (z == 6)
