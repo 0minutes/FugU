@@ -27,19 +27,20 @@ import
     error,
     makePosition,
 } from '../Errors/Errors.ts';
+import type { Environment } from './Environment.ts';
 
-export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): simpleType =>
+export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr, env: Environment): simpleType =>
 {
     switch (Expression.type)
     {
         case 'BinaryExpression':
         {
-            return getBinaryExpressionType(TypeChecker, Expression);
+            return getBinaryExpressionType(TypeChecker, Expression, env);
         };
         
         case 'AssignmentExpression':
         {
-            const identType = TypeChecker.env.getVar(Expression.left.value)?.type;
+            const identType = env.getVar(Expression.left.value)?.type;
 
             if (identType == undefined)
             {
@@ -56,7 +57,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                 } as errorType;
             }
 
-            if (TypeChecker.env.getVar(Expression.left.value)!.mut == false)
+            if (env.getVar(Expression.left.value)!.mut == false)
             {
                 new error(
                     'Name Error',
@@ -66,7 +67,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                 );
             };
 
-            const initType = getExpressionType(TypeChecker, Expression.right);
+            const initType = getExpressionType(TypeChecker, Expression.right, env);
 
             if (!allTypesCompatible(identType, initType))
             {
@@ -79,12 +80,12 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                 );
             };
 
-            return getBinaryExpressionType(TypeChecker, Expression);
+            return getBinaryExpressionType(TypeChecker, Expression, env);
         };
 
         case 'ElementAccessExpression':
         {
-            const leftType = getExpressionType(TypeChecker, Expression.left);
+            const leftType = getExpressionType(TypeChecker, Expression.left, env);
 
             if (Expression.left.type == 'AssignmentExpression')
             {
@@ -104,7 +105,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
             if (leftType.kind == 'array')
             {
-                const indexType = getExpressionType(TypeChecker, Expression.index);
+                const indexType = getExpressionType(TypeChecker, Expression.index, env);
 
                 if (indexType.kind != 'int')
                 {
@@ -164,7 +165,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
             {
                 const element = Expression.elements[i];
 
-                const currentElementKind = getExpressionType(TypeChecker, element);
+                const currentElementKind = getExpressionType(TypeChecker, element, env);
 
                 if (i == 0)
                 {
@@ -177,7 +178,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
                     
                     new error(
                         'Type Warning',
-                        `Expected to only have the '${stringifyType(ElementKind!)}' type in the array instead of '${stringifyType(getExpressionType(TypeChecker, element))}'. Cannot have different types in the same array`,
+                        `Expected to only have the '${stringifyType(ElementKind!)}' type in the array instead of '${stringifyType(getExpressionType(TypeChecker, element, env))}'. Cannot have different types in the same array`,
                         TypeChecker.parser.source,
                         makePosition(TypeChecker.parser.filename, element.where[0], element.where[1], element.where[2]),
                         stringifyType(ElementKind)
@@ -186,7 +187,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
                 if (element.type == 'Identifier')
                 {
-                    if (!(TypeChecker.env.getVar(element.value)!.init))
+                    if (!(env.getVar(element.value)!.init))
                     {
                         
                         new error(
@@ -211,13 +212,13 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
         case 'UnaryExpression':
         {
-            const elementKind = getExpressionType(TypeChecker, Expression.right);
+            const elementKind = getExpressionType(TypeChecker, Expression.right, env);
 
             const element = Expression.right;
 
             if (element.type == 'Identifier')
             {
-                if (!(TypeChecker.env.getVar(element.value)!.init))
+                if (!(env.getVar(element.value)!.init))
                 {
                     
                     new error(
@@ -257,14 +258,14 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
         case 'UnaryUpdateExpression':
         {
-            const identType = getExpressionType(TypeChecker, Expression.right);
+            const identType = getExpressionType(TypeChecker, Expression.right, env);
 
             if (identType.kind == 'int' || identType.kind == 'float')
             {
                 return identType;
             };
 
-            if (TypeChecker.env.getVar(Expression.right.value)!.init == false)
+            if (env.getVar(Expression.right.value)!.init == false)
             {
                 
                 new error(
@@ -293,7 +294,7 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr): s
 
         case 'Identifier':
         {
-            const simpleType = TypeChecker.env.getVar(Expression.value);
+            const simpleType = env.getVar(Expression.value);
 
             if (simpleType == undefined)
             {
@@ -359,7 +360,7 @@ export const getLiteralType = (Literal: Literal): simpleType =>
     };
 };
 
-export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: BinaryExpression | AssignmentExpression): simpleType =>
+export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: BinaryExpression | AssignmentExpression, env: Environment): simpleType =>
 {
     if (Expression.left.type == 'AssignmentExpression')
     {
@@ -393,8 +394,8 @@ export const getBinaryExpressionType = (TypeChecker: TypeChecker, Expression: Bi
         } as errorType;
     };
 
-    const leftType = getExpressionType(TypeChecker, Expression.left);
-    const rightType = getExpressionType(TypeChecker, Expression.right);
+    const leftType = getExpressionType(TypeChecker, Expression.left, env);
+    const rightType = getExpressionType(TypeChecker, Expression.right, env);
 
     if (leftType == undefined)
     {

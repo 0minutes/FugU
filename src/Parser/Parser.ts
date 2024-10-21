@@ -8,6 +8,7 @@ import
     EmptyStatement,
     DeclerationStatement,
     ExpressionStatement,
+    type IfStatement,
 } from './GlobalNodes.ts';
 
 import
@@ -30,6 +31,7 @@ import
 {
     parseExpressionStatement,
     parseDeclarationStatement,
+    parseIfStatement,
 } from './Statements.ts';
 
 
@@ -136,6 +138,14 @@ export class Parser
                 return DeclStatement;
             };
 
+            case TokenType.if:
+            {
+                // @ts-ignore <We are expecting an if statement since we are at tok if>
+                const ifStatement: IfStatement = parseIfStatement(this);
+
+                return ifStatement;
+            };
+            
             default:
             {
                 const ExprStatement: ExpressionStatement = parseExpressionStatement(this);

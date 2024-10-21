@@ -1,5 +1,7 @@
 import
 {
+    IfStatement,
+    DeclerationStatement,
     ExpressionStatement
 } from "../Parser/GlobalNodes.ts";
 
@@ -10,7 +12,6 @@ import
 
 import
 {
-    Bytecode,
     Instructions,
 } from "./Instructions.ts";
 
@@ -18,27 +19,70 @@ import
 {
     generateExpression,
 } from "./Expressions.ts";
-import type { DeclerationStatement } from "../Parser/GlobalNodes.ts";
 
-export const generateExpressionStatement = (BytecodeGenerator: BytecodeGenerator, Expression: ExpressionStatement): Bytecode =>
+export const generateExpressionStatement = (BytecodeGenerator: BytecodeGenerator, Expression: ExpressionStatement): void =>
 {
-    const Bytecode: Bytecode = [];
-
-    Bytecode.push(...generateExpression(BytecodeGenerator, Expression.body))
-
-    return Bytecode;
+    generateExpression(BytecodeGenerator, Expression.body)
 };
 
-export const generateDeclerationStatement = (BytecodeGenerator: BytecodeGenerator, Statement: DeclerationStatement): Bytecode =>
+export const generateIfStatement = (BytecodeGenerator: BytecodeGenerator, Statement: IfStatement): void =>
 {
-    const Bytecode: Bytecode = [];
+    generateExpression(BytecodeGenerator, Statement.condition);
 
+    const jzIdx = BytecodeGenerator.Bytecode.length;
+
+    BytecodeGenerator.Bytecode.push(
+        {
+            type: Instructions.jz,
+            argument: '',
+            comment: 'If the top of the stack is 0 jump to the next instructions'
+        }
+    );
+    
+    for (const Stmt of Statement.body)
+    {
+        BytecodeGenerator.generateStatement(Stmt);
+    };
+
+    const jmpIdx = BytecodeGenerator.Bytecode.length;
+
+    BytecodeGenerator.Bytecode.push(
+        {
+            type: Instructions.jmp,
+            argument: '',
+            comment: 'Jump through the if else blocks'
+        }
+    )
+
+    BytecodeGenerator.Bytecode[jzIdx].argument = '0x' + (BytecodeGenerator.Bytecode.length).toString(16);
+    
+    if (Statement.alternate != undefined)
+    {
+        if (Statement.alternate.type == 'ElseStatement')
+        {
+            for (const Stmt of Statement.alternate.body)
+            {
+                BytecodeGenerator.generateStatement(Stmt);
+            };
+        };
+        if (Statement.alternate.type == 'IfStatement')
+        {
+            generateIfStatement(BytecodeGenerator, Statement.alternate);
+        };
+    };
+
+    BytecodeGenerator.Bytecode[jmpIdx].argument = '0x' + (BytecodeGenerator.Bytecode.length).toString(16);
+
+};
+
+export const generateDeclerationStatement = (BytecodeGenerator: BytecodeGenerator, Statement: DeclerationStatement): void =>
+{
 
     for (const variable of Statement.variables)
     {
         if (Statement.init == undefined)
         {
-            Bytecode.push(
+            BytecodeGenerator.Bytecode.push(
                 {
                     type: Instructions.npush,
                     argument: 'null',
@@ -47,10 +91,10 @@ export const generateDeclerationStatement = (BytecodeGenerator: BytecodeGenerato
         }
         else
         {
-            Bytecode.push(...generateExpression(BytecodeGenerator, Statement.init));
+            generateExpression(BytecodeGenerator, Statement.init);
         };
 
-        Bytecode.push(
+        BytecodeGenerator.Bytecode.push(
             {
                 type: Instructions.store,
                 argument: variable.value,
@@ -58,6 +102,4 @@ export const generateDeclerationStatement = (BytecodeGenerator: BytecodeGenerato
             }
         );
     }
-
-    return Bytecode;
 };

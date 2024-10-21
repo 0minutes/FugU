@@ -1,6 +1,6 @@
 
 export type Bytecode = Instruction[]
-export type Instruction = pushInstruction;
+
 export enum Instructions
 {
     ipush = 'ipush',
@@ -27,9 +27,14 @@ export enum Instructions
 
     store = 'store',
     update = 'update',
+
+    jmp = 'jmp',
+    jz = 'jz',
+
+    halt = 'halt',
 };
 
-export interface pushInstruction
+export interface Instruction
 {
     type: Instructions;
     argument?: string;

@@ -12,7 +12,6 @@ import
 
 import
 {
-    Bytecode,
     Instructions
 } from "./Instructions.ts";
 
@@ -21,31 +20,29 @@ import
     getExpressionType
 } from "../TypeChecking/Expressions.ts";
 
-export const generateExpression = (BytecodeGenerator: BytecodeGenerator, Expression: Expr): Bytecode =>
+export const generateExpression = (BytecodeGenerator: BytecodeGenerator, Expression: Expr): void =>
 {
-    const Bytecode: Bytecode = [];
-
     switch (Expression.type)
     {
         case 'Literal':
         {
-            Bytecode.push(...generateLiteral(Expression));
+            generateLiteral(BytecodeGenerator, Expression);
             break;
         };
 
         case 'BinaryExpression':
         {
-            Bytecode.push(...generateExpression(BytecodeGenerator, Expression.left));
-            Bytecode.push(...generateExpression(BytecodeGenerator, Expression.right));
+            generateExpression(BytecodeGenerator, Expression.left);
+            generateExpression(BytecodeGenerator, Expression.right);
 
-            Bytecode.push(...getOperatorInstruction(BytecodeGenerator, Expression));
+            getOperatorInstruction(BytecodeGenerator, Expression);
 
             break;
         };
 
         case 'Identifier':
         {
-            Bytecode.push(
+            BytecodeGenerator.Bytecode.push(
                 {
                     type: Instructions.load,
                     argument: Expression.value,
@@ -58,8 +55,8 @@ export const generateExpression = (BytecodeGenerator: BytecodeGenerator, Express
 
         case 'AssignmentExpression':
         {
-            Bytecode.push(...generateExpression(BytecodeGenerator, Expression.right));
-            Bytecode.push(
+            generateExpression(BytecodeGenerator, Expression.right);
+            BytecodeGenerator.Bytecode.push(
                 {
                     type: Instructions.update,
                     argument: Expression.left.value,
@@ -68,19 +65,15 @@ export const generateExpression = (BytecodeGenerator: BytecodeGenerator, Express
             );
         };
     };
-
-    return Bytecode;
 };
 
-export const generateLiteral = (Expression: Literal): Bytecode =>
+export const generateLiteral = (BytecodeGenerator: BytecodeGenerator, Expression: Literal): void =>
 {
-    const Bytecode: Bytecode = [];
-
     switch (Expression.kind)
     {
         case 'IntegerLiteral':
         {
-            Bytecode.push(
+            BytecodeGenerator.Bytecode.push(
                 {
                     type: Instructions.ipush,
                     argument: '0x' + Expression.value.toString(16)
@@ -92,7 +85,7 @@ export const generateLiteral = (Expression: Literal): Bytecode =>
 
         case 'StringLiteral':
         {
-            Bytecode.push(
+            BytecodeGenerator.Bytecode.push(
                 {
                     type: Instructions.spush,
                     argument: '"' + Expression.value as string + '"'
@@ -104,7 +97,7 @@ export const generateLiteral = (Expression: Literal): Bytecode =>
 
         case 'FloatLiteral':
         {
-            Bytecode.push(
+            BytecodeGenerator.Bytecode.push(
                 {
                     type: Instructions.fpush,
                     argument: Expression.value.toString().replace('.', ' ')
@@ -116,7 +109,7 @@ export const generateLiteral = (Expression: Literal): Bytecode =>
         
         case "NullLiteral":
         {
-            Bytecode.push(
+            BytecodeGenerator.Bytecode.push(
                 {
                     type: Instructions.npush,
                     argument: 'null'
@@ -125,23 +118,19 @@ export const generateLiteral = (Expression: Literal): Bytecode =>
             break;
         };
     };
-
-    return Bytecode;
 };
 
-const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression: BinaryExpression): Bytecode =>
+const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression: BinaryExpression): void =>
 {
-    const Bytecode: Bytecode = [];
-
     switch (Expression.operator.kind)
     {
         case '+':
         {
-            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression).kind)
+            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, BytecodeGenerator.TypeChecker.env).kind)
             {
                 case 'int':
                 {
-                    Bytecode.push(
+                    BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.iadd
                         }   
@@ -152,7 +141,7 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
                 case 'str':
                 {
-                    Bytecode.push(
+                    BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.sadd
                         }   
@@ -163,7 +152,7 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
                 case 'float':
                 {
-                    Bytecode.push(
+                    BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.fadd
                         }   
@@ -178,11 +167,11 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
         case '-':
         {
-            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression).kind)
+            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, BytecodeGenerator.TypeChecker.env).kind)
             {
                 case 'int':
                 {
-                    Bytecode.push(
+                    BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.imin
                         }   
@@ -193,7 +182,7 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
                 case 'float':
                 {
-                    Bytecode.push(
+                    BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.fmin
                         }   
@@ -208,11 +197,11 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
         case '*':
         {
-            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression).kind)
+            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, BytecodeGenerator.TypeChecker.env).kind)
             {
                 case 'int':
                 {
-                    Bytecode.push(
+                    BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.imul
                         }   
@@ -223,7 +212,7 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
                 case 'str':
                 {
-                    Bytecode.push(
+                    BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.smul
                         }   
@@ -234,7 +223,7 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
                 case 'float':
                 {
-                    Bytecode.push(
+                    BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.fmul
                         }   
@@ -249,11 +238,11 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
         case '/':
         {
-            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression).kind)
+            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, BytecodeGenerator.TypeChecker.env).kind)
             {
                 case 'int':
                 {
-                    Bytecode.push(
+                    BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.idiv
                         }   
@@ -264,7 +253,7 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
                 case 'float':
                 {
-                    Bytecode.push(
+                    BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.fdiv
                         }
@@ -276,6 +265,4 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
             break;
         };
     };
-
-    return Bytecode;
 };

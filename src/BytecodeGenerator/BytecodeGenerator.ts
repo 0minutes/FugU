@@ -20,13 +20,15 @@ import
 
 import
 {
-    Bytecode
+    Bytecode,
+    Instructions
 } from "./Instructions.ts";
 
 import 
 {
     generateDeclerationStatement,
-    generateExpressionStatement
+    generateExpressionStatement,
+    generateIfStatement
 } from './Statements.ts'
 
 export class BytecodeGenerator
@@ -42,9 +44,12 @@ export class BytecodeGenerator
         this.parser = parser;
         this.Environment = Environment;
         this.TypeChecker = new TypeChecker(this.parser, Environment);
+        this.TypeChecker.checkGlobal()
+        
 
-        this.Bytecode = this.generateBytecode();
+        this.Bytecode = [];
 
+        this.generateBytecode();
         this.Stringbytecode = this.stringify();
     };
 
@@ -74,37 +79,42 @@ export class BytecodeGenerator
         return stringBytecode;
     };
 
-    generateStatement = (Statement: Stmt): Bytecode =>
+    generateStatement = (Statement: Stmt): void =>
     {
-        const Bytecode: Bytecode = [];
-
         switch (Statement.type)
         {
             case 'ExpressionStatement':
             {
-                Bytecode.push(...generateExpressionStatement(this, Statement));
+                generateExpressionStatement(this, Statement);
                 break;
             };
 
             case 'DeclerationStatement':
             {
-                Bytecode.push(...generateDeclerationStatement(this, Statement));
+                generateDeclerationStatement(this, Statement);
                 break;
-            }
+            };
+            
+            case 'IfStatement':
+            {
+                generateIfStatement(this, Statement);
+                break;
+            };
         };
-
-        return Bytecode;
     };
 
-    generateBytecode = (): Bytecode =>
+    generateBytecode = (): void =>
     {
-        const Bytecode: Bytecode = [];
-
         for (const statement of this.parser.ast.body) 
         {
-            Bytecode.push(...this.generateStatement(statement));
+            this.generateStatement(statement);
         };
 
-        return Bytecode;
+        this.Bytecode.push(
+            {
+                type: Instructions.halt,
+                comment: 'End of the program'
+            }
+        )
     };
 };

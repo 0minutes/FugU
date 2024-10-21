@@ -27,7 +27,6 @@ export interface EmptyStatement
 export interface DeclerationStatement
 {
     type: 'DeclerationStatement';
-    foldable: boolean;
     mut: boolean;
     simpleType: simpleType;
     variables: Identifier[];
@@ -35,10 +34,25 @@ export interface DeclerationStatement
     where: number[];
 };
 
+export interface IfStatement
+{
+    type: 'IfStatement';
+    condition: Expr;
+    body: Stmt[];
+    alternate: IfStatement | ElseStatement | undefined;
+    where: number[];
+};
+
+export interface ElseStatement
+{
+    type: 'ElseStatement';
+    body: Stmt[];
+    where: number[];
+};
+
 export interface ExpressionStatement
 {
     type: 'ExpressionStatement';
-    foldable: boolean;
     body: Expr;
     where: number[];
 };
@@ -48,7 +62,6 @@ export interface ExpressionStatement
 export interface ElementAccessExpression
 {
     type: 'ElementAccessExpression';
-    foldable: boolean;
     left: Expr;
     index: Expr;
     where: number[];
@@ -57,7 +70,6 @@ export interface ElementAccessExpression
 export interface BinaryExpression
 {
     type: 'BinaryExpression';
-    foldable: boolean;
     left: Expr;
     right: Expr;
     operator: {
@@ -71,7 +83,6 @@ export interface BinaryExpression
 export interface AssignmentExpression
 {
     type: 'AssignmentExpression';
-    foldable: boolean;
     left: Identifier;
     right: Expr;
     operator: {
@@ -84,7 +95,6 @@ export interface AssignmentExpression
 export interface UnaryExpression
 {
     type: 'UnaryExpression';
-    foldable: boolean;
     operator: {
         kind: string;
         where: number[]
@@ -96,7 +106,6 @@ export interface UnaryExpression
 export interface UnaryUpdateExpression
 {
     type: 'UnaryUpdateExpression';
-    foldable: boolean;
     operator: {
         kind: string;
         where: number[]
@@ -109,7 +118,6 @@ export interface UnaryUpdateExpression
 export interface ArrayExpression
 {
     type: 'ArrayLiteralExpression';
-    foldable: boolean;
     elements: Expr[];
     where: number[];
 };
@@ -117,7 +125,6 @@ export interface ArrayExpression
 export interface Literal
 {
     type: 'Literal';
-    foldable: boolean;
     kind: LiteralType;
     value: bigint | number | string;
     where: number[];
@@ -126,10 +133,9 @@ export interface Literal
 export interface Identifier
 {
     type: 'Identifier';
-    foldable: boolean;
     value: string;
     where: number[];
 };
 
-export type Stmt = ExpressionStatement | DeclerationStatement | EmptyStatement;
+export type Stmt = ExpressionStatement | IfStatement | DeclerationStatement | EmptyStatement;
 export type Expr = ElementAccessExpression | ArrayExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;

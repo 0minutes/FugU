@@ -15,6 +15,7 @@ import
     DeclerationStatement,
     Expr,
     Identifier,
+    IfStatement,
 } from "../Parser/GlobalNodes.ts";
 
 import 
@@ -27,19 +28,35 @@ import
     error,
     makePosition
 } from "../Errors/Errors.ts";
-
-export const checkExpressionStatement = (TypeChecker: TypeChecker, Expression: Expr): void =>
+import
 {
-    getExpressionType(TypeChecker, Expression);
+    Environment
+} from "./Environment.ts";
+
+export const checkExpressionStatement = (TypeChecker: TypeChecker, Expression: Expr, Env: Environment): void =>
+{
+    getExpressionType(TypeChecker, Expression, Env);
 };
 
-export const checkDeclerationStatements = (TypeChecker: TypeChecker, DeclerationStatement: DeclerationStatement): void =>
+export const checkIfStatements = (TypeChecker: TypeChecker, IfStatement: IfStatement, Env: Environment): void =>
+{
+    getExpressionType(TypeChecker, IfStatement.condition, Env);
+
+    const ifEnv: Environment = new Environment(TypeChecker.env)
+
+    for (const Stmt of IfStatement.body)
+    {
+        TypeChecker.checkStatement(Stmt, ifEnv);
+    };
+};
+
+export const checkDeclerationStatements = (TypeChecker: TypeChecker, DeclerationStatement: DeclerationStatement, Env: Environment): void =>
 {
     const declType: simpleType = DeclerationStatement.simpleType;
 
     if (DeclerationStatement.init != undefined)
     {
-        const initType: simpleType = getExpressionType(TypeChecker, DeclerationStatement.init);
+        const initType: simpleType = getExpressionType(TypeChecker, DeclerationStatement.init, Env);
         
         if (!allTypesCompatible(declType, initType))
         {
@@ -59,7 +76,7 @@ export const checkDeclerationStatements = (TypeChecker: TypeChecker, Decleration
     {
         const variable: Identifier = DeclerationStatement.variables[i];
 
-        if (TypeChecker.env.addVar(variable.value, declType, DeclerationStatement.mut, DeclerationStatement.init != undefined) == undefined)
+        if (Env.addVar(variable.value, declType, DeclerationStatement.mut, DeclerationStatement.init != undefined) == undefined)
         {
             new error(
                 'Name Error',

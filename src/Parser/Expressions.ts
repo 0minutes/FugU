@@ -201,7 +201,6 @@ const led = (parser: Parser, lhs: Expr): Expr =>
         
         return {
             type: "AssignmentExpression",
-            foldable: lhs.foldable && rhs.foldable,
             left: lhs,
             operator: operator,
             right: rhs,
@@ -222,7 +221,6 @@ const led = (parser: Parser, lhs: Expr): Expr =>
         
         return {
             type: "BinaryExpression",
-            foldable: lhs.foldable && rhs.foldable,
             left: lhs,
             operator: operator,
             right: rhs,
@@ -286,7 +284,6 @@ const nud = (parser: Parser): Expr =>
 
         lhs = {
             type: 'UnaryExpression',
-            foldable: expr.foldable,
             operator: operator,
             right: expr,
             where: [token.where.line, token.where.start, expr.where[2]]
@@ -309,7 +306,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
     {
         lhs = {
             type: 'Literal',
-            foldable: true,
             kind: 'IntegerLiteral',
             value: BigInt(token.value),
             where: [token.where.line, token.where.start, token.where.end],
@@ -320,9 +316,8 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
     {
         lhs = {
             type: 'Literal',
-            foldable: true,
             kind: 'IntegerLiteral',
-            value: token.value == 'true' ? 1n : 0n,
+            value: token.value == 'TRUE' ? 1n : 0n,
             where: [token.where.line, token.where.start, token.where.end],
         };
     }
@@ -331,7 +326,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
     {
         lhs = {
             type: 'Literal',
-            foldable: true,
             kind: 'FloatLiteral',
             value: parseFloat(token.value),
             where: [token.where.line, token.where.start, token.where.end],
@@ -342,7 +336,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
     {
         lhs = {
             type: 'Literal',
-            foldable: true,
             kind: 'StringLiteral',
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
@@ -353,7 +346,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
     {
         lhs = {
             type: 'Literal',
-            foldable: false,
             kind: 'NullLiteral',
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
@@ -364,7 +356,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
     {
         lhs = {
             type: 'Identifier',
-            foldable: false,
             value: token.value,
             where: [token.where.line, token.where.start, token.where.end],
         };
@@ -377,7 +368,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
 
         lhs = {
             type: 'ArrayLiteralExpression',
-            foldable: false,
             elements: expressions,
             where: []
         };
@@ -386,7 +376,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         {
             lhs = {
                 type: 'ArrayLiteralExpression',
-                foldable: true,
                 elements: expressions,
                 where: [token.where.line, token.where.start, parser.eat().where.end]
             };
@@ -402,16 +391,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
                 expressions.push(parseExpression(parser, 2));
             };
 
-            let foldable = false
-
-            for (const expr of expressions)
-            {
-                if (expr.foldable == true)
-                {
-                    foldable = true;
-                    break;
-                };
-            };
 
             const rightBrace = parser.expect(
                 TokenType.rightBrace,
@@ -422,7 +401,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
 
             lhs = {
                 type: 'ArrayLiteralExpression',
-                foldable: foldable,
                 elements: expressions,
                 where: [token.where.line, token.where.start, rightBrace.where.end]
             };
@@ -480,7 +458,6 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
 
         lhs = {
             type: 'ElementAccessExpression',
-            foldable: lhs.foldable,
             left: lhs,
             index: argument,
             where: [lhs.where[0], lhs.where[1], rightBracket.where.end],

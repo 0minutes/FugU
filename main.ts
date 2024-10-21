@@ -39,6 +39,7 @@ const fromFile = async (filepath: string, outputFile: string, dump: boolean) =>
     catch (e)
     {
         console.log(`Unknown file path: ${filepath}`);
+        console.log(e);
         Deno.exit(1);
     };
 

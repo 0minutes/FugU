@@ -9,6 +9,8 @@ import
     DeclerationStatement,
     Identifier,
     Expr,
+    Stmt,
+    IfStatement,
 } from './GlobalNodes.ts';
 
 import 
@@ -47,6 +49,136 @@ const formatValues = (items: Identifier[]): string =>
     return values.length ? `${values.join(', ')} and ${lastValue}` : lastValue || '';
 };
 
+export const parseIfStatement = (parser: Parser) =>
+{
+    const iftoken = parser.eat();
+
+    parser.expect(
+        TokenType.leftParenthesis,
+        true,
+        `Expected a '(' (${TokenType.leftParenthesis}) to specify the condition of the ${iftoken.value} statement`,
+        '('
+    );
+
+    const condition: Expr = parseExpression(parser, 2);
+
+    parser.expect(
+        TokenType.rightParenthesis,
+        true,
+        `Expected a ')' (${TokenType.rightParenthesis}) to specify the end of condition of the ${iftoken.value} statement`,
+        ')'
+    );
+
+    parser.expect(
+        TokenType.leftBrace,
+        true,
+        `Expected a '{' (${TokenType.leftBrace}) for the block body of the ${iftoken.value} statement`,
+        '{'
+    );
+
+    const body: Stmt[] = [];
+
+    while (parser.at().type != TokenType.rightBrace)
+    {
+        if (parser.at().value == 'EOF')
+        {
+            new error(
+                'Syntax Error',
+                `Expected to get a '}' (${TokenType.rightBrace}) to end the block body of the ${iftoken.value} statement`,
+                parser.source,
+                parser.at().where,
+                '}'
+            );
+        };
+
+        body.push(parser.parseStatement());
+    };
+
+    parser.eat();
+
+    parser.expectMultiple(
+        [
+            TokenType.semicolon,
+            TokenType.elif,
+            TokenType.else
+        ],
+        false,
+        `Expected one of the following: ';' 'elif' or 'else' instead of ${parser.at().value} (${parser.at().type})`,
+        `; or else or elif`
+    );
+
+    if (parser.at().type == TokenType.semicolon)
+    {
+        return {
+            type: 'IfStatement',
+            condition: condition,
+            body: body,
+            alternate: undefined,
+            where: [iftoken.where.line, iftoken.where.start, parser.eat().where.end]
+        };
+    }
+
+    else if (parser.at().type == TokenType.elif)
+    {
+
+        //@ts-ignore <The function is expecting an if statement since we are at elif>
+        const alternate: IfStatement = parseIfStatement(parser);
+
+        return {
+            type: 'IfStatement',
+            condition: condition,
+            body: body,
+            alternate: alternate,
+            where: [iftoken.where.line, iftoken.where.start, alternate.where[2]]
+        }; 
+    }
+
+    else
+    {
+        const elsetoken = parser.eat();
+
+        parser.eat();
+
+        const elsebody: Stmt[] = [];
+
+        while (parser.at().type != TokenType.rightBrace)
+        {
+            if (parser.at().value == 'EOF')
+            {
+                new error(
+                    'Syntax Error',
+                    `Expected to get a '}' (${TokenType.rightBrace}) to end the block body of the ${elsetoken.value} statement`,
+                    parser.source,
+                    parser.at().where,
+                    '}'
+                );
+            };
+    
+            elsebody.push(parser.parseStatement());
+        };
+    
+        const rbrace = parser.eat();
+
+        parser.expect(
+            TokenType.semicolon,
+            true,
+            `Unexpectedly got the '${parser.at().value}' (${parser.at().type}) token. Expected a semicolon at the end of the Statement`,
+            ';'
+        );
+
+        return {
+            type: 'IfStatement',
+            condition: condition,
+            body: body,
+            alternate: {
+                type: 'ElseStatement',
+                body: elsebody,
+                where: [elsetoken.where.line, elsetoken.where.start, rbrace.where.end]
+            },
+            where: [iftoken.where.line, iftoken.where.start, rbrace.where.end]
+        } as IfStatement;
+    };
+};
 
 export const parseDeclarationStatement = (parser: Parser): DeclerationStatement =>
 {
@@ -55,7 +187,6 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
     let DeclStatement: DeclerationStatement = 
     {
         type: 'DeclerationStatement',
-        foldable: false,
         simpleType: {} as simpleType,
         mut: false,
         variables: [],
@@ -120,7 +251,6 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
 
         DeclStatement = {
             type: 'DeclerationStatement',
-            foldable: false,
             mut: mut.value == 'mut' ? true : false,
             simpleType: typedef,
             variables: variables,
@@ -155,7 +285,6 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
 
     DeclStatement = {
         type: 'DeclerationStatement',
-        foldable: initializer.foldable,
         mut: mut.value == 'mut' ? true : false,
         simpleType: typedef,
         variables: variables,
@@ -166,7 +295,7 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
     parser.expect(
         TokenType.semicolon,
         true,
-        `Unexpectedly got the '${parser.at().value}' (${parser.at().type}) token. Expected a semicolon at the end of an Expression`,
+        `Unexpectedly got the '${parser.at().value}' (${parser.at().type}) token. Expected a semicolon at the end of the Statement`,
         ';'
     );
 
@@ -178,7 +307,6 @@ export const parseExpressionStatement = (parser: Parser): ExpressionStatement =>
     const ExprStatement: ExpressionStatement = 
     {
         type: 'ExpressionStatement',
-        foldable: true,
         body: {} as Expr,
         where: [],
     };
@@ -190,11 +318,9 @@ export const parseExpressionStatement = (parser: Parser): ExpressionStatement =>
     parser.expect(
         TokenType.semicolon,
         true,
-        `Unexpectedly got the '${parser.at().value}' (${parser.at().type}) token. Expected a semicolon at the end of an Expression`,
+        `Unexpectedly got the '${parser.at().value}' (${parser.at().type}) token. Expected a semicolon at the end of the Statement`,
         ';'
     );
-
-    ExprStatement.foldable = ExprStatement.body.foldable;
 
     return ExprStatement;
 };
