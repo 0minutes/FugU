@@ -35,7 +35,7 @@ export const generateIfStatement = (BytecodeGenerator: BytecodeGenerator, Statem
         {
             type: Instructions.jz,
             argument: '',
-            comment: 'If the top of the stack is 0 jump to the next instructions'
+            comment: 'If the top of the stack is 0 jump'
         }
     );
     
@@ -50,12 +50,13 @@ export const generateIfStatement = (BytecodeGenerator: BytecodeGenerator, Statem
         {
             type: Instructions.jmp,
             argument: '',
-            comment: 'Jump through the if else blocks'
+            comment: ''
         }
     )
 
-    BytecodeGenerator.Bytecode[jzIdx].argument = '0x' + (BytecodeGenerator.Bytecode.length).toString(16);
-    
+    BytecodeGenerator.Bytecode[jzIdx].argument = '0x' + (BytecodeGenerator.Bytecode.length - jzIdx-1).toString(16);
+    BytecodeGenerator.Bytecode[jzIdx].comment = `Jump if zero ${'0x' + (BytecodeGenerator.Bytecode.length - jzIdx-1).toString(16)} times`
+
     if (Statement.alternate != undefined)
     {
         if (Statement.alternate.type == 'ElseStatement')
@@ -71,7 +72,8 @@ export const generateIfStatement = (BytecodeGenerator: BytecodeGenerator, Statem
         };
     };
 
-    BytecodeGenerator.Bytecode[jmpIdx].argument = '0x' + (BytecodeGenerator.Bytecode.length).toString(16);
+    BytecodeGenerator.Bytecode[jmpIdx].argument = '0x' + (BytecodeGenerator.Bytecode.length-jmpIdx-1).toString(16);
+    BytecodeGenerator.Bytecode[jmpIdx].comment = `Jump ${'0x' + (BytecodeGenerator.Bytecode.length-jmpIdx-1).toString(16)} times`
 
 };
 

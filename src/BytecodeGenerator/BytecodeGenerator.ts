@@ -56,7 +56,24 @@ export class BytecodeGenerator
     {
         let stringBytecode: string = '';
 
-        stringBytecode += 'main:\n'
+        let maxInstructionLen = 1;
+
+        for (const instruction of this.Bytecode)
+        {
+            if (instruction.argument != undefined)
+            {
+                if ((instruction.type + ' ' + instruction.argument).length > maxInstructionLen)
+                {
+                    maxInstructionLen = (instruction.type + ' ' + instruction.argument).length;
+                };
+            }
+            else if ((instruction.type).length > maxInstructionLen)
+            {
+                maxInstructionLen = (instruction.type).length;
+            };
+        };
+
+        stringBytecode += 'main:\n' 
 
         for (const instruction of this.Bytecode)
         {
@@ -67,9 +84,14 @@ export class BytecodeGenerator
                 stringBytecode += ' ' + instruction.argument;
             };
 
-            if (instruction.comment)
+            if (instruction.comment != undefined && instruction.argument != undefined)
             {
-                stringBytecode += ` // ${instruction.comment}`
+                stringBytecode += (' '.repeat(maxInstructionLen - (instruction.type + ' ' + instruction.argument).length) + `// ${instruction.comment}`)
+            }
+
+            else if (instruction.comment != undefined && instruction.argument == undefined)
+            {
+                stringBytecode += (' '.repeat(maxInstructionLen - (instruction.type).length) + ` // ${instruction.comment}`)
             };
 
             stringBytecode += '\n';

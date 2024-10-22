@@ -1,18 +1,3 @@
-/*
-THIS IS NOT THE FUTURE SYNTAX, I JUST COPPIED AND PASTED SOME RANDOM CODE TO MAKE SURE THE LEXER WORKS WELL
-*/
-
-mut z: int = 6;
-
-if (z == 6)
-{
-    z += 1;
-}
-elif (z == 7)
-{
-    z += 1;
-}
-else
-{
-    z += 1;
-};
+main:
+    ipush 0xb;
+    ipush 0xa;
