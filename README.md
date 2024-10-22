@@ -97,6 +97,7 @@ If you are planning to try and write some bytecode rememeber:
 jz/jmp 0x1; // will skip the next instruction
 jz/jmp 0x4; // will skip the next 4 instructions after the jz keyword
 ```
+3. jz is conditional and requires the top of the stack to be 0 (hence the name jump is zero) whereas jmp is unconditional and jumps no matter what
 
 ## Type Conversions
 
