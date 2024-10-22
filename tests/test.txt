@@ -1,3 +1,0 @@
-main:
-    ipush 0xb;
-    ipush 0xa;
