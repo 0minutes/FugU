@@ -31,101 +31,72 @@ The source code for various components of the language can be found in the `./sr
 Up to date, here is an example of how an if statement would look like
 
 ```rust
-mut z: int = 6;
-
-if (z == 6)
-{
-    z += 1;
+1+1;
+1/1;
+if (TRUE) {
+    1+1;
 }
-elif (z == 7)
-{
-    z += 1;
-}
-else
-{
-    z += 1;
+else {
+    FALSE;
 };
 ```
 
 ```llvm
 main:
-  ipush 0x6;
-  store z; // Assign the top of the stack to 'z'
-  load z; // load the variable 'z' onto the stack
-  ipush 0x6;
-  eq;
-  jz 0xb; // If the top of the stack is 0 jump to the next instructions
-  load z; // load the variable 'z' onto the stack
+  ipush 0x1;
   ipush 0x1;
   iadd;
-  update z; // Reassign z to the top of the stack
-  jmp 0x18; // Jump through the if else blocks
-  load z; // load the variable 'z' onto the stack
-  ipush 0x7;
-  eq;
-  jz 0x14; // If the top of the stack is 0 jump to the next instructions
-  load z; // load the variable 'z' onto the stack
+  ipush 0x1;
+  ipush 0x1;
+  fdiv;
+  ipush 0x1;
+  jz 0x4;   // Jump if zero 0x4 times
+  ipush 0x1;
   ipush 0x1;
   iadd;
-  update z; // Reassign z to the top of the stack
-  jmp 0x18; // Jump through the if else blocks
-  load z; // load the variable 'z' onto the stack
-  ipush 0x1;
-  iadd;
-  update z; // Reassign z to the top of the stack
-
+  jmp 0x1;  // Jump 0x1 times
+  ipush 0x0;
+  end
 ```
 
-# How To Run
-To Run A Fugu Program Ensure You Have The Path For Fugub(The ByteCode Folder) And Deno Installed. **Note: If You Are Not On Windows You Have To Compile The ByteCode Yourself By Running Either**  
-`Fugu/ByteCode> g++ Fugub.cpp -o Fugub`   
-Or  
-`Fugu/ByteCode> clang++ Fugub.cpp -o Fugub`   
-  
-Now When Your Done You Can Run Your First Fugu Program Paste The Following Into A   
-`Main.fugu`  File.
-```python
-2 + 2
+## How To Run
+
+To run the compiler you must have deno (2.0 preferably) installed 
+
+```bash
+deno run --allow-read --allow-write main.ts -r <path/to/file> -o <path/to/out>
 ```
-Now This Is A Little Underwhelming As You May Have Expected A Hello, World Program  
-But Fugu Does Not Support Printing Currently. Now To Run This Program Enter Your Terminal And Run You May Have To Grant Acsses To Read And Write To Files
-`</Path/Of/My/FuguFolder> deno main.ts -r Main.fugu -o Main.fb`  
 
-You Should See A `Main.fb` File This Contains The ByteCode.  
-To Run This File And Execute The ByteCode Run   
+For the interpreter (still in development) you will have to compiler with either g++ or clang or other
 
-`</Path/Of/My/FuguFolder> Fugub Main.fb`
+```bash
+g++ vm/main.cpp -o <path/to/out>
+```
 
-Now We Cant Really See Any OutPut So To Get Some Info Run
-
-`</Path/Of/My/FuguFolder> Fugub Main.fb --dump--Info`
-
-When You Run This You Should See Something Like
+And then run the compiled exe on the .fug bytecode
 
 ```
-------------Stack----------
-4
---------Lables : Addresses---
-{"Name" : "main:", "Value" : 0}
----------------Variables----------
+<path/to/out> <path/to/bytecode>
 ```
-And As We Can See We Got The Result 4 On The Stack.  
-To See The Result Better At The End Of  Our `Main.fb` File  
-We Can Add `invoke 0x01` Into The ByteCode To Print The Rseult
-So Our `Main.fb` File Should Look Like This
+
+For now only the parser and lexer are implemented as well as most instructions except for 
+
+store
+load
+update
+
+since we haven't got a clear idea on how to intepret variables yet
+
+## Notes for bytecode
+
+If you are planning to try and write some bytecode rememeber:
+
+1. all integers must be in hex format e.i 0x1
+2. the jmp and jz instructions's arguments are how many instructions to skip for example
 ```llvm
-main:
-    ipush 0x2;
-    ipush 0x2;
-    iadd;
-    invoke 0x01;
+jz/jmp 0x1; // will skip the next instruction
+jz/jmp 0x4; // will skip the next 4 instructions after the jz keyword
 ```
-If You See Some Other Stuff Dont Worry About It Just Ensure Your `Main.fb` Has Something Like This AfterWards You Can Run The Program Again
-
-`</Path/Of/My/FuguFolder> Fugub Main.fb`
-
-And We Should 4 Printed To The Console So With The Info You Recived You Run
-ByteCode With `Fugub` And Compile The Fugu File To ByteCode with `main.ts` 
 
 ## Type Conversions
 

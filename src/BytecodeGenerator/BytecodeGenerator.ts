@@ -84,6 +84,8 @@ export class BytecodeGenerator
                 stringBytecode += ' ' + instruction.argument;
             };
 
+            stringBytecode += ';';
+
             if (instruction.comment != undefined && instruction.argument != undefined)
             {
                 stringBytecode += (' '.repeat(maxInstructionLen - (instruction.type + ' ' + instruction.argument).length) + `// ${instruction.comment}`)
@@ -96,6 +98,8 @@ export class BytecodeGenerator
 
             stringBytecode += '\n';
         };
+
+        stringBytecode += '  end;\n'
 
         return stringBytecode;
     };

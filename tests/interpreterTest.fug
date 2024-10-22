@@ -1,0 +1,15 @@
+main:
+  ipush 0x1;
+  ipush 0x1;
+  iadd;
+  ipush 0x1;
+  ipush 0x1;
+  fdiv;
+  ipush 0x1;
+  jz 0x4;   // Jump if zero 0x4 times
+  ipush 0x1;
+  ipush 0x1;
+  iadd;
+  jmp 0x1;  // Jump 0x1 times
+  ipush 0x0;
+  end

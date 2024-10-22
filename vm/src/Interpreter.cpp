@@ -60,6 +60,7 @@ enum InstructionType {
     jz,
 
     label,
+    end,
 };
 
 struct Instruction {
@@ -97,7 +98,7 @@ class Lexer {
     {
         std::ifstream file(filename, std::ios::binary);
 
-        if (!file.is_open()) {
+        if (!(file.is_open())) {
             std::cerr << "Fatal Error: Could not open the file " << filename << std::endl;
         };
 
@@ -382,7 +383,8 @@ class Parser {
 
     Parser(const std::vector<Token> &Tokens, std::string filename) : Tokens(Tokens), filename(filename) {
         this->errors = 0;
-        Parse();
+
+        this->Parse();
     };
 
     void Parse() {
@@ -399,16 +401,63 @@ class Parser {
                         .argument = tok.value
                     }
                 );
-            }
+                
+                i++;
+                
+                if (i >= this->Tokens.size())
+                {
+                    error("Expected atleast one or more instructions after the label " + tok.value, tok.line);
+                };
 
-            else if (tok.type == TokenType::instruction)
-            {
-                this->handleInstruction(i);
+                while (i < this->Tokens.size())
+                {
+                    if (this->Tokens[i].value == "end")
+                    {
+                        i++;
+
+                        if (i >= this->Tokens.size())
+                        {   
+                            error("Expected a semicolon at the end of the instruction", this->Tokens[i-1].line);
+                        }
+
+                        else if (this->Tokens[i].type != TokenType::instrEnd)
+                        {
+                            error("Expected a semicolon at the end of the instruction ", this->Tokens[i-1].line);
+                        };
+
+                        this->Bytecode.push_back({
+                            .type = InstructionType::end,
+                            .argument = "",
+                        });
+
+                        break;
+                    }
+
+                    this->handleInstruction(i);
+                    
+                    if (i >= this->Tokens.size())
+                    {   
+                        error("Expected a semicolon at the end of the instruction", this->Tokens[i-1].line);
+                        continue;
+                    }
+
+                    if (this->Tokens[i].type != TokenType::instrEnd)
+                    {
+                        error("Expected a semicolon at the end of the instruction ", this->Tokens[i-1].line);
+                        continue;
+                    };
+                    i++;
+                };
+
+                if (this->Bytecode.at(Bytecode.size()-1).type != InstructionType::end)
+                {
+                    error("Expected an end instruction at the end of a label", this->Tokens[i-1].line);
+                };
             }
 
             else
             {
-                error("Bad token: " + tok.value, tok.line);
+                error("Bad Label: " + tok.value, tok.line);
             };
 
             i++;
@@ -430,12 +479,11 @@ class Parser {
             {
                 error("Expected hex integer after " + tok.value, tok.line);
                 return;
-            };
+            };  
 
             if (this->Tokens[idx].type != TokenType::num)
             {
                 error("Expected hex integer after " + tok.value, tok.line);
-                return;
             }
 
             this->Bytecode.push_back({
@@ -455,7 +503,6 @@ class Parser {
             if (this->Tokens[idx].type != TokenType::f64float)
             {
                 error("Expected a float after " + tok.value, tok.line);
-                return;
             }
 
             this->Bytecode.push_back({
@@ -475,7 +522,6 @@ class Parser {
             if (this->Tokens[idx].type != TokenType::str)
             {
                 error("Expected a string after " + tok.value, tok.line);
-                return;
             }
 
             this->Bytecode.push_back({
@@ -483,26 +529,294 @@ class Parser {
                 .argument = this->Tokens[idx].value
             });
         }
+        
+        else if (tok.value == "jz")
+        {
+            if (idx++ >= this->Tokens.size())
+            {
+                error("Expected a hex integer after " + tok.value, tok.line);
+                return;
+            };
 
+            if (this->Tokens[idx].type != TokenType::num)
+            {
+                error("Expected a hex integer after " + tok.value, tok.line);
+            }
+
+            this->Bytecode.push_back({
+                .type = InstructionType::jz,
+                .argument = this->Tokens[idx].value
+            });
+        }
+
+        else if (tok.value == "jmp")
+        {
+            if (idx++ >= this->Tokens.size())
+            {
+                error("Expected a hex integer after " + tok.value, tok.line);
+                return;
+            };
+
+            if (this->Tokens[idx].type != TokenType::num)
+            {
+                error("Expected a hex integer after " + tok.value, tok.line);
+            }
+
+            this->Bytecode.push_back({
+                .type = InstructionType::jmp,
+                .argument = this->Tokens[idx].value
+            });
+        }
+
+        else if (tok.value == "npush")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::npush,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "iadd")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::iadd,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "fadd")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::fadd,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "sadd")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::sadd,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "imin")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::imin,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "fmin")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::fmin,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "imul")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::imul,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "smul")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::smul,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "fmul")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::fmul,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "idiv")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::idiv,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "fdiv")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::fdiv,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "ipow")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::ipow,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "fpow")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::fpow,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "eq")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::eq,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "neq")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::neq,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "gt")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::gt,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "lt")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::lt,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "gteq")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::gteq,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "lteq")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::lteq,
+                .argument = ""
+            });
+        }
+        
+        else if (tok.value == "and")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::And,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "or")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::Or,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "not")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::Not,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "bitAnd")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::bitAnd,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "bitOr")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::bitOr,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "xOr")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::xOr,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "bitNot")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::bitNot,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "fmod")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::fmod,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "imod")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::imod,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "rshift")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::rshift,
+                .argument = ""
+            });
+        }
+
+        else if (tok.value == "lshift")
+        {
+            this->Bytecode.push_back({
+                .type = InstructionType::lshift,
+                .argument = ""
+            });
+        }
+        
         else
         {
             error("Bad instruction: " + tok.value, tok.line);
         };
 
-        if (idx++ >= this->Tokens.size())
-        {   
-            error("Expected a semicolon at the end of the instruction", tok.line);
-            return;
-        }
-
-        if (this->Tokens[idx].type != TokenType::instrEnd)
-        {
-            error("Expected a semicolon at the end of the instruction ", tok.line);
-            return;
-        };
+        idx++;
 
         return;
-    }; 
+    };
 
     void error(std::string message, int line)
     {
