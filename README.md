@@ -1,4 +1,4 @@
-# Learning TypeScript by Creating a Programming Language
+# Learning TypeScript && C++ by Creating a Programming Language
 
 A bytecode compiled programming language by me (frontend) and NoTimeDev (<https://github.com/NoTimeDev>) (Bytecode interpreter)
 Simple but easy to learn with a straight forward syntax language which compiles to bytecode for faster execution
