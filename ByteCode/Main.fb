@@ -1,9 +1,0 @@
-main:
-    ipush 0;
-    jz 3;
-
-    spush "Hello, World\n";
-    invoke 0x01;
-
-    spush "Dudes\n";
-    invoke 0x01;
