@@ -61,7 +61,7 @@ main:
 
 ## How To Run
 
-To run the compiler you must have deno (2.0 preferably) installed 
+To run the compiler you must have deno (2.0 preferably) installed
 
 ```bash
 deno run --allow-read --allow-write main.ts -r <path/to/file> -o <path/to/out>
@@ -75,11 +75,11 @@ g++ vm/main.cpp -o <path/to/out>
 
 And then run the compiled exe on the .fug bytecode
 
-```
+```bash
 <path/to/out> <path/to/bytecode>
 ```
 
-For now only the parser and lexer are implemented as well as most instructions except for 
+For now only the parser and lexer are implemented as well as most instructions except for
 
 store
 load
@@ -92,12 +92,13 @@ since we haven't got a clear idea on how to intepret variables yet
 If you are planning to try and write some bytecode rememeber:
 
 1. all integers must be in hex format e.i 0x1
-2. the jmp and jz instructions's arguments are how many instructions to skip for example
+2. jz is conditional and requires the top of the stack to be 0 (hence the name jump is zero) whereas jmp is unconditional and jumps no matter what
+3. the jmp and jz instructions's arguments are how many instructions to skip for example
+
 ```llvm
 jz/jmp 0x1; // will skip the next instruction
 jz/jmp 0x4; // will skip the next 4 instructions after the jz keyword
 ```
-3. jz is conditional and requires the top of the stack to be 0 (hence the name jump is zero) whereas jmp is unconditional and jumps no matter what
 
 ## Type Conversions
 
@@ -106,7 +107,6 @@ Current conversions which take place on binary operations
 (*if an operation between types is not listed, it's probably a type error*)
 
 String Concatenation / Addition (```+```):
-
     string + string = string
     char + string = string
     int + string = string
@@ -117,38 +117,32 @@ String Concatenation / Addition (```+```):
     array + value = array (pushes the value onto the array if types are compatible)
 
 Subtraction (```-```):
-
     int - int = int
     float - float = float
-    
+
     array - int = array (removes the int-th element)
 
 Multiplication (```*```):
-
-    int * int = int
-    float * float = float
+    int *int = int
+    float* float = float
     string * int = string (repeats the string int times)
 
 Division (```/```):
-
     int / int = float (integer division results in float)
     float / float = float
 
 Modulo (```%```):
-
     int % int = float
     float % float = float
 
 Comparison (```==```, ```!=```, ```>```, ```<```, ```>=```, ```<=```):
-
     Comparisons between int, float, char return int
-
+    
     any == any = int
 
     Mixed types comparison: Promotes to the most compatible type
 
 Bitwise Operators (```<<```, ```>>```, ```&```, ```|```, ```^```):
-
     Only valid between integers:
         int & int = int
         int | int = int
@@ -156,7 +150,6 @@ Bitwise Operators (```<<```, ```>>```, ```&```, ```|```, ```^```):
         int >> int = int
 
 Logical Operators (```&&```, ```||```):
-
     Logical operators return int:
         int && int = int
         int || int = int

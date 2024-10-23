@@ -104,25 +104,25 @@ export class BytecodeGenerator
         return stringBytecode;
     };
 
-    generateStatement = (Statement: Stmt): void =>
+    generateStatement = (Statement: Stmt, env: Environment): void =>
     {
         switch (Statement.type)
         {
             case 'ExpressionStatement':
             {
-                generateExpressionStatement(this, Statement);
+                generateExpressionStatement(this, Statement, env);
                 break;
             };
 
             case 'DeclerationStatement':
             {
-                generateDeclerationStatement(this, Statement);
+                generateDeclerationStatement(this, Statement, env);
                 break;
             };
             
             case 'IfStatement':
             {
-                generateIfStatement(this, Statement);
+                generateIfStatement(this, Statement, env);
                 break;
             };
         };
@@ -132,7 +132,7 @@ export class BytecodeGenerator
     {
         for (const statement of this.parser.ast.body) 
         {
-            this.generateStatement(statement);
+            this.generateStatement(statement, this.TypeChecker.env);
         };
     };
 };

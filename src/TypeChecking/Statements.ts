@@ -42,7 +42,7 @@ export const checkIfStatements = (TypeChecker: TypeChecker, IfStatement: IfState
 {
     getExpressionType(TypeChecker, IfStatement.condition, Env);
 
-    const ifEnv: Environment = new Environment(TypeChecker.env)
+    const ifEnv: Environment = new Environment(Env)
 
     for (const Stmt of IfStatement.body)
     {

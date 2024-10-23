@@ -8,9 +8,9 @@ int main(int argc, const char* argv[]) {
         exit(1);
     };
 
-    const Lexer L(argv[1]);
+    VM vm(argv[1]);
 
-    const Parser P(L.Tokens, argv[1]);
+    const VM_STATE ret = vm.runmain();
 
-    return 0;
-}
+    return ret;
+};

@@ -1,826 +1,237 @@
+#include <stack>
+#include <unordered_map>
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <variant>
 
-enum InstructionType {
-    ipush,
-    fpush,
-    spush,
+#include "./Parser.cpp"
 
-    npush,
-
-    iadd,
-    fadd,
-    sadd,
-
-    imin,
-    fmin,
-
-    smul,
-    imul,
-    fmul,
-
-    idiv,
-    fdiv,
-
-    ipow,
-    fpow,
-
-
-    eq,
-    neq,
-    gt,
-    lt,
-    gteq,
-    lteq,
-    
-    And,
-    Or,
-    Not,
-    
-    bitAnd,
-    bitOr,
-    xOr,
-    bitNot,
-
-    fmod,
-    imod,
-    rshift,
-    lshift,
-
-    load,
-
-    store,
-    update,
-
-    jmp,
-    jz,
-
-    label,
-    end,
+enum VM_STATE {
+    OK,
+    UFLOW,
+    INVIDX,
+    BADLBL,
+    ILLINSTR,
 };
 
-struct Instruction {
-    InstructionType type;
-    std::string argument;
-};
+class VM {
+public:
+    const char* &filename;
+    std::stack<std::string> stack;
+    std::stack<size_t> returnStack;
 
-enum TokenType {
-    str,
-    num,
-    f64float,
+    std::unordered_map<std::string, std::vector<Instruction>> functions;
 
-    instruction,
+    size_t sp = 0;
 
-    Tlabel,
+    std::unordered_map<std::string, size_t> LabelsIndx;
 
-    instrEnd
-};
-
-struct Token {
-    TokenType type;
-    std::string value;
-    int line;
-};
-
-class Lexer {
-    public:
-    std::string filename;
-    std::vector<Token> Tokens;
-
-    int line;
-    int errors;
-
-    Lexer(const char* filename)
+    VM(const char* filename) : filename(filename)
     {
-        std::ifstream file(filename, std::ios::binary);
+        const Lexer L(filename);
+        const Parser P(L.Tokens, filename);
 
-        if (!(file.is_open())) {
-            std::cerr << "Fatal Error: Could not open the file " << filename << std::endl;
-        };
+        this->functions = P.functions;
+    }
 
+    size_t push(std::string arg)
+    {
+        this->stack.push(arg);
+        this->sp++;
+        return this->sp;
+    }
 
-        this->filename = filename;
-        this->errors = 0;
-        this->line = 0;
+    std::string pop()
+    {
+        std::string temp = stack.top();
 
-        this->Tokens = this->Lex(std::ifstream(filename, std::ios::binary));
-    };
+        if (this->sp == 0)
+        {
+            std::cerr << "Error: Stack underflow" << std::endl;
+            return 0;
+        }
 
-    std::vector<Token> Lex(std::ifstream file) {
-        std::string line;
+        this->stack.pop();
+        this->sp--;
 
-        std::vector<Token> Tokens;
+        return temp;
+    }
 
-        while (std::getline(file, line)) {
-            this->line++;
-            int i = 0;
+    VM_STATE runmain()
+    {
+        if (this->functions.find("main") == this->functions.end())
+        {
+            std::cerr << "Unable to find main label entry" << std::endl;
+            return VM_STATE::BADLBL;
+        }
 
-            while (i < line.length()) {
-                char chr = line[i];
+        return this->run(this->functions.at("main"));
+    }
 
-                if (chr == '\n') break;
+    VM_STATE run(std::vector<Instruction> instructions)
+    {
+        size_t ip = 0;
 
-                if (chr == ';')
+        while (ip < instructions.size())
+        {
+            const Instruction &instr = instructions[ip];
+
+            switch (instr.type)
+            {
+                case InstructionType::vret:
+                case InstructionType::sret:
+                case InstructionType::fret:
+                case InstructionType::iret:
                 {
-                    Tokens.push_back({
-                        .type = TokenType::instrEnd,
-                        .value = ";",
-                        .line = this->line
-                    });
-                    i++;
+                    return VM_STATE::OK;
                 }
 
-                else if (chr =='\t' || chr == '\v' || chr == '\r' || chr == '\f' || chr == ' ')
+                case InstructionType::call:
                 {
-                    i++;
+                    if (this->LabelsIndx.find(instr.argument) == LabelsIndx.end())
+                    {
+                        std::cerr << "BADLBL: Unable to find the label " << instr.argument << std::endl;
+                        return VM_STATE::INVIDX;
+                    }
+
+                    VM_STATE state = run(this->functions.at(instr.argument));
+
+                    if (state != VM_STATE::OK)
+                    {
+                        return state;
+                    };
+
+                    break;
+                }
+
+                case InstructionType::jmp:
+                {
+                    int skipCount = htoll(pop());
+                    ip += skipCount;
+
+                    if (ip >= instructions.size())
+                    {
+                        std::cout << "UFLOW: Unable jmp to more than the instruction set" << std::endl;
+                        return VM_STATE::UFLOW;
+                    };
+
                     continue;
                 }
 
-                else if (chr == '/')
+                case InstructionType::jz:
                 {
-                    i++;
-                    if(i >= line.length())
+                    if (this->stack.empty())
                     {
-                        error("Bad token: (unicode) " + std::to_string(chr));
-                        break;
-                    };
-    
+                        std::cout << "UFLOW: Unable to get top of the stack at jz" << std::endl;
+                        return VM_STATE::UFLOW;
+                    }
 
-                    if (line[i] != '/')
+                    size_t topValue = htoll(pop());
+
+                    if (topValue == 0)
                     {
-                        error("Bad token: (unicode) " + std::to_string(chr));
-                        break;
-                    };
+                        int skipCount = std::stoi(instr.argument);
+                        ip += skipCount;
 
-                    break;
-                    
-                }
-
-                else if (std::isdigit(chr))
-                {
-                    std::string flt;
-                    flt += chr;
-                    i++;
-
-                    bool dot = false;
-
-                    
-                    if (i >= line.length())
-                    {
-                        error("Invalid digit");
-                        break;
-                    };
-
-                    if ((line[i] == 'x' || line[i] == 'X') && flt == "0")
-                    {
-                        flt += line[i];
-                        i++;
-                        if (i >= line.length())
+                        if (ip >= instructions.size())
                         {
-                            error("Invalid hex digit");
-                            break;
-                        }
-
-                        do {
-                            if (line[i] == '\n' || line[i] == '\r' || line[i] == ' ' || line[i] == ';') break;
-                            if (!std::isxdigit(line[i]))
-                            {
-                                error("Invalid hex digit: (unicode) " + std::to_string(line[i]));
-                            };
-                            flt += line[i];
-                            i++;
-                        } while (i < line.length());
-
-                        const Token tok = {
-                            .type = TokenType::num,
-                            .value = flt,
-                            .line = this->line
+                            std::cout << "UFLOW: Unable jmp to more than the instruction set" << std::endl;
+                            return VM_STATE::UFLOW;
                         };
 
-                        Tokens.push_back(tok);
-                    }
-
-                    else
-                    {
-                        do
-                        {
-                            if (line[i] == '.' && dot)
-                            {
-                                error("Invalid float digit. Multiple dots");
-                                break;
-                            };
-
-                            if (line[i] == '.')
-                            {
-                                dot = true;
-                                flt += line[i];
-                                i++;
-                                continue;
-                            };
-
-                            if (line[i] == '\n' || line[i] == '\r' || line[i] == ' ' || line[i] == ';') break;
-                            if (!std::isdigit(line[i]))
-                            {
-                                error("Invalid float digit: (unicode) " + std::to_string(line[i]));
-                                break;
-                            }
-
-                            flt += line[i];
-                            i++;
-                        } while (i < line.length());
-
-                        if (!dot)
-                        {
-                            error("Invalid float digit. Missing a dot");
-                            break;
-                        }
-
-                        const Token tok = {
-                            .type = TokenType::f64float,
-                            .value = flt,
-                            .line = this->line
-                        };
-
-                        Tokens.push_back(tok);
-                    }
-                }
-
-                else if (chr == '"')
-                {
-                    i++;
-                    std::string str;
-
-                    if (i >= line.length())
-                    {
-                        error("Undetermined string");
-                        break;
-                    }
-
-                    do {
-                        if (line[i] == '"')
-                        {
-                            i++;
-                            break;
-                        }
-
-                        str += line[i];
-                        i++;
-
-                    } while (i < line.length());
-
-                    if (line[i-1] != '"')
-                    {
-                        error("Undetermined string");
-                        break;
-                    }
-
-                    const Token tok = {
-                        .type = TokenType::str,
-                        .value = str, 
-                        .line = this->line
-                    };
-
-                    Tokens.push_back(tok);
-                }
-                
-                else if (std::isalpha(chr))
-                {
-                    std::string ident;
-                    ident += chr;
-                    
-                    i++;
-
-                    if (i < line.length())
-                    {
-                        if (line[i] == ':')
-                        {
-                            i++;
-                            const Token tok = {
-                                .type = TokenType::Tlabel,
-                                .value = ident, 
-                                .line = this->line
-                            };
-
-                            Tokens.push_back(tok);
-
-                            continue;
-                        }
-
-                        do {
-                            if (!(std::isalpha(line[i])))
-                            {
-                                break;
-                            };
-
-                            ident += line[i];
-                            i++;
-                        } while(i < line.length());
-
-                        if (i < line.length())
-                        {
-                            if (line[i] == ':')
-                            {
-                                i++;
-                                const Token tok = {
-                                    .type = TokenType::Tlabel,
-                                    .value = ident,
-                                    .line = this->line
-                                };
-
-                                Tokens.push_back(tok);
-
-                                continue;
-                            }
-                        }
-                    };
-
-                    const Token tok = {
-                        .type = TokenType::instruction,
-                        .value = ident,
-                        .line = this->line
-                    };
-
-                    Tokens.push_back(tok);
-                }
-
-                else
-                {
-                    error("Bad token: (unicode) " + std::to_string(chr));
-                    break;
-                };
-            };
-        };
-
-        if (this->errors >= 1)
-        {
-            std::cout << "Found " << this->errors << " error(s) in " << this->filename << std::endl;
-            exit(1);
-        };
-
-        return Tokens;
-    };
-
-    void error(std::string message)
-    {
-        std::cout << "Error: At line " + std::to_string(this->line) + ": " << message << std::endl;
-        this->errors++;
-    };
-};
-
-
-class Parser {
-    public:
-    std::vector<Instruction> Bytecode;
-    std::vector<Token> Tokens;
-
-    std::string filename;
-
-    int errors;
-
-    Parser(const std::vector<Token> &Tokens, std::string filename) : Tokens(Tokens), filename(filename) {
-        this->errors = 0;
-
-        this->Parse();
-    };
-
-    void Parse() {
-        int i = 0;
-
-        while (i < this->Tokens.size()) {
-            const Token tok = this->Tokens[i];
-
-            if (tok.type == TokenType::Tlabel)
-            {
-                this->Bytecode.push_back(
-                    {
-                        .type = InstructionType::label,
-                        .argument = tok.value
-                    }
-                );
-                
-                i++;
-                
-                if (i >= this->Tokens.size())
-                {
-                    error("Expected atleast one or more instructions after the label " + tok.value, tok.line);
-                };
-
-                while (i < this->Tokens.size())
-                {
-                    if (this->Tokens[i].value == "end")
-                    {
-                        i++;
-
-                        if (i >= this->Tokens.size())
-                        {   
-                            error("Expected a semicolon at the end of the instruction", this->Tokens[i-1].line);
-                        }
-
-                        else if (this->Tokens[i].type != TokenType::instrEnd)
-                        {
-                            error("Expected a semicolon at the end of the instruction ", this->Tokens[i-1].line);
-                        };
-
-                        this->Bytecode.push_back({
-                            .type = InstructionType::end,
-                            .argument = "",
-                        });
-
-                        break;
-                    }
-
-                    this->handleInstruction(i);
-                    
-                    if (i >= this->Tokens.size())
-                    {   
-                        error("Expected a semicolon at the end of the instruction", this->Tokens[i-1].line);
                         continue;
                     }
+                    
+                    break;
+                }
 
-                    if (this->Tokens[i].type != TokenType::instrEnd)
-                    {
-                        error("Expected a semicolon at the end of the instruction ", this->Tokens[i-1].line);
-                        continue;
-                    };
-                    i++;
-                };
-
-                if (this->Bytecode.at(Bytecode.size()-1).type != InstructionType::end)
+                case InstructionType::ipush:
                 {
-                    error("Expected an end instruction at the end of a label", this->Tokens[i-1].line);
-                };
+                    this->push(instr.argument);
+                }
+                case InstructionType::fpush:
+                {
+                    this->push(instr.argument);
+                }
+                case InstructionType::spush:
+                {
+                    this->push(instr.argument);
+                }
+
+                case InstructionType::npush:
+                {
+                    this->push(instr.argument);
+                }
+
+                case InstructionType::iadd:
+                {
+                    this->push(instr.argument);
+                }
+                case InstructionType::fadd:
+                {
+                }
+                case InstructionType::sadd:
+                {
+
+                }
+
+                case InstructionType::imin:
+                {
+
+                }
+                case InstructionType::fmin:
+                {
+
+                }
+
+                case InstructionType::smul:
+                {
+
+                }
+                case InstructionType::imul:
+                {
+
+                }
+                case InstructionType::fmul:
+                {
+
+                }
+
+                case InstructionType::idiv:
+                {
+
+                }
+                case InstructionType::fdiv:
+                {
+
+                }
+
+                case InstructionType::ipow:
+                {
+
+                }
+                case InstructionType::fpow:
+                {
+
+                }
+
+                default:
+                {
+                    std::cout << "illegal instruction: " << instr.argument << std::endl;
+                    return VM_STATE::ILLINSTR;
+                }
             }
 
-            else
-            {
-                error("Bad Label: " + tok.value, tok.line);
-            };
-
-            i++;
-        };
-
-        if (this->errors >= 1)
-        {
-            std::cout << "Found " << this->errors << " error(s) in " << this->filename << std::endl;
-            exit(1);
-        };
-    };
-
-    void handleInstruction(int &idx) {
-        const Token tok = this->Tokens[idx];
-
-        if (tok.value == "ipush")
-        {
-            if (idx++ >= this->Tokens.size())
-            {
-                error("Expected hex integer after " + tok.value, tok.line);
-                return;
-            };  
-
-            if (this->Tokens[idx].type != TokenType::num)
-            {
-                error("Expected hex integer after " + tok.value, tok.line);
-            }
-
-            this->Bytecode.push_back({
-                .type = InstructionType::ipush,
-                .argument = this->Tokens[idx].value
-            });
+            ip++;
         }
+        return VM_STATE::OK;
+    }
 
-        else if (tok.value == "fpush")
-        {
-            if (idx++ >= this->Tokens.size())
-            {
-                error("Expected a float after " + tok.value, tok.line);
-                return;
-            };
-
-            if (this->Tokens[idx].type != TokenType::f64float)
-            {
-                error("Expected a float after " + tok.value, tok.line);
-            }
-
-            this->Bytecode.push_back({
-                .type = InstructionType::fpush,
-                .argument = this->Tokens[idx].value
-            });
-        }
-
-        else if (tok.value == "spush")
-        {
-            if (idx++ >= this->Tokens.size())
-            {
-                error("Expected a string after " + tok.value, tok.line);
-                return;
-            };
-
-            if (this->Tokens[idx].type != TokenType::str)
-            {
-                error("Expected a string after " + tok.value, tok.line);
-            }
-
-            this->Bytecode.push_back({
-                .type = InstructionType::spush,
-                .argument = this->Tokens[idx].value
-            });
-        }
-        
-        else if (tok.value == "jz")
-        {
-            if (idx++ >= this->Tokens.size())
-            {
-                error("Expected a hex integer after " + tok.value, tok.line);
-                return;
-            };
-
-            if (this->Tokens[idx].type != TokenType::num)
-            {
-                error("Expected a hex integer after " + tok.value, tok.line);
-            }
-
-            this->Bytecode.push_back({
-                .type = InstructionType::jz,
-                .argument = this->Tokens[idx].value
-            });
-        }
-
-        else if (tok.value == "jmp")
-        {
-            if (idx++ >= this->Tokens.size())
-            {
-                error("Expected a hex integer after " + tok.value, tok.line);
-                return;
-            };
-
-            if (this->Tokens[idx].type != TokenType::num)
-            {
-                error("Expected a hex integer after " + tok.value, tok.line);
-            }
-
-            this->Bytecode.push_back({
-                .type = InstructionType::jmp,
-                .argument = this->Tokens[idx].value
-            });
-        }
-
-        else if (tok.value == "npush")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::npush,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "iadd")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::iadd,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "fadd")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::fadd,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "sadd")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::sadd,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "imin")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::imin,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "fmin")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::fmin,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "imul")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::imul,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "smul")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::smul,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "fmul")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::fmul,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "idiv")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::idiv,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "fdiv")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::fdiv,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "ipow")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::ipow,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "fpow")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::fpow,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "eq")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::eq,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "neq")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::neq,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "gt")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::gt,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "lt")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::lt,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "gteq")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::gteq,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "lteq")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::lteq,
-                .argument = ""
-            });
-        }
-        
-        else if (tok.value == "and")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::And,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "or")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::Or,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "not")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::Not,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "bitAnd")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::bitAnd,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "bitOr")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::bitOr,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "xOr")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::xOr,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "bitNot")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::bitNot,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "fmod")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::fmod,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "imod")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::imod,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "rshift")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::rshift,
-                .argument = ""
-            });
-        }
-
-        else if (tok.value == "lshift")
-        {
-            this->Bytecode.push_back({
-                .type = InstructionType::lshift,
-                .argument = ""
-            });
-        }
-        
-        else
-        {
-            error("Bad instruction: " + tok.value, tok.line);
-        };
-
-        idx++;
-
-        return;
-    };
-
-    void error(std::string message, int line)
+    size_t htoll(const std::string& hex)
     {
-        std::cout << "Error: At line " + std::to_string(line) + ": " << message << std::endl;
-        this->errors++;
-    };
+        if (hex.substr(0, 2) == "0x" || hex.substr(0, 2) == "0X")
+        {
+            return std::stoll(hex, nullptr, 16);
+        };
+
+        std::cerr << "Invalid hexadecimal string format";
+    }
 };

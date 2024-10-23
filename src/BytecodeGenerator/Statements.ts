@@ -19,15 +19,19 @@ import
 {
     generateExpression,
 } from "./Expressions.ts";
-
-export const generateExpressionStatement = (BytecodeGenerator: BytecodeGenerator, Expression: ExpressionStatement): void =>
+import
 {
-    generateExpression(BytecodeGenerator, Expression.body)
+    Environment
+} from "../TypeChecking/Environment.ts";
+
+export const generateExpressionStatement = (BytecodeGenerator: BytecodeGenerator, Expression: ExpressionStatement, Env: Environment): void =>
+{
+    generateExpression(BytecodeGenerator, Expression.body, Env);
 };
 
-export const generateIfStatement = (BytecodeGenerator: BytecodeGenerator, Statement: IfStatement): void =>
+export const generateIfStatement = (BytecodeGenerator: BytecodeGenerator, Statement: IfStatement, Env: Environment): void =>
 {
-    generateExpression(BytecodeGenerator, Statement.condition);
+    generateExpression(BytecodeGenerator, Statement.condition, Env);
 
     const jzIdx = BytecodeGenerator.Bytecode.length;
 
@@ -41,7 +45,7 @@ export const generateIfStatement = (BytecodeGenerator: BytecodeGenerator, Statem
     
     for (const Stmt of Statement.body)
     {
-        BytecodeGenerator.generateStatement(Stmt);
+        BytecodeGenerator.generateStatement(Stmt, Env);
     };
 
     const jmpIdx = BytecodeGenerator.Bytecode.length;
@@ -63,12 +67,12 @@ export const generateIfStatement = (BytecodeGenerator: BytecodeGenerator, Statem
         {
             for (const Stmt of Statement.alternate.body)
             {
-                BytecodeGenerator.generateStatement(Stmt);
+                BytecodeGenerator.generateStatement(Stmt, Env);
             };
         };
         if (Statement.alternate.type == 'IfStatement')
         {
-            generateIfStatement(BytecodeGenerator, Statement.alternate);
+            generateIfStatement(BytecodeGenerator, Statement.alternate, Env);
         };
     };
 
@@ -77,7 +81,7 @@ export const generateIfStatement = (BytecodeGenerator: BytecodeGenerator, Statem
 
 };
 
-export const generateDeclerationStatement = (BytecodeGenerator: BytecodeGenerator, Statement: DeclerationStatement): void =>
+export const generateDeclerationStatement = (BytecodeGenerator: BytecodeGenerator, Statement: DeclerationStatement, Env: Environment): void =>
 {
 
     for (const variable of Statement.variables)
@@ -93,7 +97,7 @@ export const generateDeclerationStatement = (BytecodeGenerator: BytecodeGenerato
         }
         else
         {
-            generateExpression(BytecodeGenerator, Statement.init);
+            generateExpression(BytecodeGenerator, Statement.init, Env);
         };
 
         BytecodeGenerator.Bytecode.push(

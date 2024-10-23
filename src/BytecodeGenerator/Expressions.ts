@@ -21,23 +21,24 @@ import
     getExpressionType
 } from "../TypeChecking/Expressions.ts";
 import type { UnaryExpression, UnaryUpdateExpression } from "../Parser/GlobalNodes.ts";
+import type { Environment } from "../TypeChecking/Environment.ts";
 
-export const generateExpression = (BytecodeGenerator: BytecodeGenerator, Expression: Expr): void =>
+export const generateExpression = (BytecodeGenerator: BytecodeGenerator, Expression: Expr, Env: Environment): void =>
 {
     switch (Expression.type)
     {
         case 'Literal':
         {
-            generateLiteral(BytecodeGenerator, Expression);
+            generateLiteral(BytecodeGenerator, Expression, Env);
             break;
         };
 
         case 'BinaryExpression':
         {
-            generateExpression(BytecodeGenerator, Expression.left);
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.left,  Env);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
 
-            getOperatorInstruction(BytecodeGenerator, Expression);
+            getOperatorInstruction(BytecodeGenerator, Expression, Env);
 
             break;
         };
@@ -57,27 +58,27 @@ export const generateExpression = (BytecodeGenerator: BytecodeGenerator, Express
 
         case 'AssignmentExpression':
         {
-            generateAssignmentExpression(BytecodeGenerator, Expression);
+            generateAssignmentExpression(BytecodeGenerator, Expression, Env);
             break;
         };
 
         case 'UnaryExpression':
         {
-            generateUnaryExpression(BytecodeGenerator, Expression);
+            generateUnaryExpression(BytecodeGenerator, Expression, Env);
             break;
         };
 
         case 'UnaryUpdateExpression':
         {
-            generateUnaryUpdateExpression(BytecodeGenerator, Expression);
+            generateUnaryUpdateExpression(BytecodeGenerator, Expression, Env);
             break;
         }
     };
 };
 
-export const generateUnaryUpdateExpression = (BytecodeGenerator: BytecodeGenerator, Expression: UnaryUpdateExpression): void =>
+export const generateUnaryUpdateExpression = (BytecodeGenerator: BytecodeGenerator, Expression: UnaryUpdateExpression, Env: Environment): void =>
 {
-    switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, BytecodeGenerator.TypeChecker.env).kind)
+    switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, Env).kind)
     {
         case 'int':
         {
@@ -85,7 +86,7 @@ export const generateUnaryUpdateExpression = (BytecodeGenerator: BytecodeGenerat
             {
                 case '++':
                 {
-                    generateExpression(BytecodeGenerator, Expression.right);
+                    generateExpression(BytecodeGenerator, Expression.right, Env);
 
                     BytecodeGenerator.Bytecode.push(
                         {
@@ -103,7 +104,7 @@ export const generateUnaryUpdateExpression = (BytecodeGenerator: BytecodeGenerat
                 };
                 case '--':
                 {
-                    generateExpression(BytecodeGenerator, Expression.right);
+                    generateExpression(BytecodeGenerator, Expression.right, Env);
 
                     BytecodeGenerator.Bytecode.push(
                         {
@@ -128,7 +129,7 @@ export const generateUnaryUpdateExpression = (BytecodeGenerator: BytecodeGenerat
             {
                 case '++':
                 {
-                    generateExpression(BytecodeGenerator, Expression.right);
+                    generateExpression(BytecodeGenerator, Expression.right, Env);
                     
                     BytecodeGenerator.Bytecode.push(
                         {
@@ -146,7 +147,7 @@ export const generateUnaryUpdateExpression = (BytecodeGenerator: BytecodeGenerat
                 };
                 case '--':
                 {
-                    generateExpression(BytecodeGenerator, Expression.right);
+                    generateExpression(BytecodeGenerator, Expression.right, Env);
 
                     BytecodeGenerator.Bytecode.push(
                         {
@@ -174,88 +175,88 @@ export const generateUnaryUpdateExpression = (BytecodeGenerator: BytecodeGenerat
     );
 };
 
-export const generateAssignmentExpression = (BytecodeGenerator: BytecodeGenerator, Expression: AssignmentExpression): void =>
+export const generateAssignmentExpression = (BytecodeGenerator: BytecodeGenerator, Expression: AssignmentExpression, Env: Environment): void =>
 {
     switch (Expression.operator.kind)
     {
         case '+=':
         {
-            generateExpression(BytecodeGenerator, Expression.left);
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.left, Env);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             Expression.operator.kind = Expression.operator.kind.replace('=', '');
-            getOperatorInstruction(BytecodeGenerator, Expression)
+            getOperatorInstruction(BytecodeGenerator, Expression, Env)
             break;
         }
         case '-=':
         {
-            generateExpression(BytecodeGenerator, Expression.left);
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.left, Env);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             Expression.operator.kind = Expression.operator.kind.replace('=', '');
-            getOperatorInstruction(BytecodeGenerator, Expression)
+            getOperatorInstruction(BytecodeGenerator, Expression, Env)
             break;
         }
         case '*=':
         {
-            generateExpression(BytecodeGenerator, Expression.left);
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.left, Env);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             Expression.operator.kind = Expression.operator.kind.replace('=', '');
-            getOperatorInstruction(BytecodeGenerator, Expression)
+            getOperatorInstruction(BytecodeGenerator, Expression, Env)
             break;
         }
         case '/=':
         {
-            generateExpression(BytecodeGenerator, Expression.left);
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.left, Env);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             Expression.operator.kind = Expression.operator.kind.replace('=', '');
-            getOperatorInstruction(BytecodeGenerator, Expression)
+            getOperatorInstruction(BytecodeGenerator, Expression, Env)
             break;
         }
         case '%=':
         {
-            generateExpression(BytecodeGenerator, Expression.left);
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.left, Env);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             Expression.operator.kind = Expression.operator.kind.replace('=', '');
-            getOperatorInstruction(BytecodeGenerator, Expression)
+            getOperatorInstruction(BytecodeGenerator, Expression, Env)
             break;
         }
         case '<<=':
         {
-            generateExpression(BytecodeGenerator, Expression.left);
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.left, Env);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             Expression.operator.kind = Expression.operator.kind.replace('=', '');
-            getOperatorInstruction(BytecodeGenerator, Expression)
+            getOperatorInstruction(BytecodeGenerator, Expression, Env)
             break;
         }
         case '>>=':
         {
-            generateExpression(BytecodeGenerator, Expression.left);
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.left, Env);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             Expression.operator.kind = Expression.operator.kind.replace('=', '');
-            getOperatorInstruction(BytecodeGenerator, Expression)
+            getOperatorInstruction(BytecodeGenerator, Expression, Env)
             break;
         }
         case '&=':
         {
-            generateExpression(BytecodeGenerator, Expression.left);
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.left, Env);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             Expression.operator.kind = Expression.operator.kind.replace('=', '');
-            getOperatorInstruction(BytecodeGenerator, Expression)
+            getOperatorInstruction(BytecodeGenerator, Expression, Env)
             break;
         }
         case '|=':
         {
-            generateExpression(BytecodeGenerator, Expression.left);
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.left, Env);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             Expression.operator.kind = Expression.operator.kind.replace('=', '');
-            getOperatorInstruction(BytecodeGenerator, Expression)
+            getOperatorInstruction(BytecodeGenerator, Expression, Env)
             break;
         }
         case '^=':
         {
-            generateExpression(BytecodeGenerator, Expression.left);
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.left, Env);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             Expression.operator.kind = Expression.operator.kind.replace('=', '');
-            getOperatorInstruction(BytecodeGenerator, Expression)
+            getOperatorInstruction(BytecodeGenerator, Expression, Env)
             break;
         };
     };
@@ -269,13 +270,13 @@ export const generateAssignmentExpression = (BytecodeGenerator: BytecodeGenerato
     );
 };
 
-export const generateUnaryExpression = (BytecodeGenerator: BytecodeGenerator, Expression: UnaryExpression): void =>
+export const generateUnaryExpression = (BytecodeGenerator: BytecodeGenerator, Expression: UnaryExpression, Env: Environment): void =>
 {
     switch (Expression.operator.kind)
     {
         case '~':
         {
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             BytecodeGenerator.Bytecode.push(
                 {
                     type: Instructions.not,
@@ -286,7 +287,7 @@ export const generateUnaryExpression = (BytecodeGenerator: BytecodeGenerator, Ex
 
         case '!':
         {
-            generateExpression(BytecodeGenerator, Expression.right);
+            generateExpression(BytecodeGenerator, Expression.right, Env);
             BytecodeGenerator.Bytecode.push(
                 {
                     type: Instructions.not,
@@ -298,7 +299,7 @@ export const generateUnaryExpression = (BytecodeGenerator: BytecodeGenerator, Ex
 
         case '-':
         {
-            switch(getExpressionType(BytecodeGenerator.TypeChecker, Expression.right, BytecodeGenerator.TypeChecker.env).kind)
+            switch(getExpressionType(BytecodeGenerator.TypeChecker, Expression.right, Env).kind)
             {
                 case 'float':
                 {
@@ -308,7 +309,7 @@ export const generateUnaryExpression = (BytecodeGenerator: BytecodeGenerator, Ex
                             argument: '0 0',
                         }
                     );
-                    generateExpression(BytecodeGenerator, Expression.right);
+                    generateExpression(BytecodeGenerator, Expression.right, Env);
                     BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.fmin,
@@ -324,7 +325,7 @@ export const generateUnaryExpression = (BytecodeGenerator: BytecodeGenerator, Ex
                             argument: '0x' + (0).toString(16)
                         }
                     );
-                    generateExpression(BytecodeGenerator, Expression.right);
+                    generateExpression(BytecodeGenerator, Expression.right, Env);
                     BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.imin,
@@ -338,7 +339,7 @@ export const generateUnaryExpression = (BytecodeGenerator: BytecodeGenerator, Ex
         }
         case '+':
         {
-            switch(getExpressionType(BytecodeGenerator.TypeChecker, Expression.right, BytecodeGenerator.TypeChecker.env).kind)
+            switch(getExpressionType(BytecodeGenerator.TypeChecker, Expression.right, Env).kind)
             {
                 case 'float':
                 {
@@ -348,7 +349,7 @@ export const generateUnaryExpression = (BytecodeGenerator: BytecodeGenerator, Ex
                             argument: '0 0',
                         }
                     );
-                    generateExpression(BytecodeGenerator, Expression.right);
+                    generateExpression(BytecodeGenerator, Expression.right, Env);
                     BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.fadd,
@@ -364,7 +365,7 @@ export const generateUnaryExpression = (BytecodeGenerator: BytecodeGenerator, Ex
                             argument: '0x' + (0).toString(16)
                         }
                     );
-                    generateExpression(BytecodeGenerator, Expression.right);
+                    generateExpression(BytecodeGenerator, Expression.right, Env);
                     BytecodeGenerator.Bytecode.push(
                         {
                             type: Instructions.fadd,
@@ -377,7 +378,7 @@ export const generateUnaryExpression = (BytecodeGenerator: BytecodeGenerator, Ex
     };
 };
 
-export const generateLiteral = (BytecodeGenerator: BytecodeGenerator, Expression: Literal): void =>
+export const generateLiteral = (BytecodeGenerator: BytecodeGenerator, Expression: Literal, Env: Environment): void =>
 {
     switch (Expression.kind)
     {
@@ -430,13 +431,13 @@ export const generateLiteral = (BytecodeGenerator: BytecodeGenerator, Expression
     };
 };
 
-const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression: BinaryExpression | AssignmentExpression): void =>
+const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression: BinaryExpression | AssignmentExpression, Env: Environment): void =>
 {
     switch (Expression.operator.kind)
     {
         case '+':
         {
-            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, BytecodeGenerator.TypeChecker.env).kind)
+            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, Env).kind)
             {
                 case 'int':
                 {
@@ -473,7 +474,7 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
         case '-':
         {
-            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, BytecodeGenerator.TypeChecker.env).kind)
+            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, Env).kind)
             {
                 case 'int':
                 {
@@ -500,7 +501,7 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
         case '*':
         {
-            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, BytecodeGenerator.TypeChecker.env).kind)
+            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, Env).kind)
             {
                 case 'int':
                 {
@@ -537,7 +538,7 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
         case '/':
         {
-            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, BytecodeGenerator.TypeChecker.env).kind)
+            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, Env).kind)
             {
                 case 'int':
                 {
@@ -564,7 +565,7 @@ const getOperatorInstruction = (BytecodeGenerator: BytecodeGenerator, Expression
 
         case '%':
         {
-            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, BytecodeGenerator.TypeChecker.env).kind)
+            switch (getExpressionType(BytecodeGenerator.TypeChecker, Expression, Env).kind)
             {
                 case 'int':
                 {
