@@ -19,6 +19,7 @@ import
     UnaryUpdateExpression,
     
     Expr,
+    Argument,
 } from "./GlobalNodes.ts";
 
 import
@@ -443,6 +444,46 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
         lhs = {} as Expr;
     };
 
+    if (lhs.type == 'Identifier')
+    {
+        while (parser.at().type == TokenType.leftParenthesis)
+        {
+            parser.eat();
+            
+            const args: Expr[] = []
+
+            if (parser.at().type != TokenType.rightParenthesis)
+            {
+                while (true)
+                {
+                    args.push(parseExpression(parser, 2));
+            
+                    if (parser.at().type == TokenType.comma)
+                    {
+                        parser.eat();
+                        continue;
+                    }
+    
+                    break;
+                };
+            }
+
+            const rightParen = parser.expect(
+                TokenType.rightParenthesis,
+                true,
+                `Expected a ')' (${TokenType.rightParenthesis}) instead of '${parser.at().value}' (${parser.at().type})`,
+                ')'
+            );
+            
+            lhs = {
+                type: 'FunctionCall',
+                caller: lhs,
+                args: args,
+                where: [lhs.where[0], lhs.where[1], rightParen.where.end]
+            }
+        }
+    }
+
     while (parser.at().type == TokenType.leftBracket)
     {
         parser.eat();
@@ -466,6 +507,42 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
     
     return lhs;
 }
+
+export const parseArg = (parser: Parser): Argument =>
+{
+    const ident = parseLiteral(parser, parser.at());
+    
+    if (ident.type != 'Identifier')
+    {
+        new error(
+            'Syntax Error',
+            `Expected an identifier. ${ident.type} is an invalid argument`,
+            parser.source,
+            makePosition(parser.filename, ident.where[0], ident.where[1], ident.where[2]),
+            'Identifier'
+        );
+
+        return {
+
+        } as Argument
+    }
+
+    parser.expect(
+        TokenType.colon,
+        true,
+        `Expected a ':' (${TokenType.colon}) to specify the type of '${ident.value}' instead of the '${parser.at().value}' (${parser.at().type}) token`,
+        ':'
+    );
+
+    const identType = parseType(parser);
+
+    return {
+        type: 'Argument',
+        variable: ident,
+        simpleType: identType,
+        where: [ident.where[0], ident.where[1], ident.where[2]]
+    };
+};
 
 export const parseType = (parser: Parser): simpleType => 
 {

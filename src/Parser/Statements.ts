@@ -11,10 +11,14 @@ import
     Expr,
     Stmt,
     IfStatement,
+    FunctionStatement,
+    Argument,
+    ReturnStatement,
 } from './GlobalNodes.ts';
 
 import 
 {
+    parseArg,
     parseExpression,
     parseLiteral,
 
@@ -301,6 +305,123 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
 
     return DeclStatement;
 };
+
+export const parseFunctionDecleration = (parser: Parser): FunctionStatement => 
+{
+    const procKW = parser.eat();
+
+    const ident = parser.expect(
+        TokenType.identifier,
+        true,
+        `Expected an identifier instead of the '${parser.at().value}' (${parser.at().type}) token`,
+        'Identifier'
+    );
+
+    parser.expect(
+        TokenType.leftParenthesis,
+        true,
+        `Expected an '(' (${TokenType.leftParenthesis}) instead of the '${parser.at().value}' (${parser.at().type}) token`,
+        '('
+    );
+
+    const args: Argument[] = []
+
+
+    if (parser.at().type != TokenType.rightParenthesis)
+    {
+        while (true)
+        {
+            args.push(parseArg(parser));
+    
+            if (parser.at().type == TokenType.comma)
+            {
+                parser.eat();
+                continue;
+            }
+            break;
+        };
+    };
+    
+    parser.expect(
+        TokenType.rightParenthesis,
+        true,
+        `Expected an ')' (${TokenType.rightParenthesis}) instead of the '${parser.at().value}' (${parser.at().type}) token`,
+        ')'
+    );
+
+    parser.expect(
+        TokenType.colon,
+        true,
+        `Expected a ':' (${TokenType.colon}) to specify the return type instead of the '${parser.at().value}' (${parser.at().type}) token`,
+        ':'
+    );
+
+    const returnType = parseType(parser);
+
+    parser.expect(
+        TokenType.leftBrace,
+        true,
+        `Expected a '{' (${TokenType.leftBrace}) for the block body of the function instead of the '${parser.at().value}' (${parser.at().type}) token`,
+        '{'
+    );
+
+    const body: Stmt[] = [];
+
+    while (parser.at().type != TokenType.rightBrace)
+    {
+        if (parser.at().value == 'EOF')
+        {
+            new error(
+                'Syntax Error',
+                `Expected to get a '}' (${TokenType.rightBrace}) to end the block body of the function instead of the '${parser.at().value}' (${parser.at().type}) token`,
+                parser.source,
+                parser.at().where,
+                '}'
+            );
+        };
+
+        body.push(parser.parseStatement());
+    };
+
+    const rbrace = parser.eat();
+
+    parser.expect(
+        TokenType.semicolon,
+        true,
+        `Unexpectedly got the '${parser.at().value}' (${parser.at().type}) token. Expected a semicolon at the end of the Statement`,
+        ';'
+    );
+
+    const FuncStatement: FunctionStatement = {
+        type: 'FunctionStatement',
+        simpleType: returnType,
+        args: args,
+        body: body,
+        where: [procKW.where.start, procKW.where.line, rbrace.where.end]
+    };
+
+    return FuncStatement;
+};
+
+export const parseReturnStatement = (parser: Parser): ReturnStatement =>
+{
+    const returnKW = parser.eat();
+
+    const Expression: Expr = parseExpression(parser, 2);
+
+    parser.expect(
+        TokenType.semicolon,
+        true,
+        `Unexpectedly got the '${parser.at().value}' (${parser.at().type}) token. Expected a semicolon at the end of the Statement`,
+        ';'
+    );
+
+    return {
+        type: 'ReturnStatement',
+        Expression: Expression,
+        where: [returnKW.where.start, returnKW.where.end, Expression.where[2]]
+    }
+}
 
 export const parseExpressionStatement = (parser: Parser): ExpressionStatement =>
 {

@@ -8,7 +8,9 @@ import
     EmptyStatement,
     DeclerationStatement,
     ExpressionStatement,
-    type IfStatement,
+    IfStatement,
+    FunctionStatement,
+    ReturnStatement,
 } from './GlobalNodes.ts';
 
 import
@@ -32,6 +34,8 @@ import
     parseExpressionStatement,
     parseDeclarationStatement,
     parseIfStatement,
+    parseFunctionDecleration,
+    parseReturnStatement,
 } from './Statements.ts';
 
 
@@ -146,6 +150,20 @@ export class Parser
                 return ifStatement;
             };
             
+            case TokenType.proc:
+            {
+                const FuncStatement: FunctionStatement = parseFunctionDecleration(this);
+
+                return FuncStatement;
+            };
+
+            case TokenType.return:
+            {
+                const returnStatement: ReturnStatement = parseReturnStatement(this);
+
+                return returnStatement;
+            }
+
             default:
             {
                 const ExprStatement: ExpressionStatement = parseExpressionStatement(this);

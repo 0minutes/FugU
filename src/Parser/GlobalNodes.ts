@@ -43,6 +43,15 @@ export interface IfStatement
     where: number[];
 };
 
+export interface FunctionStatement
+{
+    type: 'FunctionStatement';
+    simpleType: simpleType;
+    args: Argument[];
+    body: Stmt[];
+    where: number[];
+}
+
 export interface ElseStatement
 {
     type: 'ElseStatement';
@@ -57,7 +66,22 @@ export interface ExpressionStatement
     where: number[];
 };
 
+export interface ReturnStatement
+{
+    type: 'ReturnStatement';
+    Expression: Expr;
+    where: number[];
+}
+
 // Expressions
+
+export interface Argument
+{
+    type: 'Argument';
+    variable: Identifier;
+    simpleType: simpleType;
+    where: number[];
+}
 
 export interface ElementAccessExpression
 {
@@ -137,5 +161,13 @@ export interface Identifier
     where: number[];
 };
 
-export type Stmt = ExpressionStatement | IfStatement | DeclerationStatement | EmptyStatement;
-export type Expr = ElementAccessExpression | ArrayExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;
+export interface FunctionCall
+{
+    type: "FunctionCall";
+    caller: Expr;
+    args: Expr[];
+    where: number[];
+}
+
+export type Stmt = ReturnStatement | FunctionStatement | ExpressionStatement | IfStatement | DeclerationStatement | EmptyStatement;
+export type Expr = FunctionCall | Argument | ElementAccessExpression | ArrayExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;

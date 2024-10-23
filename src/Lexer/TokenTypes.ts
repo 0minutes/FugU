@@ -138,6 +138,7 @@ export const keywords: Record <string, TokenType> =
     'include': TokenType.include,
 
     'proc': TokenType.proc,
+    'return': TokenType.return,
 
     'if': TokenType.if,
     'elif': TokenType.elif,
