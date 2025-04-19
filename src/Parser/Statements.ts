@@ -11,7 +11,7 @@ import
     Expr,
     Stmt,
     IfStatement,
-    FunctionStatement,
+    ProcStatement,
     Argument,
     ReturnStatement,
 } from './GlobalNodes.ts';
@@ -53,7 +53,7 @@ const formatValues = (items: Identifier[]): string =>
     return values.length ? `${values.join(', ')} and ${lastValue}` : lastValue || '';
 };
 
-export const parseIfStatement = (parser: Parser) =>
+export const parseIfStatement = (parser: Parser): IfStatement =>
 {
     const iftoken = parser.eat();
 
@@ -306,16 +306,22 @@ export const parseDeclarationStatement = (parser: Parser): DeclerationStatement 
     return DeclStatement;
 };
 
-export const parseFunctionDecleration = (parser: Parser): FunctionStatement => 
+export const parseProcedureDecleration = (parser: Parser): ProcStatement => 
 {
     const procKW = parser.eat();
 
-    const ident = parser.expect(
+    parser.expect(
         TokenType.identifier,
-        true,
+        false,
         `Expected an identifier instead of the '${parser.at().value}' (${parser.at().type}) token`,
         'Identifier'
     );
+
+    const ident = {
+        type: 'Identifier',
+        value: parser.at().value,
+        where: [parser.at().where.line, parser.at().where.start, parser.eat().where.end],
+    };
 
     parser.expect(
         TokenType.leftParenthesis,
@@ -325,7 +331,6 @@ export const parseFunctionDecleration = (parser: Parser): FunctionStatement =>
     );
 
     const args: Argument[] = []
-
 
     if (parser.at().type != TokenType.rightParenthesis)
     {
@@ -337,11 +342,12 @@ export const parseFunctionDecleration = (parser: Parser): FunctionStatement =>
             {
                 parser.eat();
                 continue;
-            }
+            };
+
             break;
         };
     };
-    
+
     parser.expect(
         TokenType.rightParenthesis,
         true,
@@ -361,7 +367,7 @@ export const parseFunctionDecleration = (parser: Parser): FunctionStatement =>
     parser.expect(
         TokenType.leftBrace,
         true,
-        `Expected a '{' (${TokenType.leftBrace}) for the block body of the function instead of the '${parser.at().value}' (${parser.at().type}) token`,
+        `Expected a '{' (${TokenType.leftBrace}) for the block body of the procedure instead of the '${parser.at().value}' (${parser.at().type}) token`,
         '{'
     );
 
@@ -373,7 +379,7 @@ export const parseFunctionDecleration = (parser: Parser): FunctionStatement =>
         {
             new error(
                 'Syntax Error',
-                `Expected to get a '}' (${TokenType.rightBrace}) to end the block body of the function instead of the '${parser.at().value}' (${parser.at().type}) token`,
+                `Expected to get a '}' (${TokenType.rightBrace}) to end the block body of the procedure instead of the '${parser.at().value}' (${parser.at().type}) token`,
                 parser.source,
                 parser.at().where,
                 '}'
@@ -385,15 +391,15 @@ export const parseFunctionDecleration = (parser: Parser): FunctionStatement =>
 
     const rbrace = parser.eat();
 
-    parser.expect(
-        TokenType.semicolon,
-        true,
-        `Unexpectedly got the '${parser.at().value}' (${parser.at().type}) token. Expected a semicolon at the end of the Statement`,
-        ';'
-    );
+    
+    if (parser.at().type == TokenType.semicolon)
+    {
+        parser.eat();
+    };
 
-    const FuncStatement: FunctionStatement = {
-        type: 'FunctionStatement',
+    const FuncStatement: ProcStatement = {
+        type: 'ProcStatement',
+        value: ident as Identifier,
         simpleType: returnType,
         args: args,
         body: body,
@@ -419,7 +425,7 @@ export const parseReturnStatement = (parser: Parser): ReturnStatement =>
     return {
         type: 'ReturnStatement',
         Expression: Expression,
-        where: [returnKW.where.start, returnKW.where.end, Expression.where[2]]
+        where: [returnKW.where.line, returnKW.where.start, returnKW.where.end]
     }
 }
 

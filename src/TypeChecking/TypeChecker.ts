@@ -10,7 +10,7 @@ import
 
 import
 {
-    Environment
+    Env
 } from './Environment.ts'
 
 import
@@ -18,22 +18,24 @@ import
     checkDeclerationStatements,
     checkExpressionStatement,
     checkIfStatements,
+    checkProcStatement,
+    checkReturnStatement,
 } from './Statements.ts'
 
 export class TypeChecker {
     parser: Parser;
-    env: Environment;
+    env: Env;
 
     warnings: number
 
-    constructor(parser: Parser, env: Environment)
+    constructor(parser: Parser, env: Env)
     {
         this.parser = parser;
         this.env = env;
         this.warnings = 0;
     };
 
-    checkStatement = (Statement: Stmt, env: Environment): void =>
+    checkStatement = (Statement: Stmt, env: Env): void =>
     {
         switch (Statement.type)
         {
@@ -52,6 +54,19 @@ export class TypeChecker {
             case "DeclerationStatement":
             {
                 checkDeclerationStatements(this, Statement, env);
+                break;
+            }
+
+            case 'ProcStatement':
+            {
+                checkProcStatement(this, Statement, env);
+                break;
+            };
+
+            case 'ReturnStatement':
+            {
+                console.log(1)
+                checkReturnStatement(this, Statement, env);
                 break;
             };
         };

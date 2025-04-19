@@ -27,9 +27,14 @@ import
     error,
     makePosition,
 } from '../Errors/Errors.ts';
-import type { Environment } from './Environment.ts';
 
-export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr, env: Environment): simpleType =>
+import
+{
+    Env,
+    Environment
+} from './Environment.ts';
+
+export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr, env: Env): simpleType =>
 {
     switch (Expression.type)
     {
@@ -81,6 +86,66 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr, en
             };
 
             return getBinaryExpressionType(TypeChecker, Expression, env);
+        };
+
+        case 'ProcCall':
+        {
+            const proc = env.getProc(Expression.caller.value)
+
+            if (proc == undefined)
+            {
+                new error(
+                    'Name Error',
+                    `Unable to find the procedure '${Expression.caller.value}'`,
+                    TypeChecker.parser.source,
+                    makePosition(TypeChecker.parser.filename, Expression.caller.where[0], Expression.caller.where[1], Expression.caller.where[2])
+                );
+
+                return {
+                    kind: 'errorType',
+                    where: Expression.where 
+                } as errorType;
+            }
+            
+            if (proc.argsType.length != Expression.args.length)
+            {
+                new error(
+                    'Type Error',
+                    `'${Expression.caller.value}' accepts ${proc.argsType.length} arguments but ${Expression.args.length} were given`,
+                    TypeChecker.parser.source,
+                    makePosition(TypeChecker.parser.filename, Expression.caller.where[0], Expression.caller.where[1], Expression.caller.where[2])
+                );
+
+                return {
+                    kind: 'errorType',
+                    where: Expression.where 
+                } as errorType;
+            };
+
+
+            for (let i = 0; i < proc.argsType.length; ++i)
+            {
+                if (proc.argsType[i].kind != getExpressionType(TypeChecker, Expression.args[i], env).kind)
+                {
+                    new error(
+                        'Type Error',
+                        `Expected the '${stringifyType(proc.argsType[i])}' type instead of the '${stringifyType(getExpressionType(TypeChecker, Expression.args[i], env))}' type`,
+                        TypeChecker.parser.source,
+                        makePosition(TypeChecker.parser.filename, Expression.args[i].where[0], Expression.args[i].where[1], Expression.args[i].where[2]),
+                        stringifyType(proc.argsType[i])
+                    );
+                }
+            };
+
+            return {
+                kind: proc.retType.kind,
+                where: Expression.where 
+            } as simpleType;
+        };
+
+        case 'Argument':
+        {
+            return Expression.simpleType;
         };
 
         case 'ElementAccessExpression':
@@ -220,7 +285,6 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr, en
             {
                 if (!(env.getVar(element.value)!.init))
                 {
-                    
                     new error(
                         'Type Warning',
                         `The variable '${element.value}' is not initialized and can therefore not be operated on`,
@@ -312,15 +376,18 @@ export const getExpressionType = (TypeChecker: TypeChecker, Expression: Expr, en
                 } as errorType;
             };
 
-            return simpleType.type;
-        };
+            return {
+                kind: simpleType.type.kind,
+                where: Expression.where
+            } as simpleType;
+        };  
 
         case 'Literal':
         {
             return getLiteralType(Expression);
         };
     }; 
-};
+};  
 
 export const getLiteralType = (Literal: Literal): simpleType =>
 {

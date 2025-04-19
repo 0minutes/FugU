@@ -16,6 +16,8 @@ import
     Expr,
     Identifier,
     IfStatement,
+    ReturnStatement,
+    ProcStatement,
 } from "../Parser/GlobalNodes.ts";
 
 import 
@@ -28,9 +30,12 @@ import
     error,
     makePosition
 } from "../Errors/Errors.ts";
+
 import
 {
-    Environment
+    Env,
+    Environment,
+    ProcEnvironment,
 } from "./Environment.ts";
 
 export const checkExpressionStatement = (TypeChecker: TypeChecker, Expression: Expr, Env: Environment): void =>
@@ -42,7 +47,7 @@ export const checkIfStatements = (TypeChecker: TypeChecker, IfStatement: IfState
 {
     getExpressionType(TypeChecker, IfStatement.condition, Env);
 
-    const ifEnv: Environment = new Environment(Env)
+    const ifEnv: Environment = new Environment(Env, 'IfEnv')
 
     for (const Stmt of IfStatement.body)
     {
@@ -58,6 +63,8 @@ export const checkDeclerationStatements = (TypeChecker: TypeChecker, Decleration
     {
         const initType: simpleType = getExpressionType(TypeChecker, DeclerationStatement.init, Env);
         
+        console.log(initType);
+
         if (!allTypesCompatible(declType, initType))
         {
             new error(
@@ -87,3 +94,54 @@ export const checkDeclerationStatements = (TypeChecker: TypeChecker, Decleration
         };
     };
 };
+
+export const checkReturnStatement = (TypeChecker: TypeChecker, ReturnStatement: ReturnStatement, Env: Env): void =>
+{
+    if (Env.envType != 'ProcEnv')
+    {
+        new error (
+            'Syntax Error',
+            'Return outside of function statement',
+            TypeChecker.parser.source,
+            makePosition(TypeChecker.parser.filename, ReturnStatement.where[0], ReturnStatement.where[1], ReturnStatement.where[2])
+        )
+    };
+
+    if (getExpressionType(TypeChecker, ReturnStatement.Expression, Env).kind != (Env as ProcEnvironment).returnType.kind)
+    {
+        new error(
+            'Type Error',
+            `The return statement must return a ${stringifyType((Env as ProcEnvironment).returnType)} instead of ${stringifyType(getExpressionType(TypeChecker, ReturnStatement.Expression, Env))}`,
+            TypeChecker.parser.source,
+            makePosition(TypeChecker.parser.filename, ReturnStatement.Expression.where[0], ReturnStatement.Expression.where[1], ReturnStatement.Expression.where[2]),
+            stringifyType((Env as ProcEnvironment).returnType)
+        );
+    };
+};
+
+export const checkProcStatement = (TypeChecker: TypeChecker, ProcStatement: ProcStatement, Env: Environment): void =>
+{
+    const args: simpleType[] = [];
+    const procEnv = new ProcEnvironment(ProcStatement.simpleType, Env, 'ProcEnv');
+
+    for (const arg of ProcStatement.args)
+    {
+        args.push(getExpressionType(TypeChecker, arg, Env));
+        procEnv.addVar(arg.variable.value, getExpressionType(TypeChecker, arg, Env), true, true);
+    };
+    
+    for (const Stmt of ProcStatement.body)
+    {
+        TypeChecker.checkStatement(Stmt, procEnv);
+    };
+
+    if (Env.addProc(ProcStatement.value.value, args, ProcStatement.simpleType) == undefined)
+    {
+        new error(
+            'Name Error',
+            `The procedure '${ProcStatement.value.value}' has already been declared and therefore cannot be re-declared`,
+            TypeChecker.parser.source,
+            makePosition(TypeChecker.parser.filename, ProcStatement.value.where[0], ProcStatement.value.where[1], ProcStatement.value.where[2])
+        );
+    };
+}

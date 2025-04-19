@@ -43,9 +43,10 @@ export interface IfStatement
     where: number[];
 };
 
-export interface FunctionStatement
+export interface ProcStatement
 {
-    type: 'FunctionStatement';
+    type: 'ProcStatement';
+    value: Identifier;
     simpleType: simpleType;
     args: Argument[];
     body: Stmt[];
@@ -161,13 +162,13 @@ export interface Identifier
     where: number[];
 };
 
-export interface FunctionCall
+export interface ProcCall
 {
-    type: "FunctionCall";
-    caller: Expr;
+    type: "ProcCall";
+    caller: Identifier;
     args: Expr[];
     where: number[];
 }
 
-export type Stmt = ReturnStatement | FunctionStatement | ExpressionStatement | IfStatement | DeclerationStatement | EmptyStatement;
-export type Expr = FunctionCall | Argument | ElementAccessExpression | ArrayExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;
+export type Stmt = ReturnStatement | ProcStatement | ExpressionStatement | IfStatement | DeclerationStatement | EmptyStatement;
+export type Expr = ProcCall | Argument | ElementAccessExpression | ArrayExpression | BinaryExpression | UnaryExpression | UnaryUpdateExpression | AssignmentExpression | Literal | Identifier;

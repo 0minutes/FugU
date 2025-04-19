@@ -20,6 +20,7 @@ import
     
     Expr,
     Argument,
+    type ProcCall,
 } from "./GlobalNodes.ts";
 
 import
@@ -476,11 +477,11 @@ export const parseLiteral = (parser: Parser, token: Token): Expr =>
             );
             
             lhs = {
-                type: 'FunctionCall',
+                type: 'ProcCall',
                 caller: lhs,
                 args: args,
                 where: [lhs.where[0], lhs.where[1], rightParen.where.end]
-            }
+            } as ProcCall
         }
     }
 
@@ -523,10 +524,11 @@ export const parseArg = (parser: Parser): Argument =>
         );
 
         return {
-
-        } as Argument
+        } as Argument;
     }
 
+    parser.eat();
+    
     parser.expect(
         TokenType.colon,
         true,

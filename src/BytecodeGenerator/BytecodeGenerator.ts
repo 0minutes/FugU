@@ -1,138 +1,49 @@
-import
-{
-    Stmt
+import {
+    Global
 } from "../Parser/GlobalNodes.ts";
 
-import
-{
-    Parser
-} from "../Parser/Parser.ts";
+import {
+    Instructions,
+    Instruction,
+    ConstPool,
+    ConstPoolItem,
+    ConstPoolType,
+    intToBytes,
+} from './common.ts'
 
-import
-{
-    Environment
-} from "../TypeChecking/Environment.ts";
+export class BytecodeGenerator {
+    global: Global;
 
-import
-{
-    TypeChecker
-} from "../TypeChecking/TypeChecker.ts";
+    constPool: ConstPool;
+    instructions: number[];
 
-import
-{
-    Bytecode,
-} from "./Instructions.ts";
+    constructor (global: Global) {
+        this.global = global;
+        this.instructions = [];
+        this.constPool = {
+            body: []
+        };
+    };
 
-import 
-{
-    generateDeclerationStatement,
-    generateExpressionStatement,
-    generateIfStatement
-} from './Statements.ts'
+    constPoolAdd = (type: ConstPoolType, value: number[]): number[] => {
+        const idx = intToBytes(this.constPool.body.length);
 
-export class BytecodeGenerator
-{
-    Bytecode: Bytecode;
-    Stringbytecode: string;
-    TypeChecker: TypeChecker;
-    Environment: Environment;
-    parser: Parser;
-
-    constructor(parser: Parser, Environment: Environment)
-    {
-        this.parser = parser;
-        this.Environment = Environment;
-        this.TypeChecker = new TypeChecker(this.parser, Environment);
-        this.TypeChecker.checkGlobal()
+        this.constPool.body.push({
+            idx: idx,
+            type: type,
+            value: value
+        });
         
-
-        this.Bytecode = [];
-
-        this.generateBytecode();
-        this.Stringbytecode = this.stringify();
+        return idx;
     };
 
-    stringify = (): string =>
-    {
-        let stringBytecode: string = '';
-
-        let maxInstructionLen = 1;
-
-        for (const instruction of this.Bytecode)
-        {
-            if (instruction.argument != undefined)
-            {
-                if ((instruction.type + ' ' + instruction.argument).length > maxInstructionLen)
-                {
-                    maxInstructionLen = (instruction.type + ' ' + instruction.argument).length;
-                };
-            }
-            else if ((instruction.type).length > maxInstructionLen)
-            {
-                maxInstructionLen = (instruction.type).length;
-            };
+    generateHumanReadable = (): Instruction[] => {
+        const Program: Instruction[] = [];
+        
+        for (const Statement of this.global.body) {
+            Program.push(generateHRStatement(this, Statement))
         };
 
-        stringBytecode += 'main:\n' 
-
-        for (const instruction of this.Bytecode)
-        {
-            stringBytecode += '  ' + instruction.type;
-
-            if (instruction.argument)
-            {
-                stringBytecode += ' ' + instruction.argument;
-            };
-
-            stringBytecode += ';';
-
-            if (instruction.comment != undefined && instruction.argument != undefined)
-            {
-                stringBytecode += (' '.repeat(maxInstructionLen - (instruction.type + ' ' + instruction.argument).length) + `// ${instruction.comment}`)
-            }
-
-            else if (instruction.comment != undefined && instruction.argument == undefined)
-            {
-                stringBytecode += (' '.repeat(maxInstructionLen - (instruction.type).length) + ` // ${instruction.comment}`)
-            };
-
-            stringBytecode += '\n';
-        };
-
-        stringBytecode += '  end;\n'
-
-        return stringBytecode;
+        return Program;
     };
-
-    generateStatement = (Statement: Stmt, env: Environment): void =>
-    {
-        switch (Statement.type)
-        {
-            case 'ExpressionStatement':
-            {
-                generateExpressionStatement(this, Statement, env);
-                break;
-            };
-
-            case 'DeclerationStatement':
-            {
-                generateDeclerationStatement(this, Statement, env);
-                break;
-            };
-            
-            case 'IfStatement':
-            {
-                generateIfStatement(this, Statement, env);
-                break;
-            };
-        };
-    };
-
-    generateBytecode = (): void =>
-    {
-        for (const statement of this.parser.ast.body) 
-        {
-            this.generateStatement(statement, this.TypeChecker.env);
-        };
-    };
-};
+}

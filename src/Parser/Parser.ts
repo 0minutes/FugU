@@ -9,7 +9,7 @@ import
     DeclerationStatement,
     ExpressionStatement,
     IfStatement,
-    FunctionStatement,
+    ProcStatement,
     ReturnStatement,
 } from './GlobalNodes.ts';
 
@@ -34,7 +34,7 @@ import
     parseExpressionStatement,
     parseDeclarationStatement,
     parseIfStatement,
-    parseFunctionDecleration,
+    parseProcedureDecleration,
     parseReturnStatement,
 } from './Statements.ts';
 
@@ -65,7 +65,7 @@ export class Parser
         if (this.at().type == TokenType.eof)
         {
             return this.at();
-        }
+        };
 
         return this.tokens[1];
     };
@@ -144,7 +144,7 @@ export class Parser
 
             case TokenType.if:
             {
-                // @ts-ignore <We are expecting an if statement since we are at tok if>
+                
                 const ifStatement: IfStatement = parseIfStatement(this);
 
                 return ifStatement;
@@ -152,7 +152,7 @@ export class Parser
             
             case TokenType.proc:
             {
-                const FuncStatement: FunctionStatement = parseFunctionDecleration(this);
+                const FuncStatement: ProcStatement = parseProcedureDecleration(this);
 
                 return FuncStatement;
             };

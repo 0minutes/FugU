@@ -11,15 +11,62 @@ export interface VariableInfo
     init: boolean;
 };
 
+export interface procInfo
+{
+    argsType: simpleType[];
+    retType: simpleType;
+};
+
+
 export class Environment
 {
     variablePool: Map<string, VariableInfo>;
-    parentEnv: undefined | Environment;
+    procPool: Map<string, procInfo>;
 
-    constructor (parentEnv: undefined | Environment)
+    envType: EnvTypes;
+    parentEnv: undefined | Env;
+
+    constructor (parentEnv: undefined | Env, envType: EnvTypes)
     {
         this.variablePool = new Map();
+        this.procPool = new Map();
+
         this.parentEnv = parentEnv;
+
+        this.envType = envType;
+    };
+
+    getProc = (key: string): procInfo | undefined =>
+    {
+        if (this.procPool.has(key))
+        {
+            return this.procPool.get(key);
+        };
+
+        if (this.parentEnv != undefined)
+        {
+            return this.parentEnv.getProc(key);
+        };
+
+        return undefined;
+    };
+    
+    addProc = (key: string, argsType: simpleType[] ,retType: simpleType): procInfo | undefined =>
+    {
+        if (this.procPool.has(key))
+        {
+            return undefined;
+        };
+
+        const procInfo: procInfo =
+        {
+            argsType: argsType,
+            retType: retType
+        };
+
+        this.procPool.set(key, procInfo);
+
+        return procInfo;
     };
 
     getVar = (key: string): VariableInfo | undefined =>
@@ -56,3 +103,18 @@ export class Environment
         return variable;
     };
 };
+
+export class ProcEnvironment extends Environment
+{
+    returnType: simpleType;
+
+    constructor (returnType: simpleType, parentEnv: undefined | Env, envType: EnvTypes)
+    {
+        super(parentEnv, envType);
+        this.returnType = returnType;
+    };
+};
+
+
+export type Env = ProcEnvironment | Environment;
+export type EnvTypes = 'IfEnv' | 'ProcEnv' | 'Global';

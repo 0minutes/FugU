@@ -1,10 +1,5 @@
 import
 {
-    BytecodeGenerator
-} from './src/BytecodeGenerator/BytecodeGenerator.ts';
-
-import
-{
     Parser
 } from './src/Parser/Parser.ts';
 
@@ -12,51 +7,24 @@ import
 {
     Environment,
 } from './src/TypeChecking/Environment.ts';
-
+import
+{
+    TypeChecker
+} from './src/TypeChecking/TypeChecker.ts';
 
 const shell = (): number =>
 {
-    const Env: Environment = new Environment(undefined);
+    const Env: Environment = new Environment(undefined, 'Global');
 
     while (true)
     {
-        const input = prompt('>> ', '') as string;
-        const parser = new Parser('<stdin>', input);
-        const generator = new BytecodeGenerator(parser, Env);
-
-        console.log(generator.Stringbytecode);
+        const input = prompt('>> ', '') as string;  
+        const parser = new Parser('<stdin>', input); 
+        new TypeChecker(parser, Env).checkGlobal();
+        console.log(parser.ast);
     };
 };
 
-const fromFile = async (filepath: string, outputFile: string, dump: boolean) =>
-{
-    let contents;
-
-    try
-    {
-        contents = Deno.readTextFileSync(filepath);
-    }
-    catch (e)
-    {
-        console.log(`Unknown file path: ${filepath}`);
-        console.log(e);
-        Deno.exit(1);
-    };
-
-    const env: Environment = new Environment(undefined);
-    const generator: BytecodeGenerator = new BytecodeGenerator(new Parser(filepath, contents), env);
-
-    if (dump)
-    {
-        console.log(generator.Stringbytecode)
-    };
-
-    const encoder = new TextEncoder();
-    const data = encoder.encode(generator.Stringbytecode);
-
-    await Deno.writeFile(outputFile + '.fug', data);
-};
-    
 const printHelp = () => 
 {
     console.log(`
@@ -80,7 +48,7 @@ Note:
     `);
 };
     
-const main = async () =>
+const main = () =>
 {
     const ArgvFlags = argParse();
 
@@ -104,7 +72,7 @@ const main = async () =>
             Deno.exit(1);
         };
 
-        await fromFile(ArgvFlags.filepath as string, ArgvFlags.outputfile, ArgvFlags.dump)
+        console.error('Not implemented');
 
         Deno.exit(0);
     };
@@ -123,7 +91,7 @@ const argParse = () =>
         help: false,
         run: false,
         outputfile: 'o',
-        filepath: undefined,
+        filepath: '',
         dump: false,
     }
 
@@ -163,9 +131,8 @@ const argParse = () =>
 
                 i++;
 
-                const filePath = args[i] as string;
+                const filePath = args[i];
                 
-                //@ts-ignore <>
                 flags.filepath = filePath;
 
                 flags.run = true;
