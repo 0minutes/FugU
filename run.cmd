@@ -1,1 +1,0 @@
-g++ vm/main.cpp -o vm;./vm.exe tests/interpreterTest.fug;
